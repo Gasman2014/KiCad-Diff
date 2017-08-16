@@ -1,25 +1,24 @@
 #!/usr/bin/env bash
 
-# Takes one or two git ref's as arguments and generates visual diffs between them
+# Takes one or two Fossil ref's as arguments and generates visual diffs between them
 # If only one ref specified, generates a diff from that file
 # If no refs specified, assumes HEAD
 
 OUTPUT_DIR="./plots"
 
-#export PYTHONPATH=/Applications/Kicad/kicad.app/Contents/Frameworks/python/site-packages/:$PATH
 # Find .kicad_files that differ between commits
 ###############################################
 
-## Look at number of arguments provided set different variables based on number of git refs
-## User provided no git references, compare against last git commit
+## Look at number of arguments provided set different variables based on number of fossil refs
+## User provided no Fossil references, compare against last Fossil commit
 qual="100"
 if [ $# -eq 0 ]; then
     DIFF_1="current"
     DIFF_2=$(fossil info current | grep ^uuid: | sed 's/uuid:         //g' | cut -c 1-6)
     echo $DIFF_2
-#    CHANGED_KICAD_FILES=$(git diff --name-only "$DIFF_2" | grep '.kicad_pcb')
-# Might need to use strategy here to cope with spaces in name
-#4     sh -c {find . -name "*.pro" -print0 | xargs -0 gsed -E -i.bkp 's/update=.*/update=Date/'}
+
+# TODO Might need to use strategy here to cope with spaces in name
+# using some varient of sh -c {find . -name "*.pro" -print0 | xargs -0 gsed -E -i.bkp 's/update=.*/update=Date/'}
     CHANGED_KICAD_FILES=$(fossil diff --brief -r  "$DIFF_2" | grep '.kicad_pcb$' | sed 's/^CHANGED  //g; s/^ADDED    //g')
     if [[ -z "$CHANGED_KICAD_FILES" ]]; then echo "No .kicad_pcb files differ" && exit 0; fi
     # Copy all modified kicad_file to $OUTPUT_DIR/current
@@ -27,13 +26,13 @@ if [ $# -eq 0 ]; then
         mkdir -p "$OUTPUT_DIR/$DIFF_1"
         cp "$k" $OUTPUT_DIR/current
     done
-    # Copy the specified git commit kicad_file to $OUTPUT_DIR/$(git ref)
+    # Copy the specified Fossil commit kicad_file to $OUTPUT_DIR/$(Fossil ref)
     for k in $CHANGED_KICAD_FILES; do
         mkdir -p "$OUTPUT_DIR/$DIFF_2"
         echo "Copying $DIFF_2:$k to $OUTPUT_DIR/$DIFF_2/"
         fossil cat $k -r $DIFF_2 > "$OUTPUT_DIR/$DIFF_2/$(basename $k)"
     done
-## User provided 1 git reference to compare against current files
+## User provided 1 Fossil reference to compare against current files
 elif [ $# -eq 1 ]; then
     DIFF_1="current"
     DIFF_2="$1"
@@ -44,13 +43,13 @@ elif [ $# -eq 1 ]; then
         mkdir -p "$OUTPUT_DIR/$DIFF_1"
         cp "$k" $OUTPUT_DIR/current
     done
-    # Copy the specified git commit kicad_file to $OUTPUT_DIR/$(git ref)
+    # Copy the specified Fossil commit kicad_file to $OUTPUT_DIR/$(Fossil ref)
     for k in $CHANGED_KICAD_FILES; do
         mkdir -p "$OUTPUT_DIR/$DIFF_2"
         echo "Copying $DIFF_2:$k to $OUTPUT_DIR/$DIFF_2/$k"
         fossil cat $k -r $DIFF_2  > "$OUTPUT_DIR/$DIFF_2/$(basename $k)"
     done
-## User provided 2 git references to compare
+## User provided 2 Fossil references to compare
 elif [ $# -eq 2 ]; then
     DIFF_1="$1"
     DIFF_2="$2"
@@ -251,7 +250,7 @@ cat >> $OUTPUT_DIR/index.html <<HTML
   </div>
 </div>
 HTML
-
+#Need to adjsut the width of the TRYPTYCH view so it is bigger (and maybe dif underneath?)
 cat >> $OUTPUT_DIR/tryptych/$(basename $g).html <<HTML
 <!DOCTYPE HTML>
 <html lang="en">
