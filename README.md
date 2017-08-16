@@ -30,3 +30,10 @@ Dependencies
   #. Image Magick
   #. Fossil scm
   #. Probably some others but all have been installed with the help of brew
+  
+  ## screenshots
+Overview
+![screenshot overview](/Documents/Overview)
+
+Three panel view
+![screenshot Three panel view](/Documents/3panel)
