@@ -33,7 +33,7 @@ Dependencies
   
   ## screenshots
 Overview
-![screenshot overview](/Documents/Overview)
+![screenshot overview](/Documents/Overview.png)
 
 Three panel view
-![screenshot Three panel view](/Documents/3panel)
+![screenshot Three panel view](/Documents/3panel.png)
