@@ -371,7 +371,7 @@ div.title {
     <a target="_blank" href = $(basename $g).html>
       <a href= ../$DIFF_1/$(basename $g)><img src = "../$DIFF_1/$(basename $g)" width=500></a>
     </a>
-    <div class="desc2">$DIFF_1</div>
+    <div class="desc1">$DIFF_1</div>
   </div>
 </div>
 <div class="responsive">
@@ -392,12 +392,9 @@ div.title {
 </div>
 HTML
 done
-
 cat >>$OUTPUT_DIR/index.html<<FOOT
 <div class="clearfix"></div>
 <div style="padding:6px;">
-<p>Graphical diffs of Kicad PCB (pcbnew) files.</p>
-<p></p>
 </div>
 FOOT
 echo "HTML created and written to index.html"
