@@ -4,6 +4,10 @@
 # If only one ref specified, generates a diff from that file
 # If no refs specified, assumes HEAD
 
+#TODO Move all formatting to an external css file.
+#TODO Improve 3-pane layout
+#TODO Add commandline quality option?
+
 OUTPUT_DIR="./plots"
 
 # Find .kicad_files that differ between commits
@@ -150,6 +154,9 @@ cat >> $OUTPUT_DIR/index.html <<HEAD
 <html lang="en">
 <head>
 <style>
+body {
+    background-color: #a2b1c6;
+}
 div.gallery {
     border: 1px solid #ccc;
 }
@@ -166,6 +173,7 @@ div.gallery img {
 div.desc {
     padding: 15px;
     text-align: center;
+    font: 25px arial, sans-serif;
 }
 
 * {
@@ -197,32 +205,58 @@ div.desc {
     clear: both;
 }
 
-p.sans {
-    font-family: Arial, Helvetica, sans-serif;
+div.desc {
+    padding: 15px;
+    text-align: center;
+    font: 20px arial, sans-serif;
+}
+div.desc1 {
+    padding: 15px;
+    text-align: left;
+    align: middle;
+    font: 20px arial, sans-serif;
+    color: #FFFFFF;
+}
+div.desc2 {
+    padding: 15px;
+    text-align: left;
+    font: 20px arial, sans-serif;
+    color: #FFFFFF;
+}
+div.title {
+    padding: 15px;
+    text-align: left;
+    font: 30px arial, sans-serif;
+    color: #496075;
+}
+.box {
+  float: left;
+  width: 20px;
+  height: 20px;
+  margin: 5px;
+  border: 1px solid rgba(0, 0, 0, .2);
 }
 
-p.mono {
-    font-family: Courier, monospaced;
+.red {
+  background: #F40008;
 }
-h1  {
-    color: #0000ff;
+
+.green {
+  background: #43ff01;
 }
-.nobr {
-    white-space: nowrap
-}
+
+
 
 </style>
 
 </head>
 <body>
-<p class="sans">
-<h1>PCBnew Graphical Diff</h1></p>
-<p class="mono">
-<h4>
-<td class=nobr>Items in <p style="color:green;">GREEN</p> are in $DIFF_1 and not in $DIFF_2</td><br>
-<td class=nobr>Items in <p style="color:red;">RED</p> are in $DIFF_2 and not in $DIFF_1</td><br>
-<h/4>
-</p>
+<div class="title">
+PCBnew Graphical Diff</div>
+
+<div class="box green"></div><div class="desc1">in <b>$DIFF_1</b> and not in <b>$DIFF_2</b></div>
+<div class="box red"></div><div class="desc2">in <b>$DIFF_2</b> and not in <b>$DIFF_1</b></div>
+
 
 HEAD
 
@@ -256,6 +290,9 @@ cat >> $OUTPUT_DIR/tryptych/$(basename $g).html <<HTML
 <html lang="en">
 <head>
 <style>
+body {
+    background-color: #a2b1c6;
+}
 div.gallery {
     border: 1px solid #ccc;
 }
@@ -272,8 +309,27 @@ div.gallery img {
 div.desc {
     padding: 15px;
     text-align: center;
+    font: 20px arial, sans-serif;
+    background: #ffffff;
 }
-
+div.desc1 {
+    padding: 15px;
+    text-align: center;
+    font: 20px arial, sans-serif;
+    background: #43FF01;
+}
+div.desc2 {
+    padding: 15px;
+    text-align: center;
+    font: 20px arial, sans-serif;
+    background: #F40008;
+}
+div.title {
+    padding: 15px;
+    text-align: left;
+    font: 30px arial, sans-serif;
+    color: #496075;
+}
 * {
     box-sizing: border-box;
 }
@@ -281,7 +337,7 @@ div.desc {
 .responsive {
     padding: 0 6px;
     float: left;
-    width: 24.99999%;
+    width: 33.332%;
 }
 
 @media only screen and (max-width: 700px){
@@ -303,12 +359,11 @@ div.desc {
     clear: both;
 }
 
+
 </style>
 </head>
 
-<h2>$base</h2>
-
-
+<div class="title">$base</div>
 
 <body>
 <div class="responsive">
@@ -316,7 +371,7 @@ div.desc {
     <a target="_blank" href = $(basename $g).html>
       <a href= ../$DIFF_1/$(basename $g)><img src = "../$DIFF_1/$(basename $g)" width=500></a>
     </a>
-    <div class="desc">$DIFF_1</div>
+    <div class="desc2">$DIFF_1</div>
   </div>
 </div>
 <div class="responsive">
@@ -332,7 +387,7 @@ div.desc {
     <a target="_blank" href = $(basename $g).html>
       <a href= ../$DIFF_2/$(basename $g)> <img src = "../$DIFF_2/$(basename $g)" width=500></a>
     </a>
-    <div class="desc">$DIFF_2</div>
+    <div class="desc2">$DIFF_2</div>
   </div>
 </div>
 HTML
