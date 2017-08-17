@@ -4,18 +4,29 @@
 # If only one ref specified, generates a diff from that file
 # If no refs specified, assumes HEAD
 
-#TODO Move all formatting to an external css file.
-#TODO Improve 3-pane layout
-#TODO Add commandline quality option?
-
+# TODO Consider moving all formatting to a single external css file.
+# TODO Improve 3-pane layout - possible two side by side and comparison image underneath.
+# TODO Add commandline quality option - Quality is dpi. 100 is fast but low quality 300 is a good compromise.
+# TODO Improve sed removal of the the 'ADDED' 'CHANGED' tags. There is a difference in number of spaces in diffs with
+# one vs two arguments. Need to match any number of spaces.
+# Something like tr -d 'CHANGED[:space:]||ADDED[:space:]'
+# TODO Remove filename from display format i.e 'filename-F_Cu' becomes 'F_Cu'
 OUTPUT_DIR="./plots"
+# TODO Have added this temprarily to simply remove all the plots prior to generating files.
+# Theoretically the script could check if the files have already been generated and then only generate the
+# missing files. This would permit multiple diff compares and you could also use an external diff tool like p4merge
+# but the disadvantage is that the resoultions have to match. It is also more complicated to script
+# Ideally one could request random compares within the web interface and there would
+# be 'on the fly' svg/png creation and diff showing.
 
+
+rm -r $OUTPUT_DIR
 # Find .kicad_files that differ between commits
 ###############################################
 
 ## Look at number of arguments provided set different variables based on number of fossil refs
 ## User provided no Fossil references, compare against last Fossil commit
-qual="100"
+qual="300"
 if [ $# -eq 0 ]; then
     DIFF_1="current"
     DIFF_2=$(fossil info current | grep ^uuid: | sed 's/uuid:         //g' | cut -c 1-6)
@@ -23,7 +34,7 @@ if [ $# -eq 0 ]; then
 
 # TODO Might need to use strategy here to cope with spaces in name
 # using some varient of sh -c {find . -name "*.pro" -print0 | xargs -0 gsed -E -i.bkp 's/update=.*/update=Date/'}
-    CHANGED_KICAD_FILES=$(fossil diff --brief -r  "$DIFF_2" | grep '.kicad_pcb$' | sed 's/^CHANGED  //g; s/^ADDED    //g')
+    CHANGED_KICAD_FILES=$(fossil diff --brief -r  "$DIFF_2" | grep '.kicad_pcb$' | tr -d 'CHANGED[:space:]||ADDED[:space:]')
     if [[ -z "$CHANGED_KICAD_FILES" ]]; then echo "No .kicad_pcb files differ" && exit 0; fi
     # Copy all modified kicad_file to $OUTPUT_DIR/current
     for k in $CHANGED_KICAD_FILES; do
@@ -40,7 +51,8 @@ if [ $# -eq 0 ]; then
 elif [ $# -eq 1 ]; then
     DIFF_1="current"
     DIFF_2="$1"
-    CHANGED_KICAD_FILES=$(fossil diff --brief -r  "$DIFF_2" | grep '.kicad_pcb$' | sed 's/^CHANGED  //g; s/^ADDED    //g')
+    #CHANGED_KICAD_FILES=$(fossil diff --brief -r  "$DIFF_2" | grep '.kicad_pcb$' | sed 's/^CHANGED  //g; s/^ADDED    //g')
+    CHANGED_KICAD_FILES=$(fossil diff --brief -r  "$DIFF_2" | grep '.kicad_pcb$' | tr -d 'CHANGED[:space:]||ADDED[:space:]')
     if [[ -z "$CHANGED_KICAD_FILES" ]]; then echo "No .kicad_pcb files differ" && exit 0; fi
     # Copy all modified kicad_file to $OUTPUT_DIR/current
     for k in $CHANGED_KICAD_FILES; do
@@ -57,7 +69,7 @@ elif [ $# -eq 1 ]; then
 elif [ $# -eq 2 ]; then
     DIFF_1="$1"
     DIFF_2="$2"
-    CHANGED_KICAD_FILES=$(git diff --name-only "$DIFF_1" "$DIFF_2" | grep '.kicad_pcb')
+    CHANGED_KICAD_FILES=$(fossil diff --brief -r "$DIFF_1" --to "$DIFF_2" | grep '.kicad_pcb' | tr -d 'CHANGED[:space:]||ADDED[:space:]')
     if [[ -z "$CHANGED_KICAD_FILES" ]]; then echo "No .kicad_pcb files differ" && exit 0; fi
     # Copy all modified kicad_file to $OUTPUT_DIR/current
     for k in $CHANGED_KICAD_FILES; do
@@ -70,7 +82,7 @@ elif [ $# -eq 2 ]; then
         echo "Copying $DIFF_2:$k to $OUTPUT_DIR/$DIFF_2/$k"
         fossil cat $k -r $DIFF_2 > "$OUTPUT_DIR/$DIFF_2/$(basename $k)"
     done
-## User provided too many git referencess
+## User provided too many referencess
 else
     echo "Please only provide 1 or 2 arguments: not $#"
     exit 2
@@ -83,7 +95,7 @@ echo "Kicad files saved to:  '$OUTPUT_DIR/$DIFF_1' and '$OUTPUT_DIR/$DIFF_2'"
 #curl -s https://gist.githubusercontent.com/spuder/4a76e42f058ef7b467d9/raw -o /tmp/plot_board.py
 #chmod +x /tmp/plot_board.py
 
-#I have fond the simplest way to achieve this is to save the files as SVG and use rsvg-conver to produce the .png files
+#I have found the simplest way to achieve this is to save the files as SVG and use rsvg-conver to produce the .png files
 
 for f in $OUTPUT_DIR/$DIFF_1/*.kicad_pcb; do
     mkdir -p /tmp/svg/$DIFF_1
@@ -234,6 +246,7 @@ div.title {
   width: 20px;
   height: 20px;
   margin: 5px;
+  border-radius: 50%;
   border: 1px solid rgba(0, 0, 0, .2);
 }
 
