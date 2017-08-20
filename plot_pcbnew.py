@@ -48,23 +48,20 @@ layers = [
     ("B_Mask", pcbnew.B_Mask, "Mask bottom"),
     ("F_Mask", pcbnew.F_Mask, "Mask top"),
     ("Edge_Cuts", pcbnew.Edge_Cuts, "Edges"),
+    ("In_1_Cu", pcbnew.In1_Cu, "Inner1"),
+    ("In_2_Cu", pcbnew.In2_Cu, "Inner2")
 ]
-
+# Parse layers - might need more than these!
 # popt.SetColor(COLOR4D(0.050, 0.050, 0.050, 0.1))
 # Ideally would set colour of layer with the 'SetColor' method which was previosly descibed with colour names
 # e.g.popt.SetColor(YELLOW) - this does not work and, although the COLOR4D doesn't cause an error it doesn't work.
 # Nor does setting an integer work.
 
 for layer_info in layers:
-  pctl.SetLayer(layer_info[1])
-  pctl.OpenPlotfile(layer_info[0], pcbnew.PLOT_FORMAT_SVG, layer_info[2])
-  pctl.PlotLayer()
+    pctl.SetLayer(layer_info[1])
+    pctl.OpenPlotfile(layer_info[0], pcbnew.PLOT_FORMAT_SVG, layer_info[2])
+    pctl.PlotLayer()
 
-# One approach is to write to html and use a 'greyed' filter
-# github - aktos-io kicad-tols
-#
-# Alternative approach is produce a pile of svg fileas nad post process them to add colour
-# see http://scottbezek.blogspot.co.uk/2016/04/scripting-kicad-pcbnew-exports.html
 # At the end you have to close the last plot, otherwise you don't know when
 # the object will be recycled!
 pctl.ClosePlot()

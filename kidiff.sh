@@ -277,7 +277,7 @@ HEAD
 for g in $OUTPUT_DIR/diff-$DIFF_1-$DIFF_2/*.png; do
 #convert $g -fuzz 1% -trim +repage $g
 #convert -resize x250 $(basename $g) thumbs/th_$(basename $g)
-
+convert $g
 cp  $g ./plots/thumbs/th_$(basename $g)
 route=$g
 file=${route##*/}
