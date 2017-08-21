@@ -38,8 +38,8 @@ mkdir $OUTPUT_DIR
 # looked at using a graphical diff viewer like p4merge.
 # Set directory for web backend
 
-WEB_DIR=$OUTPUT_DIR"/web"
-mkdir $WEB_DIR
+WEB_DIR="/web"
+mkdir $OUTPUT_DIR/$WEB_DIR
 cp ~/Kicad/KiCad-Diff/style.css $WEB_DIR/
 
 # TODO Might need to use a more complex strategy  to cope with spaces in filename
@@ -300,18 +300,20 @@ cat >> $OUTPUT_DIR/index.html <<HEAD
 <html lang="en">
 <head>
 <link rel="stylesheet" type="text/css" href="web/style.css" media="screen" />
+
 </head>
 
 <body>
 <div class="title">
 PCBnew Graphical Diff</div>
-<div class="box green"></div><div class="subtitle">ADDED i.e. in <b>$DIFF_1</b> and not in <b>$DIFF_2</b></div>
-<div class="box red"></div><div class="subtitle">REMOVED i.e. in <b>$DIFF_2</b> and not in <b>$DIFF_1</b></div>
+<div class="box green"></div><div class="subtitle"><b>ADDED</b> i.e. in <b>$DIFF_1</b> and not in <b>$DIFF_2</b></div>
+<div class="box red"></div><div class="subtitle"><b>REMOVED</b> i.e. in <b>$DIFF_2</b> and not in <b>$DIFF_1</b></div>
 HEAD
 
 for g in $OUTPUT_DIR/diff-$DIFF_1-$DIFF_2/*.png; do
-convert -resize 300 $g ./plots/thumbs/th_$(basename $g)
+convert $g -resize 300x245 ./plots/thumbs/th_$(basename $g)
 #cp  $g ./plots/thumbs/th_$(basename $g)
+# Attempt toforce to same size to prevent gaps in page.
 
   route=$g
   file=${route##*/}
@@ -336,8 +338,14 @@ cat >> $OUTPUT_DIR/tryptych/$(basename $g).html <<HTML
 <html lang="en">
 <head>
 <link rel="stylesheet" type="text/css" href="../web/style.css" media="screen" />
+<style>
+div.responsive {
+   padding: 0 6px;
+   float: left;
+   width: 33.332%;
+}
+</style>
 </head>
-
 <div class="title">$base</div>
 
 <body>

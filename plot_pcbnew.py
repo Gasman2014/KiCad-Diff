@@ -21,7 +21,7 @@ plotDir = filePath
 
 popt.SetOutputDirectory(plotDir)
 popt.SetPlotFrameRef(False)
-popt.SetLineWidth(pcbnew.FromMM(0.1))
+popt.SetLineWidth(pcbnew.FromMM(0.15))
 popt.SetAutoScale(False)
 popt.SetScale(2)
 popt.SetMirror(False)

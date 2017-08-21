@@ -6,49 +6,44 @@ TODO Need to differentiate the .responsive tag between the index and tryptych vi
   body {
     background-color: #a2b1c6;
   }
-  div.gallery {
+  .gallery {
     border: 1px solid #ccc;
   }
 
-  div.gallery:hover {
+  .gallery:hover {
     border: 1px solid #777;
   }
 
-  div.gallery img {
+  .gallery img {
     width: 100%;
     height: auto;
   }
-
+/*
+  .gallery img {
+    width: 100%;
+    height: auto;
+  }
+*/
   .desc {
     padding: 15px;
     text-align: center;
     font: 15px arial, sans-serif;
   }
-  div.desc1 {
-    padding: 15px;
-    text-align: center;
-    font: 15px arial, sans-serif;
-    background: #43FF01;
-  }
 
-  div.desc2 {
-    padding: 15px;
-    text-align: center;
-    font: 15px arial, sans-serif;
-    background: #F40008;
-  }
-  div.title {
+  .title {
     padding: 15px;
     text-align: left;
     font: 30px arial, sans-serif;
     color: #496075;
   }
-  div.subtitle {
+
+  .subtitle {
     padding: 15px;
     text-align: left;
     font: 15px arial, sans-serif;
     color: #000000;
   }
+
   * {
       box-sizing: border-box;
   }
@@ -69,6 +64,7 @@ Block for Tryptych
       float: left;
       width: 24.99999%;
   }
+
 
   @media only screen and (max-width: 700px){
       .responsive {
