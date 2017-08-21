@@ -19,11 +19,10 @@ TODO Need to differentiate the .responsive tag between the index and tryptych vi
     height: auto;
   }
 
-  div.desc {
+  .desc {
     padding: 15px;
     text-align: center;
     font: 15px arial, sans-serif;
-    background: #ffffff;
   }
   div.desc1 {
     padding: 15px;
@@ -44,7 +43,12 @@ TODO Need to differentiate the .responsive tag between the index and tryptych vi
     font: 30px arial, sans-serif;
     color: #496075;
   }
-
+  div.subtitle {
+    padding: 15px;
+    text-align: left;
+    font: 15px arial, sans-serif;
+    color: #000000;
+  }
   * {
       box-sizing: border-box;
   }
@@ -99,4 +103,8 @@ Block for Tryptych
 
   .green {
     background: #43ff01;
+  }
+
+  .white {
+    background: #ffffff;
   }

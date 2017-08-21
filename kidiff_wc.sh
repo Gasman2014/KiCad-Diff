@@ -25,6 +25,7 @@ rm -r /tmp/svg
 # Set directory for plotting
 OUTPUT_DIR="./plots"
 rm -r $OUTPUT_DIR
+mkdir $OUTPUT_DIR
 
 # TODO Have added this temporarily to simply remove all the plots prior to generating files.
 # Theoretically the script could check if the files have already been generated and then only generate the
@@ -36,7 +37,10 @@ rm -r $OUTPUT_DIR
 # Try to keep the web components seperate from the images so that the images could be
 # looked at using a graphical diff viewer like p4merge.
 # Set directory for web backend
+
 WEB_DIR=$OUTPUT_DIR"/web"
+mkdir $WEB_DIR
+cp ~/Kicad/KiCad-Diff/style.css $WEB_DIR/
 
 # TODO Might need to use a more complex strategy  to cope with spaces in filename
 # using some varient of 'find . -name "*.pro" -print0 | xargs -0'
@@ -291,129 +295,31 @@ fi
 # It would make more sense to stream this to $OUTPUT_DIR/web/style.css
 # and reuse it in the 'tryptich' section.
 
-cat >> $OUTPUT_DIR/index.html <<_HEAD_
+cat >> $OUTPUT_DIR/index.html <<HEAD
 <!DOCTYPE HTML>
 <html lang="en">
 <head>
-<style>
-body {
-    background-color: #a2b1c6;
-}
-div.gallery {
-    border: 1px solid #ccc;
-}
-
-div.gallery:hover {
-    border: 1px solid #777;
-}
-
-div.gallery img {
-    width: 100%;
-    height: auto;
-}
-
-div.desc {
-    padding: 15px;
-    text-align: center;
-    font: 20px arial, sans-serif;
-    color: #002B36;
-}
-
-* {
-    box-sizing: border-box;
-}
-
-.responsive {
-    padding: 0 6px;
-    float: left;
-    width: 24.99999%;
-}
-
-@media only screen and (max-width: 700px){
-    .responsive {
-        width: 49.99999%;
-        margin: 6px 0;
-    }
-}
-
-@media only screen and (max-width: 500px){
-    .responsive {
-        width: 100%;
-    }
-}
-
-.clearfix:after {
-    content: "";
-    display: table;
-    clear: both;
-}
-
-div.desc {
-    padding: 15px;
-    text-align: center;
-    font: 15px arial, sans-serif;
-}
-div.desc1 {
-    padding: 15px;
-    text-align: left;
-    align: middle;
-    font: 15px arial, sans-serif;
-    color: ##002B36;
-}
-div.desc2 {
-    padding: 15px;
-    text-align: left;
-    font: 15px arial, sans-serif;
-    color: ##002B36;
-}
-div.title {
-    padding: 15px;
-    text-align: left;
-    font: 30px arial, sans-serif;
-    color: ##002B36;
-}
-.box {
-  float: left;
-  width: 20px;
-  height: 20px;
-  margin: 5px;
-  border: 1px solid rgba(0, 0, 0, .2);
-}
-
-.red {
-  background: #F40008;
-}
-
-.green {
-  background: #43ff01;
-}
-
-
-
-</style>
-
+<link rel="stylesheet" type="text/css" href="web/style.css" media="screen" />
 </head>
+
 <body>
 <div class="title">
 PCBnew Graphical Diff</div>
+<div class="box green"></div><div class="subtitle">ADDED i.e. in <b>$DIFF_1</b> and not in <b>$DIFF_2</b></div>
+<div class="box red"></div><div class="subtitle">REMOVED i.e. in <b>$DIFF_2</b> and not in <b>$DIFF_1</b></div>
+HEAD
 
-<div class="box green"></div><div class="desc1">in <b>$DIFF_1</b> and not in <b>$DIFF_2</b></div>
-<div class="box red"></div><div class="desc2">in <b>$DIFF_2</b> and not in <b>$DIFF_1</b></div>
-_HEAD_
-
-#for g in $OUTPUT_DIR/diff-$DIFF_1-$DIFF_2/$HTTP/*.png; do
 for g in $OUTPUT_DIR/diff-$DIFF_1-$DIFF_2/*.png; do
-  cp  $g ./plots/thumbs/th_$(basename $g)
+convert -resize 300 $g ./plots/thumbs/th_$(basename $g)
+#cp  $g ./plots/thumbs/th_$(basename $g)
 
   route=$g
   file=${route##*/}
   base=${file%.*}
-  dir=$(dirname $g)
+#  dir=$(dirname $g)
+#  echo $dir
 
-  echo $dir
-
-
-cat >> $OUTPUT_DIR/index.html <<_HTML_
+cat >> $OUTPUT_DIR/index.html <<HTML
 <div class="responsive">
   <div class="gallery">
     <a target="_blank" href = tryptych/$(basename $g).html>
@@ -422,84 +328,14 @@ cat >> $OUTPUT_DIR/index.html <<_HTML_
     <div class="desc">$base</div>
   </div>
 </div>
-_HTML_
+HTML
 
 
 cat >> $OUTPUT_DIR/tryptych/$(basename $g).html <<HTML
 <!DOCTYPE HTML>
-  <html lang="en">
-  <head>
-  <style>
-  body {
-    background-color: #a2b1c6;
-  }
-  div.gallery {
-    border: 1px solid #ccc;
-  }
-
-  div.gallery:hover {
-    border: 1px solid #777;
-  }
-
-  div.gallery img {
-    width: 100%;
-    height: auto;
-  }
-
-  div.desc {
-    padding: 15px;
-    text-align: center;
-    font: 15px arial, sans-serif;
-    background: #ffffff;
-  }
-  div.desc1 {
-    padding: 15px;
-    text-align: center;
-    font: 15px arial, sans-serif;
-    background: #43FF01;
-  }
-  div.desc2 {
-    padding: 15px;
-    text-align: center;
-    font: 15px arial, sans-serif;
-    background: #F40008;
-  }
-  div.title {
-    padding: 15px;
-    text-align: left;
-    font: 30px arial, sans-serif;
-    color: #93A1A1;
-  }
-  * {
-    box-sizing: border-box;
-  }
-
-  .responsive {
-    padding: 0 6px;
-    float: left;
-    width: 33.332%;
-  }
-
-  @media only screen and (max-width: 700px){
-    .responsive {
-      width: 49.99999%;
-      margin: 6px 0;
-    }
-  }
-
-  @media only screen and (max-width: 500px){
-    .responsive {
-      width: 100%;
-    }
-  }
-
-  .clearfix:after {
-    content: "";
-    display: table;
-    clear: both;
-  }
-
-</style>
+<html lang="en">
+<head>
+<link rel="stylesheet" type="text/css" href="../web/style.css" media="screen" />
 </head>
 
 <div class="title">$base</div>
@@ -511,7 +347,7 @@ cat >> $OUTPUT_DIR/tryptych/$(basename $g).html <<HTML
         <a target="_blank" href = $(basename $g).html>
             <a href= ../$DIFF_1/$(basename $g)><img src = "../$DIFF_1/$(basename $g)" width=500></a>
         </a>
-        <div class="desc1">$DIFF_1</div>
+        <div class="desc green">$DIFF_1</div>
     </div>
 </div>
 
@@ -520,7 +356,7 @@ cat >> $OUTPUT_DIR/tryptych/$(basename $g).html <<HTML
         <a target="_blank" href = $(basename $g).html>
             <a href = ../diff-$DIFF_1-$DIFF_2/$(basename $g) ><img src = ../diff-$DIFF_1-$DIFF_2/$(basename $g) width=500></a>
         </a>
-        <div class="desc">Composite</div>
+        <div class="desc white">Composite</div>
     </div>
 </div>
 
@@ -529,7 +365,7 @@ cat >> $OUTPUT_DIR/tryptych/$(basename $g).html <<HTML
       <a target="_blank" href = $(basename $g).html>
           <a href= ../$DIFF_2/$(basename $g)> <img src = "../$DIFF_2/$(basename $g)" width=500></a>
       </a>
-      <div class="desc2">$DIFF_2</div>
+      <div class="desc red">$DIFF_2</div>
   </div>
 </div>
 HTML

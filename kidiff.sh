@@ -296,114 +296,21 @@ cat >> $OUTPUT_DIR/index.html <<_HEAD_
 <html lang="en">
 <head>
 <style>
-body {
-    background-color: #a2b1c6;
-}
-div.gallery {
-    border: 1px solid #ccc;
-}
-
-div.gallery:hover {
-    border: 1px solid #777;
-}
-
-div.gallery img {
-    width: 100%;
-    height: auto;
-}
-
-div.desc {
-    padding: 15px;
-    text-align: center;
-    font: 20px arial, sans-serif;
-    color: #002B36;
-}
-
-* {
-    box-sizing: border-box;
-}
-
-.responsive {
-    padding: 0 6px;
-    float: left;
-    width: 24.99999%;
-}
-
-@media only screen and (max-width: 700px){
-    .responsive {
-        width: 49.99999%;
-        margin: 6px 0;
-    }
-}
-
-@media only screen and (max-width: 500px){
-    .responsive {
-        width: 100%;
-    }
-}
-
-.clearfix:after {
-    content: "";
-    display: table;
-    clear: both;
-}
-
-div.desc {
-    padding: 15px;
-    text-align: center;
-    font: 15px arial, sans-serif;
-}
-div.desc1 {
-    padding: 15px;
-    text-align: left;
-    align: middle;
-    font: 15px arial, sans-serif;
-    color: ##002B36;
-}
-div.desc2 {
-    padding: 15px;
-    text-align: left;
-    font: 15px arial, sans-serif;
-    color: ##002B36;
-}
-div.title {
-    padding: 15px;
-    text-align: left;
-    font: 30px arial, sans-serif;
-    color: ##002B36;
-}
-.box {
-  float: left;
-  width: 20px;
-  height: 20px;
-  margin: 5px;
-  border: 1px solid rgba(0, 0, 0, .2);
-}
-
-.red {
-  background: #F40008;
-}
-
-.green {
-  background: #43ff01;
-}
-
-
-
+<link rel="stylesheet" href="style.css">
 </style>
-
 </head>
+
 <body>
 <div class="title">
 PCBnew Graphical Diff</div>
-
 <div class="box green"></div><div class="desc1">in <b>$DIFF_1</b> and not in <b>$DIFF_2</b></div>
 <div class="box red"></div><div class="desc2">in <b>$DIFF_2</b> and not in <b>$DIFF_1</b></div>
 _HEAD_
 
 #for g in $OUTPUT_DIR/diff-$DIFF_1-$DIFF_2/$HTTP/*.png; do
 for g in $OUTPUT_DIR/diff-$DIFF_1-$DIFF_2/*.png; do
-  cp  $g ./plots/thumbs/th_$(basename $g)
+  convert -resize 300 $g ./plots/thumbs/th_$(basename $g)
+  #cp  $g ./plots/thumbs/th_$(basename $g)
 
   route=$g
   file=${route##*/}
@@ -427,78 +334,10 @@ _HTML_
 
 cat >> $OUTPUT_DIR/tryptych/$(basename $g).html <<HTML
 <!DOCTYPE HTML>
-  <html lang="en">
-  <head>
-  <style>
-  body {
-    background-color: #a2b1c6;
-  }
-  div.gallery {
-    border: 1px solid #ccc;
-  }
-
-  div.gallery:hover {
-    border: 1px solid #777;
-  }
-
-  div.gallery img {
-    width: 100%;
-    height: auto;
-  }
-
-  div.desc {
-    padding: 15px;
-    text-align: center;
-    font: 15px arial, sans-serif;
-    background: #ffffff;
-  }
-  div.desc1 {
-    padding: 15px;
-    text-align: center;
-    font: 15px arial, sans-serif;
-    background: #43FF01;
-  }
-  div.desc2 {
-    padding: 15px;
-    text-align: center;
-    font: 15px arial, sans-serif;
-    background: #F40008;
-  }
-  div.title {
-    padding: 15px;
-    text-align: left;
-    font: 30px arial, sans-serif;
-    color: #93A1A1;
-  }
-  * {
-    box-sizing: border-box;
-  }
-
-  .responsive {
-    padding: 0 6px;
-    float: left;
-    width: 33.332%;
-  }
-
-  @media only screen and (max-width: 700px){
-    .responsive {
-      width: 49.99999%;
-      margin: 6px 0;
-    }
-  }
-
-  @media only screen and (max-width: 500px){
-    .responsive {
-      width: 100%;
-    }
-  }
-
-  .clearfix:after {
-    content: "";
-    display: table;
-    clear: both;
-  }
-
+<html lang="en">
+<head>
+<style>
+<link rel="stylesheet" href="style.css">
 </style>
 </head>
 
