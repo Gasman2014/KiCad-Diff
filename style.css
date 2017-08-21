@@ -22,19 +22,20 @@ TODO Need to differentiate the .responsive tag between the index and tryptych vi
   div.desc {
     padding: 15px;
     text-align: center;
-    font: 20px arial, sans-serif;
+    font: 15px arial, sans-serif;
     background: #ffffff;
   }
   div.desc1 {
     padding: 15px;
     text-align: center;
-    font: 20px arial, sans-serif;
+    font: 15px arial, sans-serif;
     background: #43FF01;
   }
+
   div.desc2 {
     padding: 15px;
     text-align: center;
-    font: 20px arial, sans-serif;
+    font: 15px arial, sans-serif;
     background: #F40008;
   }
   div.title {
@@ -43,39 +44,21 @@ TODO Need to differentiate the .responsive tag between the index and tryptych vi
     font: 30px arial, sans-serif;
     color: #496075;
   }
-  * {
-    box-sizing: border-box;
-  }
-
-  .responsive {
-    padding: 0 6px;
-    float: left;
-    width: 33.332%;
-  }
-
-  @media only screen and (max-width: 700px){
-    .responsive {
-      width: 49.99999%;
-      margin: 6px 0;
-    }
-  }
-
-  @media only screen and (max-width: 500px){
-    .responsive {
-      width: 100%;
-    }
-  }
-
-  .clearfix:after {
-    content: "";
-    display: table;
-    clear: both;
-  }
-
 
   * {
       box-sizing: border-box;
   }
+
+/*
+
+Block for Tryptych
+
+ .responsive {
+    padding: 0 6px;
+    float: left;
+    width: 33.332%;
+ }
+*/
 
   .responsive {
       padding: 0 6px;
@@ -102,30 +85,6 @@ TODO Need to differentiate the .responsive tag between the index and tryptych vi
       clear: both;
   }
 
-  div.desc {
-      padding: 15px;
-      text-align: center;
-      font: 20px arial, sans-serif;
-  }
-  div.desc1 {
-      padding: 15px;
-      text-align: left;
-      align: middle;
-      font: 20px arial, sans-serif;
-      color: #FFFFFF;
-  }
-  div.desc2 {
-      padding: 15px;
-      text-align: left;
-      font: 20px arial, sans-serif;
-      color: #FFFFFF;
-  }
-  div.title {
-      padding: 15px;
-      text-align: left;
-      font: 30px arial, sans-serif;
-      color: #496075;
-  }
   .box {
     float: left;
     width: 20px;

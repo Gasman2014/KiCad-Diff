@@ -19,17 +19,24 @@ qual="100"
 # 952927
 # convert F_Cu.png -fill "#952927" -fuzz 75% -opaque "#ffffff" test2.png
 
+# Remove old plot files
+rm -r /tmp/svg
+
+# Set directory for plotting
 OUTPUT_DIR="./plots"
 rm -r $OUTPUT_DIR
-WEB_DIR=$OUTPUT_DIR"/web"
-# TODO Have added this temprarily to simply remove all the plots prior to generating files.
+
+# TODO Have added this temporarily to simply remove all the plots prior to generating files.
 # Theoretically the script could check if the files have already been generated and then only generate the
 # missing files. This would permit multiple diff compares and you could also use an external diff tool like p4merge
 # but the disadvantage is that the resoultions have to match. It is also more complicated to script
 # Ideally one could request random compares within the web interface and there would
 # be 'on the fly' svg/png creation and diff showing.
+
 # Try to keep the web components seperate from the images so that the images could be
 # looked at using a graphical diff viewer like p4merge.
+# Set directory for web backend
+WEB_DIR=$OUTPUT_DIR"/web"
 
 # TODO Might need to use a more complex strategy  to cope with spaces in filename
 # using some varient of 'find . -name "*.pro" -print0 | xargs -0'
@@ -49,35 +56,25 @@ B_SilkS="#481649"
 B_Mask="#943197"
 F_Mask="#943197"
 Edge_Cuts="#C9C83B"
-In_1_Cu="#c2c200)"
-In_2_Cu="#c200c2"
+In1_Cu="#C2C200"
+In2_Cu="#C200C2"
+User_Dwgs="#C2C2C2"
+User_Cmts="#000085"
+User_Eco1="#008500"
+User_Eco2="#C2C200"
+B_Fab="#858585"
+F_Fab="#C2C200"
 
 
-#ColorPCBLayer_In1.Cu=rgba(#c2c200, 0.8)
-#ColorPCBLayer_In2.Cu=rgba(194, 0, 194, 0.800)
+# These are the colour definitions for the 'solarised' theme from pcbnew.
+#ColorPCBLayer_F.Cu=rgb(221, 47, 44)
 #ColorPCBLayer_In3.Cu=rgba(194, 194, 194, 0.800)
 #ColorPCBLayer_In4.Cu=rgba(0, 132, 132, 0.800)
 #ColorPCBLayer_In5.Cu=rgba(0, 132, 0, 0.800)
 #ColorPCBLayer_In6.Cu=rgba(0, 0, 132, 0.800)
-#ColorPCBLayer_B.Cu=rgba(0, 132, 0, 0.800)
-#ColorPCBLayer_B.Adhes=rgba(0, 0, 132, 0.800)
-#ColorPCBLayer_F.Adhes=rgba(132, 0, 132, 0.800)
-#ColorPCBLayer_B.Paste=rgba(0, 194, 194, 0.800)
-#ColorPCBLayer_F.Paste=rgba(132, 132, 132, 0.800)
-#ColorPCBLayer_B.SilkS=rgba(132, 0, 132, 0.800)
-#ColorPCBLayer_F.SilkS=rgba(0, 132, 132, 0.800)
-#ColorPCBLayer_B.Mask=rgba(132, 132, 0, 0.800)
-#ColorPCBLayer_F.Mask=rgba(132, 0, 132, 0.800)
-#ColorPCBLayer_Dwgs.User=rgba(194, 194, 194, 0.800)
-#ColorPCBLayer_Cmts.User=rgba(0, 0, 132, 0.800)
-#ColorPCBLayer_Eco1.User=rgba(0, 132, 0, 0.800)
-#ColorPCBLayer_Eco2.User=rgba(194, 194, 0, 0.800)
-#ColorPCBLayer_Edge.Cuts=rgba(194, 194, 0, 0.800)
 #ColorPCBLayer_Margin=rgba(194, 0, 194, 0.800)
 #ColorPCBLayer_B.CrtYd=rgba(194, 194, 0, 0.800)
 #ColorPCBLayer_F.CrtYd=rgba(132, 132, 132, 0.800)
-#ColorPCBLayer_B.Fab=rgba(132, 132, 132, 0.800)
-#ColorPCBLayer_F.Fab=rgba(194, 194, 0, 0.800)
 #ColorTxtFrontEx=rgba(194, 194, 194, 0.800)
 #ColorTxtBackEx=rgba(0, 0, 132, 0.800)
 #ColorTxtInvisEx=rgba(132, 132, 132, 0.800)
@@ -88,6 +85,9 @@ In_2_Cu="#c200c2"
 #ColorViaBBlindEx=rgba(132, 132, 0, 0.800)
 #ColorViaMicroEx=rgba(0, 132, 132, 0.800)
 #ColorNonPlatedEx=rgba(194, 194, 0, 0.800)
+
+
+
 #########################################################
 # Find the .kicad_pcb files that differ between commits #
 #########################################################
@@ -229,7 +229,8 @@ done
 #
 # Originally the intention was to use the ImageMagic 'composite stereo 0' function to identify
 # where items have moved but I could not get this to work.
-# -flatten -grayscale Rec709Luminance
+# This flattens the original files to greyscale and they need to be converted
+# back to rgb in order to be colourised.
 
 for g in $OUTPUT_DIR/$DIFF_1/*.png; do
   d=$(basename $g)
@@ -237,8 +238,8 @@ for g in $OUTPUT_DIR/$DIFF_1/*.png; do
   layerName=${y##*-}
   mkdir -p "$OUTPUT_DIR/diff-$DIFF_1-$DIFF_2"
   echo "Generating composite image $OUTPUT_DIR/diff-$DIFF_1-$DIFF_2/$(basename $g)"
-  convert '(' $OUTPUT_DIR/$DIFF_1/$(basename $g) -flatten -grayscale Rec709Luminance ')' \
-          '(' $OUTPUT_DIR/$DIFF_2/$(basename $g) -flatten -grayscale Rec709Luminance ')' \
+  convert '(' $OUTPUT_DIR/$DIFF_2/$(basename $g) -flatten -grayscale Rec709Luminance ')' \
+          '(' $OUTPUT_DIR/$DIFF_1/$(basename $g) -flatten -grayscale Rec709Luminance ')' \
           '(' -clone 0-1 -compose darken -composite ')' \
           -channel RGB -combine $OUTPUT_DIR/diff-$DIFF_1-$DIFF_2/$(basename $g)
   convert "$OUTPUT_DIR/diff-$DIFF_1-$DIFF_2/$(basename $g)" -fill ${!layerName} -fuzz 75% -opaque "#ffffff" "$OUTPUT_DIR/diff-$DIFF_1-$DIFF_2/$(basename $g)"
@@ -252,7 +253,6 @@ for p in $OUTPUT_DIR/$DIFF_1/*.png; do
   convert "$OUTPUT_DIR/$DIFF_1/${d%%.*}.png" -define png:color-type=2 "$OUTPUT_DIR/$DIFF_1/${d%%.*}.png"
   convert "$OUTPUT_DIR/$DIFF_1/${d%%.*}.png" -fill ${!layerName} -fuzz 75% -opaque "#ffffff" "$OUTPUT_DIR/$DIFF_1/${d%%.*}.png"
 done
-
 
 
 for p in $OUTPUT_DIR/$DIFF_2/*.png; do
@@ -297,7 +297,7 @@ cat >> $OUTPUT_DIR/index.html <<_HEAD_
 <head>
 <style>
 body {
-    background-color: #002B36;
+    background-color: #a2b1c6;
 }
 div.gallery {
     border: 1px solid #ccc;
@@ -450,14 +450,12 @@ cat >> $OUTPUT_DIR/tryptych/$(basename $g).html <<HTML
     padding: 15px;
     text-align: center;
     font: 15px arial, sans-serif;
-    color: #93A1A1
     background: #ffffff;
   }
   div.desc1 {
     padding: 15px;
     text-align: center;
     font: 15px arial, sans-serif;
-    color: #93A1A1
     background: #43FF01;
   }
   div.desc2 {
@@ -501,37 +499,39 @@ cat >> $OUTPUT_DIR/tryptych/$(basename $g).html <<HTML
     clear: both;
   }
 
+</style>
+</head>
 
-  </style>
-  </head>
+<div class="title">$base</div>
 
-  <div class="title">$base</div>
+<body>
 
-  <body>
-  <div class="responsive">
+<div class="responsive">
+    <div class="gallery">
+        <a target="_blank" href = $(basename $g).html>
+            <a href= ../$DIFF_1/$(basename $g)><img src = "../$DIFF_1/$(basename $g)" width=500></a>
+        </a>
+        <div class="desc1">$DIFF_1</div>
+    </div>
+</div>
+
+<div class="responsive">
+    <div class="gallery">
+        <a target="_blank" href = $(basename $g).html>
+            <a href = ../diff-$DIFF_1-$DIFF_2/$(basename $g) ><img src = ../diff-$DIFF_1-$DIFF_2/$(basename $g) width=500></a>
+        </a>
+        <div class="desc">Composite</div>
+    </div>
+</div>
+
+<div class="responsive">
   <div class="gallery">
-  <a target="_blank" href = $(basename $g).html>
-  <a href= ../$DIFF_1/$(basename $g)><img src = "../$DIFF_1/$(basename $g)" width=500></a>
-  </a>
-  <div class="desc1">$DIFF_1</div>
+      <a target="_blank" href = $(basename $g).html>
+          <a href= ../$DIFF_2/$(basename $g)> <img src = "../$DIFF_2/$(basename $g)" width=500></a>
+      </a>
+      <div class="desc2">$DIFF_2</div>
   </div>
-  </div>
-  <div class="responsive">
-  <div class="gallery">
-  <a target="_blank" href = $(basename $g).html>
-  <a href = ../diff-$DIFF_1-$DIFF_2/$(basename $g) ><img src = ../diff-$DIFF_1-$DIFF_2/$(basename $g) width=500></a>
-  </a>
-  <div class="desc">Composite</div>
-  </div>
-  </div>
-  <div class="responsive">
-  <div class="gallery">
-  <a target="_blank" href = $(basename $g).html>
-  <a href= ../$DIFF_2/$(basename $g)> <img src = "../$DIFF_2/$(basename $g)" width=500></a>
-  </a>
-  <div class="desc2">$DIFF_2</div>
-  </div>
-  </div>
+</div>
 HTML
 
 done

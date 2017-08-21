@@ -21,9 +21,9 @@ plotDir = filePath
 
 popt.SetOutputDirectory(plotDir)
 popt.SetPlotFrameRef(False)
-popt.SetLineWidth(pcbnew.FromMM(0.15))
+popt.SetLineWidth(pcbnew.FromMM(0.1))
 popt.SetAutoScale(False)
-popt.SetScale(1)
+popt.SetScale(2)
 popt.SetMirror(False)
 popt.SetUseGerberAttributes(True)
 popt.SetExcludeEdgeLayer(False)
@@ -48,13 +48,21 @@ layers = [
     ("B_Mask", pcbnew.B_Mask, "Mask bottom"),
     ("F_Mask", pcbnew.F_Mask, "Mask top"),
     ("Edge_Cuts", pcbnew.Edge_Cuts, "Edges"),
-    ("In_1_Cu", pcbnew.In1_Cu, "Inner1"),
-    ("In_2_Cu", pcbnew.In2_Cu, "Inner2")
+    ("In1_Cu", pcbnew.In1_Cu, "Inner1"),
+    ("In2_Cu", pcbnew.In2_Cu, "Inner2"),
+    ("User_Dwgs", pcbnew.Dwgs_User, "Dwgs_User"),
+    ("User_Cmts", pcbnew.Cmts_User, "Comments_User"),
+    ("User_Eco1", pcbnew.Eco1_User, "ECO1"),
+    ("User_Eco2", pcbnew.Eco2_User, "ECO2"),
+    ("B_Fab", pcbnew.B_Fab, "Fab bottom"),
+    ("F_Fab", pcbnew.F_Fab, "Fab top"),
 ]
 # Parse layers - might need more than these!
 # popt.SetColor(COLOR4D(0.050, 0.050, 0.050, 0.1))
-# Ideally would set colour of layer with the 'SetColor' method which was previosly descibed with colour names
-# e.g.popt.SetColor(YELLOW) - this does not work and, although the COLOR4D doesn't cause an error it doesn't work.
+# Ideally would set colour of layer with the 'SetColor' method which was
+# previously described with colour names
+# e.g.popt.SetColor(YELLOW)
+# this does not work. COLOR4D doesn't cause an error but also doesn't work.
 # Nor does setting an integer work.
 
 for layer_info in layers:
