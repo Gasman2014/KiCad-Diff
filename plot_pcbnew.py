@@ -41,23 +41,29 @@ pctl.SetColorMode(True)
 layers = [
     ("F_Cu", pcbnew.F_Cu, "Top layer"),
     ("B_Cu", pcbnew.B_Cu, "Bottom layer"),
-    ("B_Paste", pcbnew.B_Paste, "Paste Bottom"),
+    ("B_Paste", pcbnew.B_Paste, "Paste bottom"),
     ("F_Paste", pcbnew.F_Paste, "Paste top"),
     ("F_SilkS", pcbnew.F_SilkS, "Silk top"),
     ("B_SilkS", pcbnew.B_SilkS, "Silk top"),
     ("B_Mask", pcbnew.B_Mask, "Mask bottom"),
     ("F_Mask", pcbnew.F_Mask, "Mask top"),
     ("Edge_Cuts", pcbnew.Edge_Cuts, "Edges"),
+    ("Margin", pcbnew.Margin, "Margin"),
     ("In1_Cu", pcbnew.In1_Cu, "Inner1"),
     ("In2_Cu", pcbnew.In2_Cu, "Inner2"),
-    ("User_Dwgs", pcbnew.Dwgs_User, "Dwgs_User"),
-    ("User_Cmts", pcbnew.Cmts_User, "Comments_User"),
-    ("User_Eco1", pcbnew.Eco1_User, "ECO1"),
-    ("User_Eco2", pcbnew.Eco2_User, "ECO2"),
+    ("Dwgs_User", pcbnew.Dwgs_User, "Dwgs_User"),
+    ("Cmts_User", pcbnew.Cmts_User, "Comments_User"),
+    ("Eco1_User", pcbnew.Eco1_User, "ECO1"),
+    ("Eco2_User", pcbnew.Eco2_User, "ECO2"),
     ("B_Fab", pcbnew.B_Fab, "Fab bottom"),
     ("F_Fab", pcbnew.F_Fab, "Fab top"),
+    ("B_Adhes", pcbnew.B_Adhes, "Adhesive bottom"),
+    ("F_Adhes", pcbnew.F_Adhes, "Adhesive top"),
+    ("B_CrtYd", pcbnew.B_CrtYd, "Courtyard bottom"),
+    ("F_CrtYd", pcbnew.F_CrtYd, "Courtyard top"),
 ]
-# Parse layers - might need more than these!
+
+# Parse layers - not certain how to get vias
 # popt.SetColor(COLOR4D(0.050, 0.050, 0.050, 0.1))
 # Ideally would set colour of layer with the 'SetColor' method which was
 # previously described with colour names

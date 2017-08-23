@@ -4,18 +4,18 @@
 # If only one ref specified, generates a diff from that file
 # If no refs specified, assumes CURRENT
 
-# TODO Consider moving all formatting to a single, external css file and putting all
+# TODO Consider moving all formatting to a single, external css file and putting all id:0
 # created web content into a 'web' directory.
 
-# TODO Improve 3-pane layout - possible two side by side and comparison image underneath?
+# TODO Improve 3-pane layout - possible two side by side and comparison image underneath? id:2
 
-# TODO Remove filename from display format i.e 'filename-F_Cu' becomes 'F_Cu'
+# TODO Remove filename from display format i.e 'filename-F_Cu' becomes 'F_Cu' id:6
 
 qual="100"
-# TODO Add command line quality option - Quality is dpi. 100 is fast but low quality
+# TODO Add command line quality option - Quality is dpi. 100 is fast but low quality id:10
 # 600 is very detailed. 300 is a good compromise.
 
-# TODO Add recolour option
+# TODO Add recolour option id:15
 # 952927
 # convert F_Cu.png -fill "#952927" -fuzz 75% -opaque "#ffffff" test2.png
 
@@ -26,7 +26,7 @@ rm -r /tmp/svg
 OUTPUT_DIR="./plots"
 rm -r $OUTPUT_DIR
 
-# TODO Have added this temporarily to simply remove all the plots prior to generating files.
+# TODO Have added this temporarily to simply remove all the plots prior to generating files. id:1
 # Theoretically the script could check if the files have already been generated and then only generate the
 # missing files. This would permit multiple diff compares and you could also use an external diff tool like p4merge
 # but the disadvantage is that the resoultions have to match. It is also more complicated to script
@@ -38,14 +38,14 @@ rm -r $OUTPUT_DIR
 # Set directory for web backend
 WEB_DIR=$OUTPUT_DIR"/web"
 
-# TODO Might need to use a more complex strategy  to cope with spaces in filename
+# TODO Might need to use a more complex strategy  to cope with spaces in filename id:3
 # using some varient of 'find . -name "*.pro" -print0 | xargs -0'
 
 #################################
 # Colours to substitute per layer
 #
 # Additionally need to add vias, and internal layers.
-# TODO Parse the pcbnew file to determine which layers are active.
+# TODO Parse the pcbnew file to determine which layers are active. id:7
 
 F_Cu="#952927"
 B_Cu="#359632"
@@ -268,7 +268,7 @@ done
 ######################################
 #
 # Remove index.html prior to streaming new data
-# TODO Would be neater to put thumbs, tryptych, index and any .css sheet in a 'web' directory
+# TODO Would be neater to put thumbs, tryptych, index and any .css sheet in a 'web' directory id:11
 #
 
 if [ -e $OUTPUT_DIR/index.html ]

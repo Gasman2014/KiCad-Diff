@@ -1,106 +1,119 @@
 /* style.css */
 
+TODO Need to differentiate the .responsive tag between the index and tryptych views body {
+  background-color: #a2b1c6;
+}
 
-TODO Need to differentiate the .responsive tag between the index and tryptych views
+.gallery {
+  border: 1px solid #ccc;
+}
 
-  body {
-    background-color: #a2b1c6;
-  }
-  .gallery {
-    border: 1px solid #ccc;
-  }
+.gallery:hover {
+  border: 1px solid #777;
+}
 
-  .gallery:hover {
-    border: 1px solid #777;
-  }
+.gallery img {
+  width: 100%;
+  height: auto;
+}
 
-  .gallery img {
-    width: 100%;
-    height: auto;
-  }
-/*
-  .gallery img {
-    width: 100%;
-    height: auto;
-  }
-*/
-  .desc {
-    padding: 15px;
-    text-align: center;
-    font: 15px arial, sans-serif;
-  }
+.desc {
+  padding: 15px;
+  text-align: center;
+  font: 15px arial, sans-serif;
+}
 
-  .title {
-    padding: 15px;
-    text-align: left;
-    font: 30px arial, sans-serif;
-    color: #496075;
-  }
+.title {
+  padding: 15px;
+  text-align: left;
+  font: 25px arial, sans-serif;
+  color: #496075;
+}
 
-  .subtitle {
-    padding: 15px;
-    text-align: left;
-    font: 15px arial, sans-serif;
-    color: #000000;
-  }
+.subtitle {
+  padding: 5px;
+  text-align: left;
+  font: 20px arial, sans-serif;
+  color: #000000;
+}
 
-  * {
-      box-sizing: border-box;
-  }
+.details {
+  padding: 20px;
+  text-align: left;
+  font: 15px arial, sans-serif;
+  color: #000000;
+}
 
-/*
+.th {
+  padding: 5px;
+  text-align: left;
+  font: 20px arial, sans-serif;
+  font-weight: bold;
+  color: #000000;
+}
 
-Block for Tryptych
+.td {
+  padding: 5px;
+  text-align: left;
+  font: 15px arial, sans-serif;
+  color: #000000;
+}
 
- .responsive {
-    padding: 0 6px;
-    float: left;
-    width: 33.332%;
- }
-*/
+* {
+  box-sizing: border-box;
+}
 
+
+.responsive {
+  padding: 0 6px;
+  float: left;
+  width: 19.99999%;
+}
+
+
+@media only screen and (max-width: 700px) {
   .responsive {
-      padding: 0 6px;
-      float: left;
-      width: 24.99999%;
+    width: 49.99999%;
+    margin: 6px 0;
   }
+}
 
-
-  @media only screen and (max-width: 700px){
-      .responsive {
-          width: 49.99999%;
-          margin: 6px 0;
-      }
+@media only screen and (max-width: 500px) {
+  .responsive {
+    width: 100%;
   }
+}
 
-  @media only screen and (max-width: 500px){
-      .responsive {
-          width: 100%;
-      }
-  }
+.clearfix:after {
+  content: "";
+  display: table;
+  clear: both;
+}
 
-  .clearfix:after {
-      content: "";
-      display: table;
-      clear: both;
-  }
+.box {
+  float: left;
+  width: 20px;
+  height: 20px;
+  margin: 5px;
+  border: 1px solid rgba(0, 0, 0, .2);
+}
 
-  .box {
-    float: left;
-    width: 20px;
-    height: 20px;
-    margin: 5px;
-    border: 1px solid rgba(0, 0, 0, .2);
-  }
+.red {
+  background: #F40008;
+}
 
-  .red {
-    background: #F40008;
-  }
+.green {
+  background: #43ff01;
+}
 
-  .green {
-    background: #43ff01;
-  }
+.white {
+  background: #ffffff;
+}
 
-  .white {
-    background: #ffffff;
-  }
+.added {
+  background: #c9f4b3;
+}
+
+.removed {
+  background: #ff9a9a;
+}
