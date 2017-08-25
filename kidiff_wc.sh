@@ -9,10 +9,16 @@
 # TODO Improve diff text parser. Currently difficult to diff as modules have multiple
 #      entries on different layers - need to identify graphic change with
 # TODO Consider removing filename from display format i.e 'filename-F_Cu' becomes 'F_Cu' id:13
-# TODO Add command line quality option - Quality is dpi. 100 is fast but low quality id:4
+#  Add command line quality option - Quality is dpi. 100 is fast but low quality id:4
 #      600 is very detailed. 300 is a good compromise.
+# TODO Consider alternatve generation orders
+#      1. svg > png > compare > crop to comparison image > crop source images to match
+#      2. svg > recolour
+# 2) SVG 'swap'colours would be simplest but although you can colorise the black
+#easily, swaping the white for black seems to be problematic - not sure why
+#prob something to do with evenodd
 
-qual="300"
+qual="100"
 
 # TODO Command line options for selecting which plots id:8
 
@@ -38,7 +44,7 @@ mkdir $OUTPUT_DIR
 WEB_DIR="web"
 mkdir $OUTPUT_DIR/$WEB_DIR
 cp ~/Kicad/KiCad-Diff/style.css $OUTPUT_DIR/$WEB_DIR/
-
+# TODO cat >> $OUTPUT_DIR/$WEB_DIR/style.css <<_EOF_ // _EOF_
 # TODO Might need to use a more complex strategy  to cope with spaces in filename id:17
 # using some varient of 'find . -name "*.pro" -print0 | xargs -0'
 
@@ -64,7 +70,7 @@ Margin="#D357D2"
 In1_Cu="#C2C200"
 In2_Cu="#C200C2"
 Dwgs_User="#0364D3"
-Cmts_User="#000085"
+Cmts_User="#7AC0F4"
 Eco1_User="#008500"
 Eco2_User="#C2C200"
 B_Fab="#858585"
@@ -74,6 +80,12 @@ F_Adhes="#A74AA8"
 B_CrtYd="#D3D04B"
 F_CrtYd="#A7A7A7"
 
+
+# Do something like this
+#layertable = {}
+#numlayers = pcbnew.PCB_LAYER_ID_COUNT
+#for i in range(numlayers):
+# layertable[board.GetLayerName(i)] = i
 
 # These are the colour definitions for the 'solarised' theme from pcbnew.
 #ColorPCBLayer_F.Cu=rgb(221, 47, 44)
@@ -203,7 +215,7 @@ done
 
 for f in $OUTPUT_DIR/$DIFF_2/*.kicad_pcb; do
   mkdir -p /tmp/svg/$DIFF_2
-  echo "Converting $f to .svg's Files will be saved to /tmp/svg"
+  echo "Converting $f to .svg: Files will be saved to /tmp/svg"
   /usr/local/bin/plot_pcbnew.py "$f" "/tmp/svg/$DIFF_2"
 done
 
@@ -217,12 +229,18 @@ done
 # a generated svg, pixels should be white.)
 #
 # The .png files are created in the output directory.
-
+#
+# BUG The crop size can alter if an item is added or removed on the periphery
+# should check that both images are the same size. Provided nothing changes
+# around the edges this retains focus and detail on the board.
+# Alternativly, would need to scan both images and determine the x+y difference and pad.
+# may need to pad both top and bottom -
 
 for p in /tmp/svg/$DIFF_1/*.svg; do
   d=$(basename $p)
   echo "Converting $p to .png"
   convert -density $qual -fuzz 1% -trim +repage "$p" "$OUTPUT_DIR/$DIFF_1/${d%%.*}.png"
+ # convert -density $qual "$p" "$OUTPUT_DIR/$DIFF_1/${d%%.*}.png"
   convert "$OUTPUT_DIR/$DIFF_1/${d%%.*}.png" -negate "$OUTPUT_DIR/$DIFF_1/${d%%.*}.png"
 done
 
@@ -230,8 +248,26 @@ for p in /tmp/svg/$DIFF_2/*.svg; do
   d=$(basename $p)
   echo "Converting $p to .png"
   convert -density $qual -fuzz 1% -trim +repage "$p" "$OUTPUT_DIR/$DIFF_2/${d%%.*}.png"
+ # convert -density $qual "$p" "$OUTPUT_DIR/$DIFF_2/${d%%.*}.png"
   convert "$OUTPUT_DIR/$DIFF_2/${d%%.*}.png" -negate "$OUTPUT_DIR/$DIFF_2/${d%%.*}.png"
 done
+
+
+#for p in $OUTPUT_DIR/$DIFF_1/*.png; do
+#    d=$(basename $p)
+#    img1w=$(identify -ping -format '%w' "$p")
+#    img1h=$(identify -ping -format '%h' "$p")
+#    img2w=$(identify -ping -format '%w' "$OUTPUT_DIR/$DIFF_2/$d")
+#    img2h=$(identify -ping -format '%h' "$OUTPUT_DIR/$DIFF_2/$d")
+
+
+#if [ "$img1w" == "$img2w" ] && [ "$img1h" == "$img2h" ]
+#then echo "$d - MATCH"
+#else
+#    echo "$d size $img1w x $img1h _"
+#    echo "$OUTPUT_DIR/$DIFF_2/$d size $img2w x $img2h"
+#fi
+#done
 
 
 # Generate png diffs between DIFF_1 and DIFF_2
@@ -305,15 +341,16 @@ DIFF_1_TIME=$(fossil info $DIFF_1 | grep uuid: | awk -F' ' '{ print $4 }')
 DIFF_2_DATE=$(fossil info $DIFF_2 | grep uuid: | awk -F' ' '{ print $3 }')
 DIFF_2_TIME=$(fossil info $DIFF_2 | grep uuid: | awk -F' ' '{ print $4 }')
 
+TITLE=$(cat $OUTPUT_DIR/$DIFF_1/*.kicad_pcb | grep title | sed 's/(title_block//g' | sed 's/title//g')
+DATE=$(cat $OUTPUT_DIR/$DIFF_1/*.kicad_pcb | grep date | sed 's/(date //g' | sed 's/)//g')
+COMPANY=$(cat $OUTPUT_DIR/$DIFF_1/*.kicad_pcb | grep company | sed 's/(company "//g' | sed 's/")//g')
+
 THICK1=$(cat $OUTPUT_DIR/$DIFF_1/*.kicad_pcb | head -n 10 | grep thickness | sed 's/(thickness //g' | sed 's/)//g')
 DRAWINGS1=$(cat $OUTPUT_DIR/$DIFF_1/*.kicad_pcb | head -n 10 | grep drawings | sed 's/(drawings //g' | sed 's/)//g')
 TRACKS1=$(cat $OUTPUT_DIR/$DIFF_1/*.kicad_pcb | head -n 10 | grep tracks | sed 's/(tracks //g' | sed 's/)//g')
 ZONES1=$(cat $OUTPUT_DIR/$DIFF_1/*.kicad_pcb | head -n 10 | grep zones | sed 's/(zones //g' | sed 's/)//g')
 MODULES1=$(cat $OUTPUT_DIR/$DIFF_1/*.kicad_pcb | head -n 10 | grep modules | sed 's/(modules //g' | sed 's/)//g')
 NETS1=$(cat $OUTPUT_DIR/$DIFF_1/*.kicad_pcb | head -n 10 | grep nets | sed 's/(nets //g' | sed 's/)//g')
-TITLE1=$(cat $OUTPUT_DIR/$DIFF_1/*.kicad_pcb | grep title | sed 's/(title_block (title "//g' | sed 's/")//g')
-DATE1=$(cat $OUTPUT_DIR/$DIFF_1/*.kicad_pcb | grep date | sed 's/(date //g' | sed 's/)//g')
-COMPANY1=$(cat $OUTPUT_DIR/$DIFF_1/*.kicad_pcb | grep company | sed 's/(company "//g' | sed 's/")//g')
 
 THICK2=$(cat $OUTPUT_DIR/$DIFF_2/*.kicad_pcb | head -n 10 | grep thickness | sed 's/(thickness //g' | sed 's/)//g')
 DRAWINGS2=$(cat $OUTPUT_DIR/$DIFF_2/*.kicad_pcb | head -n 10 | grep drawings | sed 's/(drawings //g' | sed 's/)//g')
@@ -321,9 +358,6 @@ TRACKS2=$(cat $OUTPUT_DIR/$DIFF_2/*.kicad_pcb | head -n 10 | grep tracks | sed '
 ZONES2=$(cat $OUTPUT_DIR/$DIFF_2/*.kicad_pcb | head -n 10 | grep zones | sed 's/(zones //g' | sed 's/)//g')
 MODULES2=$(cat $OUTPUT_DIR/$DIFF_2/*.kicad_pcb | head -n 10 | grep modules | sed 's/(modules //g' | sed 's/)//g')
 NETS2=$(cat $OUTPUT_DIR/$DIFF_2/*.kicad_pcb | head -n 10 | grep nets | sed 's/(nets //g' | sed 's/)//g')
-TITLE2=$(cat $OUTPUT_DIR/$DIFF_2/*.kicad_pcb | grep title | sed 's/(title_block (title "//g' | sed 's/")//g')
-DATE2=$(cat $OUTPUT_DIR/$DIFF_2/*.kicad_pcb | grep date | sed 's/(date //g' | sed 's/)//g')
-COMPANY2=$(cat $OUTPUT_DIR/$DIFF_2/*.kicad_pcb | grep company | sed 's/(company "//g' | sed 's/")//g')
 
 #sed 's/(/<td><div class="th">/g' | sed 's/)/<\/td>/g')
 
@@ -338,109 +372,106 @@ cat >> $OUTPUT_DIR/$WEB_DIR/index.html <<HTML
 <table style="border-color: #aaaaaa; width: 100%; height: 2px;" border="2px" cellspacing="2px" cellpadding="3px">
 <tbody>
 <tr>
-<td colspan="3" width="261">
-<div class="title">$CHANGED_KICAD_FILES</div>
-<div class="th">$TITLE</div>
-<div class="th">$DATE</div>
-<div class="th">$COMPANY</div>
-</td>
-<td colspan="2" width="165">
-<div class="th">Parameters</div>
+<td colspan="6" width="256">
+<h1>$CHANGED_KICAD_FILES</h>
+<h4>$TITLE</h>
+<h5>$DATE</h>
+<h5>$COMPANY</h>
 </td>
 </tr>
 <tr>
 <td width="83">
-<p<div class="th">Version</div>
+<div class = "h3"><b>Version</b></div>
 </td>
 <td width="89">
-<div class="th green">$DIFF_1</div>
+<div class="h2 green">$DIFF_1</div>
 </td>
 <td width="89">
-<div class="th red">$DIFF_2</div>
+<div class="h2 red">$DIFF_2</div>
 </td>
 <td width="84">
-<div class="td">Thickness (mm)</div>
+<div class="h3">Thickness (mm)</div>
 </td>
 <td width="40">
-<div class="td">$THICK1 </div>
+<div class="h2 green">$THICK1 </div>
 </td>
 <td width="41">
-<div class="td">$THICK2 </div>
+<div class="h2 red">$THICK2 </div>
 </td>
 </tr>
 <tr>
 <td width="83">
-<div class="td"><strong>Date</div>
+<div class="h2">Date</div>
 </td>
 <td width="89">
-<div class="td">$DIFF_1_DATE</div>
+<div class="h3">$DIFF_1_DATE</div>
 </td>
 <td width="89">
-<div class="td">$DIFF_2_DATE</div>
+<div class="h3">$DIFF_2_DATE</div>
 </td>
 <td width="84">
-<div class="td">Drawings</div>
+<div class="h3">Drawings</div>
 </td>
 <td width="40">
-<div class="td">$DRAWINGS1</div>
+<div class="h2 green">$DRAWINGS1</div>
 </td>
 <td width="41">
-<div class="td">$DRAWINGS2</div>
+<div class="h2 red">$DRAWINGS2</div>
 </td>
 </tr>
 <tr>
 <td width="83">
-<div class="td"><strong>Time</div>
+<div class="h3"><strong>Time</div>
 </td>
 <td width="89">
-<div class="td">$DIFF_1_TIME</div>
+<div class="h3">$DIFF_1_TIME</div>
 </td>
 <td width="89">
-<div class="td">$DIFF_2_TIME</div>
+<div class="h3">$DIFF_2_TIME</div>
 </td>
 <td width="84">
-<div class="td">Tracks</div>
+<div class="h3">Tracks</div>
 </td>
 <td width="40">
-<div class="td">$TRACKS1</div>
+<div class="h2 green">$TRACKS1</div>
 </td>
 <td width="41">
-<div class="td">$TRACKS2</div>
+<div class="h2 red">$TRACKS2</div>
 </td>
 </tr>
 <tr>
 <td colspan="3" rowspan="3" width="261">
 </td>
 <td width="84">
-<div class="td">Zones</div>
+<div class="h3">Zones</div>
 </td>
 <td width="40">
-<div class="td">$ZONES1</div>
+<div class="h2 green">$ZONES1</div>
 </td>
 <td width="41">
-<div class="td">$ZONES2</div>
+<div class="h2 red">$ZONES2</div>
 </td>
 </tr>
 <tr>
 <td width="84">
-<div class="td">Modules</div>
+<div class="h3">Modules</div>
 </td>
 <td width="40">
-<div class="td">$MODULES1</div>
+<div class="h2 green">$MODULES1</div>
 </td>
 <td width="41">
-<div class="td">$MODULES2</div>
+<div class="h2 red">$MODULES2</div>
 </td>
 </tr>
 <tr>
 <td width="84">
-<div class="td">Nets</div>
+<div class="h3">Nets</div>
 </td>
 <td width="40">
-<div class="td">$NETS1</div>
+<div class="h2 green">$NETS1</div>
 </td>
 <td width="41">
-<div class="td">$NETS2</div>
+<div class="h2 red">$NETS2</div>
 </td>
 </tr>
 </tbody>
@@ -456,10 +487,10 @@ HTML
 
 for g in $OUTPUT_DIR/diff-$DIFF_1-$DIFF_2/*.png; do
 # Attempt to force to same size to prevent gaps in page.
-convert $g -resize 300x245 $OUTPUT_DIR/$WEB_DIR/thumbs/th_$(basename $g)
+#convert $g -resize 300x245 -extent 300x245 -gravity center -background black $OUTPUT_DIR/$WEB_DIR/thumbs/th_$(basename $g)
+convert $g -resize 300x245 -background black -gravity center -extent 300x245 $OUTPUT_DIR/$WEB_DIR/thumbs/th_$(basename $g)
+
 #cp  $g ./plots/thumbs/th_$(basename $g)
-
-
   route=$g
   file=${route##*/}
   base=${file%.*}
@@ -470,7 +501,7 @@ cat >> $OUTPUT_DIR/$WEB_DIR/index.html <<HTML
 <div class="responsive">
   <div class="gallery">
     <a target="_blank" href = tryptych/$(basename $g).html>
-      <img src = thumbs/th_$(basename $g) width="200" height="150">
+      <img src = thumbs/th_$(basename $g) height="200">
     </a>
     <div class="desc">$base</div>
   </div>
@@ -487,49 +518,51 @@ cat >>$OUTPUT_DIR/$WEB_DIR/tryptych/$(basename $g).html<<HTML
 div.responsive {
    padding: 0 6px;
    float: left;
-   width: 33.332%;
+   width: 49.99%;
 }
 </style>
 </head>
-<div class="title">$base</div>
+
 
 <body>
-
+<h2>$base</h><br>
 <div class="responsive">
     <div class="gallery">
         <a target="_blank" href = $(basename $g).html>
-            <a href= ../../$DIFF_1/$(basename $g)><img src = ../../$DIFF_1/$(basename $g) width=500></a>
+            <a href= ../../$DIFF_1/$(basename $g)><img src = ../../$DIFF_1/$(basename $g) width="500"></a>
         </a>
         <div class="desc green">$DIFF_1</div>
     </div>
 </div>
 
-<div class="responsive">
-    <div class="gallery">
-        <a target="_blank" href = $OUTPUT_DIR/$(basename $g).html>
-            <a href = ../../diff-$DIFF_1-$DIFF_2/$(basename $g) ><img src = ../../diff-$DIFF_1-$DIFF_2/$(basename $g) width=500></a>
-        </a>
-        <div class="desc white">Composite</div>
-    </div>
-</div>
 
 <div class="responsive">
   <div class="gallery">
       <a target="_blank" href = $(basename $g).html>
-          <a href= ../../$DIFF_2/$(basename $g)> <img src = ../../$DIFF_2/$(basename $g) width=500></a>
+          <a href= ../../$DIFF_2/$(basename $g)> <img src = ../../$DIFF_2/$(basename $g) width="500"></a>
       </a>
       <div class="desc red">$DIFF_2</div>
   </div>
 </div>
-<div class="title"><br>Differences</div>
+
+
+<div class="responsive">
+    <div class="gallery">
+        <a target="_blank" href = $OUTPUT_DIR/$(basename $g).html>
+            <a href = ../../diff-$DIFF_1-$DIFF_2/$(basename $g) ><img src = ../../diff-$DIFF_1-$DIFF_2/$(basename $g) width="500"></a>
+        </a>
+        <div class="desc white">Composite</div>
+    </div>
+</div>
 HTML
+
 d=$(basename $g)
 y=${d%.png}
 layerName=${y##*-}
 mod=${layerName//[_]/.}
 echo $mod
 diff $OUTPUT_DIR/$DIFF_2/*.kicad_pcb $OUTPUT_DIR/$DIFF_1/*.kicad_pcb >> $OUTPUT_DIR/diff-$DIFF_1-$DIFF_2/diff.txt
-diff $OUTPUT_DIR/$DIFF_2/*.kicad_pcb $OUTPUT_DIR/$DIFF_1/*.kicad_pcb |  grep $mod | sed 's/>  /<\/div><div class="details added">/g' | sed 's/<   /<\/div><div class="details removed">/g' | sed 's/\/n/<\/div>/g' >> $OUTPUT_DIR/$WEB_DIR/tryptych/$(basename $g).html
+diff $OUTPUT_DIR/$DIFF_2/*.kicad_pcb $OUTPUT_DIR/$DIFF_1/*.kicad_pcb |  grep $mod | sed 's/>  /<\/div><div class="differences added">/g' | sed 's/<   /<\/div><div class="differences removed">/g' | sed 's/\/n/<\/div>/g' >> $OUTPUT_DIR/$WEB_DIR/tryptych/$(basename $g).html
 
 
 # grep $mod | grep 'module' | sed 's/>  /<div class="details">/g' | sed 's/<   /<div class="details">/g' | sed 's/))/)<\/div>/g'  >> $OUTPUT_DIR/$WEB_DIR/tryptych/$(basename $g).html

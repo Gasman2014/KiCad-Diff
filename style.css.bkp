@@ -1,8 +1,6 @@
 /* style.css */
 
-body {
-  background-color: #282C35;
-}
+
 
 .gallery {
   border: 1px solid #ccc;
@@ -127,6 +125,7 @@ body {
 .removed {
   color: #BA312D;
 }
+
 @import url(http://fonts.googleapis.com/css?family=Inconsolata);
 @import url(http://fonts.googleapis.com/css?family=PT+Sans);
 @import url(http://fonts.googleapis.com/css?family=PT+Sans+Narrow:400,700);
@@ -310,11 +309,10 @@ html {
 body {
   background-color: #002b36;
   margin: 0 auto;
-  max-width: 40cm;
+  max-width: 23cm;
   border: 1pt solid #586e75;
   padding: 1em;
 }
-
 code {
   background-color: #073642;
   padding: 2px;
