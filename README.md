@@ -37,3 +37,16 @@ Overview
 
 Three panel view
 ![screenshot Three panel view](/Documents/3panel.png)
+
+Detail
+![screenshot Detail1] (/Documents/F_Cu.png)
+
+Detail
+![screenshot Detail2] (/Documents/F_Cu2.png)
+
+Detail
+![screenshot Detail3] (/Documents/F_Fab.png)
+
+Detail
+![screenshot Detail4] (/Documents/F_Mask.png)
+
