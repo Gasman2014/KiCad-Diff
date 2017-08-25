@@ -4,12 +4,40 @@
 # If only one ref specified, generates a diff from that file
 # If no refs specified, assumes CURRENT
 
-
+# TODO Rewrite in Python & improve efficiency.
+#       A Python version should be easier to maintain esp the HTML generation.
+#       Would be possible to add as a 'plugin' (not sure if that is worthwhile).
+# TODO  Add a graticle/grid with grid references.
+# TODO Add back code to support alternative SCM (eg git)
 # TODO Improve 3-pane layout - possible two side by side and comparison image underneath? id:16
 # TODO Improve diff text parser. Currently difficult to diff as modules have multiple
-#      entries on different layers - need to identify graphic change with
+#      entries on different layers - need to identify graphic change with s-expression parser
+#      Need to generate a 'tree' and diff changes need to propogate back up tree to id
+#      the changed heading category. This could then be used to drive a drop down menu tree.
+#      e.g.
+
+#(module Mounting_Holes:MountingHole_5.5mm (layer F.Cu) (tedit 56D1B4CB) (tstamp 598A07F7)
+#  (at 112.28 125.28)
+#  (descr "Mounting Hole 5.5mm, no annular")
+#  (tags "mounting hole 5.5mm no annular")
+#  (fp_text reference REF** (at 0 -6.5) (layer F.SilkS)
+#    (effects (font (size 1 1) (thickness 0.15)))
+#  )
+#  (fp_text value MountingHole_5.5mm (at 0 6.5) (layer F.Fab)
+#    (effects (font (size 1 1) (thickness 0.15)))
+#  )
+#  (fp_circle (center 0 0) (end 5.5 0) (layer Cmts.User) (width 0.15))
+#  (fp_circle (center 0 0) (end 5.75 0) (layer F.CrtYd) (width 0.05))
+#  (pad 1 np_thru_hole circle (at 0 0) (size 5.5 5.5) (drill 5.5) (layers *.Cu *.Mask))
+#)
+
+# Changes to the last line need to propogate through to the parent 'Module Mounting_Holes'
+# Ideally the aim would be to have 'clicakble' regions.
+
+
+
 # TODO Consider removing filename from display format i.e 'filename-F_Cu' becomes 'F_Cu' id:13
-#  Add command line quality option - Quality is dpi. 100 is fast but low quality id:4
+# TODO Add command line quality option - Quality is dpi. 100 is fast but low quality id:4
 #      600 is very detailed. 300 is a good compromise.
 # TODO Consider alternatve generation orders
 #      1. svg > png > compare > crop to comparison image > crop source images to match
@@ -18,7 +46,7 @@
 #easily, swaping the white for black seems to be problematic - not sure why
 #prob something to do with evenodd
 
-qual="100"
+qual="600"
 
 # TODO Command line options for selecting which plots id:8
 
@@ -373,10 +401,10 @@ cat >> $OUTPUT_DIR/$WEB_DIR/index.html <<HTML
 <tbody>
 <tr>
 <td colspan="6" width="256">
-<h1>$CHANGED_KICAD_FILES</h>
-<h4>$TITLE</h>
-<h5>$DATE</h>
-<h5>$COMPANY</h>
+<h1>$CHANGED_KICAD_FILES
+<h4>$TITLE
+<h5>$DATE
+<h5>$COMPANY
 </td>
 </tr>
 <tr>
@@ -522,7 +550,6 @@ div.responsive {
 }
 </style>
 </head>
-
 
 <body>
 <h2>$base</h><br>
