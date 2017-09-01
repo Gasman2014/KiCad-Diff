@@ -34,55 +34,6 @@
 # Changes to the last line need to propogate through to the parent 'Module Mounting_Holes'
 # Ideally the aim would be to have 'clicakble' regions.
 
-qual=100
-VERSION=2.1
-
-#Default
-
-function usage () {
-    cat << EOF
-Usage:  kidiff [OPTION] (VERSION) (VERSION2)
-    -h  displays this help
-    -v  displays version
-    -q  quality of image (dpi)
-
-This takes none, one or two Fossil references as arguments and generates visual diffs between them.
-If no fossil references are specified, will perform a visual diff between the saved version and CURRENT (HEAD).
-If one fossil reference is specified, will performa a visual diff between that and CURRENT (HEAD).
-If two fossil references are supplied, will perform a visula diff between them.
-
-
-(Not yet implemented)
-By setting flags for copper, fab, mask and ECO layers, subsets of the diff can be run (faster).
-
-EOF
-exit 0
-}
-
-while getopts ":hvq" opt; do
-    case "$opt" in
-    h)  usage
-    ;;
-    v)  version=$VERSION
-        echo "KiDiff : $version"
-        exit 0
-    ;;
-    q)  if ([ $2 -gt 99 ] && [ $2 -lt 601 ]); then
-            qual=$2
-            shift $((OPTIND-1))
-        else
-            echo "Quality parameter (q) between 100 and 600 dpi" 1>&2
-            exit 1
-        fi
-    ;;
-    \?) echo "KiDiff :  illegal option: $1" 1>&2
-        echo "usage: KiDiff [-hvq]"
-        exit 1
-    ;;
-    esac
-done
-
-shift $((OPTIND-1))
 
 
 # TODO Consider removing filename from display format i.e 'filename-F_Cu' becomes 'F_Cu' id:13
@@ -95,11 +46,11 @@ shift $((OPTIND-1))
 #easily, swaping the white for black seems to be problematic - not sure why
 #prob something to do with evenodd
 
+qual="100"
 
 # TODO Command line options for selecting which plots id:8
 
 # Remove old plot files
-
 rm -r /tmp/svg
 
 # Set directory for plotting
@@ -197,7 +148,7 @@ F_CrtYd="#A7A7A7"
 
 if [ $# -eq 0 ]; then
   DIFF_1="current"
-  DIFF_2=$(fossil info current | grep ^uuid: | sed 's/uuid: *//g'| cut -c 1-6)
+  DIFF_2=$(fossil info current | grep ^uuid: | tr -d 'uuid:[:space:]' | cut -c 1-6)
   echo $DIFF_2
   CHANGED_KICAD_FILES=$(fossil diff --brief -r  "$DIFF_2" | grep '.kicad_pcb$' | tr -d 'CHANGED[:space:]||ADDED[:space:]')
   if [[ -z "$CHANGED_KICAD_FILES" ]]; then echo "No .kicad_pcb files differ" && exit 0; fi
@@ -248,7 +199,7 @@ if [ $# -eq 0 ]; then
   elif [ $# -eq 2 ]; then
   DIFF_1="$1"
   DIFF_2="$2"
-  CHANGED_KICAD_FILES=$(fossil diff --brief -r "$DIFF_1" --to "$DIFF_2" | grep '.kicad_pcb$' | tr -d 'CHANGED[:space:]||ADDED[:space:]')
+  CHANGED_KICAD_FILES=$(fossil diff --brief -r "$DIFF_1" --to "$DIFF_2" | grep '.kicad_pcb' | tr -d 'CHANGED[:space:]||ADDED[:space:]')
   if [[ -z "$CHANGED_KICAD_FILES" ]]; then echo "No .kicad_pcb files differ" && exit 0; fi
 
   # Copy all modified kicad_file to $OUTPUT_DIR/current
@@ -316,16 +267,16 @@ done
 for p in /tmp/svg/$DIFF_1/*.svg; do
   d=$(basename $p)
   echo "Converting $p to .png"
-  convert -density $qual -fuzz 1% -trim +repage "$p" "$OUTPUT_DIR/$DIFF_1/${d%%.*}.png"
- # convert -density $qual "$p" "$OUTPUT_DIR/$DIFF_1/${d%%.*}.png"
+ # convert -density $qual -fuzz 1% -trim +repage "$p" "$OUTPUT_DIR/$DIFF_1/${d%%.*}.png"
+  convert -density $qual "$p" "$OUTPUT_DIR/$DIFF_1/${d%%.*}.png"
   convert "$OUTPUT_DIR/$DIFF_1/${d%%.*}.png" -negate "$OUTPUT_DIR/$DIFF_1/${d%%.*}.png"
 done
 
 for p in /tmp/svg/$DIFF_2/*.svg; do
   d=$(basename $p)
   echo "Converting $p to .png"
-  convert -density $qual -fuzz 1% -trim +repage "$p" "$OUTPUT_DIR/$DIFF_2/${d%%.*}.png"
- # convert -density $qual "$p" "$OUTPUT_DIR/$DIFF_2/${d%%.*}.png"
+ # convert -density $qual -fuzz 1% -trim +repage "$p" "$OUTPUT_DIR/$DIFF_2/${d%%.*}.png"
+  convert -density $qual "$p" "$OUTPUT_DIR/$DIFF_2/${d%%.*}.png"
   convert "$OUTPUT_DIR/$DIFF_2/${d%%.*}.png" -negate "$OUTPUT_DIR/$DIFF_2/${d%%.*}.png"
 done
 
@@ -365,30 +316,44 @@ for g in $OUTPUT_DIR/$DIFF_1/*.png; do
           '(' $OUTPUT_DIR/$DIFF_1/$(basename $g) -flatten -grayscale Rec709Luminance ')' \
           '(' -clone 0-1 -compose darken -composite ')' \
           -channel RGB -combine $OUTPUT_DIR/diff-$DIFF_1-$DIFF_2/$(basename $g)
+
+  convert $OUTPUT_DIR/diff-$DIFF_1-$DIFF_2/$(basename $g)  -fuzz 1% -trim -format '%wx%h%O' info: > cropSize
+  cropDim=$( cat cropSize )
+  convert $OUTPUT_DIR/diff-$DIFF_1-$DIFF_2/$(basename $g)  -crop $cropDim +repage "$OUTPUT_DIR/diff-$DIFF_1-$DIFF_2/$(basename $g)"
+
+  echo $qual, $cropDim, $d, $layername
+  convert "$OUTPUT_DIR/diff-$DIFF_1-$DIFF_2/$(basename $g)" -define png:color-type=2 "$OUTPUT_DIR/diff-$DIFF_1-$DIFF_2/$(basename $g)"
   convert "$OUTPUT_DIR/diff-$DIFF_1-$DIFF_2/$(basename $g)" -fill ${!layerName} -fuzz 75% -opaque "#ffffff" "$OUTPUT_DIR/diff-$DIFF_1-$DIFF_2/$(basename $g)"
-done
 
-# Done in this order so that if the diff image is cropped to a ROI, then the same crop
-# can be applied to the source images. This does not work as the python plot crops
-# to the ROI
-
-for p in $OUTPUT_DIR/$DIFF_1/*.png; do
-  d=$(basename $p)
-  y=${d%.png}
-  layerName=${y##*-}
-  echo "Converting $layerName to .png with colour "${!layerName}
+  echo "$OUTPUT_DIR/$DIFF_1/${d%%.*}.png"
+  convert "$OUTPUT_DIR/$DIFF_1/${d%%.*}.png" -crop $cropDim +repage "$OUTPUT_DIR/$DIFF_1/${d%%.*}.png"
   convert "$OUTPUT_DIR/$DIFF_1/${d%%.*}.png" -define png:color-type=2 "$OUTPUT_DIR/$DIFF_1/${d%%.*}.png"
   convert "$OUTPUT_DIR/$DIFF_1/${d%%.*}.png" -fill ${!layerName} -fuzz 75% -opaque "#ffffff" "$OUTPUT_DIR/$DIFF_1/${d%%.*}.png"
-done
 
-for p in $OUTPUT_DIR/$DIFF_2/*.png; do
-  d=$(basename $p)
-  y=${d%.png}
-  layerName=${y##*-}
-  echo "Converting $layerName to .png with colour "${!layerName}
+  echo "$OUTPUT_DIR/$DIFF_2/${d%%.*}.png"
+  convert "$OUTPUT_DIR/$DIFF_2/${d%%.*}.png" -crop $cropDim +repage "$OUTPUT_DIR/$DIFF_2/${d%%.*}.png"
   convert "$OUTPUT_DIR/$DIFF_2/${d%%.*}.png" -define png:color-type=2 "$OUTPUT_DIR/$DIFF_2/${d%%.*}.png"
   convert "$OUTPUT_DIR/$DIFF_2/${d%%.*}.png" -fill ${!layerName} -fuzz 75% -opaque "#ffffff" "$OUTPUT_DIR/$DIFF_2/${d%%.*}.png"
 done
+
+
+#for p in $OUTPUT_DIR/$DIFF_1/*.png; do
+#  d=$(basename $p)
+#  y=${d%.png}
+#  layerName=${y##*-}
+#  echo "Converting $layerName to .png with colour "${!layerName}
+#  convert "$OUTPUT_DIR/$DIFF_1/${d%%.*}.png" -define png:color-type=2 "$OUTPUT_DIR/$DIFF_1/${d%%.*}.png"
+#  convert "$OUTPUT_DIR/$DIFF_1/${d%%.*}.png" -fill ${!layerName} -fuzz 75% -opaque "#ffffff" "$OUTPUT_DIR/$DIFF_1/${d%%.*}.png"
+#done
+
+#for p in $OUTPUT_DIR/$DIFF_2/*.png; do
+#  d=$(basename $p)
+#  y=${d%.png}
+#  layerName=${y##*-}
+#  echo "Converting $layerName to .png with colour "${!layerName}
+#  convert "$OUTPUT_DIR/$DIFF_2/${d%%.*}.png" -define png:color-type=2 "$OUTPUT_DIR/$DIFF_2/${d%%.*}.png"
+#  convert "$OUTPUT_DIR/$DIFF_2/${d%%.*}.png" -fill ${!layerName} -fuzz 75% -opaque "#ffffff" "$OUTPUT_DIR/$DIFF_2/${d%%.*}.png"
+#done
 
 # Setup web directories for web output
 ######################################
