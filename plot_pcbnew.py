@@ -1,10 +1,10 @@
 #!/Applications/Kicad/kicad.app/Contents/Applications/pcbnew.app/Contents/MacOS/Python
 
-"""
+'''
 Kicad plot pcb file.
 Plot variety of svg files in plot directory as well as pdf of double size
 assembly guide
-"""
+'''
 
 import sys
 sys.path.insert(0, "/Applications/Kicad/kicad.app/Contents/Frameworks/python/site-packages/")

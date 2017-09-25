@@ -103,7 +103,7 @@ shift $((OPTIND-1))
 rm -r /tmp/svg
 
 # Set directory for plotting
-OUTPUT_DIR="./plots"
+OUTPUT_DIR="./Plots"
 rm -r $OUTPUT_DIR
 mkdir $OUTPUT_DIR
 
