@@ -30,9 +30,16 @@ I am running this setup on macOs 10.12 but I would imagine any linux varient wou
 Dependencies
   *  gsed (Mac sed is limited)
   *  Kicad with python scripting enabled
-  *  Image Magick
+  *  Image Magick 
   *  Fossil scm
   *  Possibly some others but all have been installed with the help of brew
+  
+(If you are on MacOS X and having problems with Imagemagick's convert, you might try reinstalling it with RSVG lib.Using HomeBrew:
+ brew remove imagemagick
+ brew install imagemagick --with-librsvg
+ 
+ 
+ This works with nightly versions up to the end of about July 2017 but when I recently upgraded to a nightly from September the plot_pcb.py script frequently fails - BUT NOT EVERY TIME!
   
   Plans:
   Rewrite in Python to improve integration with Kicad.
