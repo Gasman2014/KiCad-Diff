@@ -1,4 +1,7 @@
 # KiCad-Diff
+
+Was a bash script - new GUI version rewritten in Python3
+ 
 Scripts for performing image diffs between pcbnew layout revisions. Extended to show the graphical diff in a webpage. Also included some general Kicad/Fossil observations.
 
 Based on the initial scripts of Spuder and described in  https://github.com/UltimateHackingKeyboard/electronics/tree/master/scripts
@@ -11,7 +14,7 @@ https://www.fossil-scm.org/index.html/doc/trunk/www/index.wiki
 
 Also, Spuder's workflow relied on a python script that was downloaded to a /tmp directory. This makes the solution problematic if you are without internet access.
 
-I have added a web interface to this project. It is functional but needs some work to render it more attractive.
+I have added a web interface to this project. It is functional but needs some work to render it more attractive...
 
 The code is pretty sloppy and fairly sparesly commented but functional. The diff program should be run within a fossil checkout and takes 0, 1 or 2 commit hashes as arguments. With 0 arguments, the script compares the working copy with the last committed version (i.e what has changes since the last commit). With 1 argument, the current checkout is compared to the version identified and with two commit hashes a diff between those versions is calculated.
 
@@ -31,23 +34,25 @@ Dependencies
   *  gsed (Mac sed is limited)
   *  Kicad with python scripting enabled
   *  Image Magick 
-  *  Fossil scm
+  *  Fossil scm (OR Git or SVN)
   *  Possibly some others but all have been installed with the help of brew
   
 (If you are on MacOS X and having problems with Imagemagick's convert, you might try reinstalling it with RSVG lib.Using HomeBrew:
  brew remove imagemagick
  brew install imagemagick --with-librsvg
  
- 
- This works with nightly versions up to the end of about July 2017 but when I recently upgraded to a nightly from September the plot_pcb.py script frequently fails - BUT NOT EVERY TIME!
+
   
   Plans:
-  Rewrite in Python to improve integration with Kicad.
-  Possibly support other VCS tools.
-  Mechanism to select layer sets and resolution.
-  Improvement in parsing and meaning of text diffs.
+  Rewrite in Python to improve integration with Kicad.  DONE
+  Possibly support other VCS tools.    DONE
+  Mechanism to select layer sets and resolution.    DONE
+  Improvement in parsing and meaning of text diffs.   IN PROGRESS
   
   ## screenshots
+GUI
+![GUI](/Documents/Screen%20Shot%202018-06-04%20at%2022.28.05.png)
+
 Overview
 ![screenshot overview](/Documents/Overview.png)
 
@@ -61,7 +66,6 @@ F_Fab
 ![screenshot F_Fab](/Documents/F_Fab.png)
 F_Mask
 ![screenshot F_Mask](/Documents/F_Mask.png)
-GUI
-![GUI](/Documents/Screen%20Shot%202018-06-04%20at%2022.28.05.png)
-Output with PCBDraw
-![PCBDraw Output](/Documents/diff-b1d3-192a.png)
+
+Output with PCBDraw (In progress)
+![PCBDraw Output](/Documents/diff-74b1-b1d3.png)
