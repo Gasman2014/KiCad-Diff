@@ -34,7 +34,7 @@ fossilProg = '/usr/local/bin/fossil'
 svnProg = '/usr/bin/svn'
 plotDir = '/Plots'
 webDir = '/web'
-pcbDraw = '/Users/johnpateman/Kicad/PcbDraw/pcbdraw.py'
+# pcbDraw = '~/Kicad/PcbDraw/pcbdraw.py'
 
 layerCols = {
     'F_Cu': "#952927",
