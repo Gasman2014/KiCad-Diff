@@ -42,9 +42,16 @@ Dependencies
  brew install imagemagick --with-librsvg
  
 **Instructions**
-Install plotPCB2.p in /usr/local/bin (or adjust path in lines 480/481 to suit). I could probably add this sort of stuff to a config file but I might wait for V2...
-Install imagemagick.
-Run the main script and select a pair of versions in a source controlled repository from the GUI. Select a resolution. The script should build a series of svg files and display the diff in a webpage.
+  *  Check that the paths to your SCM tools are correct (lines 32-34)
+  *  Install plotPCB2.py in /usr/local/bin (or adjust path in lines 480/481 to suit). 
+  (I should probably add this sort of stuff to a config file but I might wait for V2...)
+
+  *  Install imagemagick.
+  *  Run the main script and select a pair of versions in a source controlled repository from the GUI. 
+  *  Select a resolution. 
+  *  Select which layers you wish to compare.
+  
+  The script should build a series of svg files and display the diff in a webpage.
  
 
   
