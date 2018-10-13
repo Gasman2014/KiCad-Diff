@@ -647,7 +647,6 @@ def makeSupportFiles(prjctName, prjctPath):
 
     return
 
-
 def getBoardData(board):
     '''Takes a board reference and returns the
     basic parameters from it.
@@ -656,7 +655,7 @@ def getBoardData(board):
     recyling keywords like 'title' '''
 
     prms = {
-        'title ': "",
+        'title': "",
         'rev': "",
         'company': "",
         'date': "",
@@ -673,23 +672,12 @@ def getBoardData(board):
 
     with open(board, 'r') as f:
         for line in f:
+            words = line.strip("\t ()").split()
             for key in prms:
-                if key in line:
-                    line = line.strip()
-                    line = line.strip(")")
-                    line = line.strip("(")
-                    if 'thickness' in line and thickDone == False:
-                        thickDone = True
-                        prms[key] = (line.split(" "))[1]
-                    elif 'thickness' in line and thickDone == True:
-                        continue
-
-                    # Deal with spaces in quoted string - need space after 'title'
-                    if key == 'title ' or key == 'company':
-                        prms[key] = line.split('"')[1::2]
-                    else:
-                        prms[key] = (line.split(" "))[1]
-    return (prms)
+                if len(words) > 1:
+                    if key == words[0]:
+                        prms[key] = words[1].strip("\t ()")
+    return(prms)
 
 
 def makeOutput(diffDir1, diffDir2, prjctName, prjctPath, times):
@@ -848,26 +836,26 @@ def makeOutput(diffDir1, diffDir2, prjctName, prjctPath, times):
     </tbody>
     </table>
     '''.format(
-        D1DATE=D1DATE,
-        D1TIME=D1TIME,
-        D2DATE=D2DATE,
-        D2TIME=D2TIME,
         TITLE=TITLE,
         DATE=DATE,
         COMPANY=COMPANY,
         diffDir1=diffDir1,
         diffDir2=diffDir2,
         THICK1=THICK1,
-        DRAWINGS1=DRAWINGS1,
-        TRACKS1=TRACKS1,
-        ZONES1=ZONES1,
-        MODULES1=MODULES1,
-        NETS1=NETS1,
         THICK2=THICK2,
+        D1DATE=D1DATE,
+        D2DATE=D2DATE,
+        DRAWINGS1=DRAWINGS1,
         DRAWINGS2=DRAWINGS2,
+        D1TIME=D1TIME,
+        D2TIME=D2TIME,
+        TRACKS1=TRACKS1,
         TRACKS2=TRACKS2,
+        ZONES1=ZONES1,
         ZONES2=ZONES2,
+        MODULES1=MODULES1,
         MODULES2=MODULES2,
+        NETS1=NETS1,
         NETS2=NETS2)
 
     webOut.write(indexHead)
