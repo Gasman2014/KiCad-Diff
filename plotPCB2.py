@@ -1,4 +1,4 @@
-#!/Applications/Kicad/kicad.app/Contents/Applications/pcbnew.app/Contents/MacOS/Python
+#!/Applications/kicad.app/Contents/Frameworks/Python.framework/Versions/Current/bin/python
 
 '''
 Kicad plot pcb file.
