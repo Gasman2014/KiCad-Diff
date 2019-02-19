@@ -12,6 +12,7 @@
 # the output rather than simply returning them.
 
 import os
+import time
 import subprocess
 import tkinter as tk
 import webbrowser
@@ -29,11 +30,13 @@ from tkUI import *
 
 # TODO Incorporate these full paths
 
-gitProg = '/usr/local/bin/git'
+gitProg = '/usr/bin/git'
 fossilProg = '/usr/local/bin/fossil'
 svnProg = '/usr/bin/svn'
 plotDir = '/Plots'
 webDir = '/web'
+convertProg = '/usr/local/bin/convert'
+
 # pcbDraw = '~/Kicad/PcbDraw/pcbdraw.py'
 
 layerCols = {
@@ -69,8 +72,8 @@ def getGitDiff(diff1, diff2, prjctName, prjctPath):
     artifact1 = diff1[:6]
     artifact2 = diff2[:6]
 
-    findDiff = 'cd ' + prjctPath + ' && git diff --name-only ' + \
-        artifact1 + ' ' + artifact2 + ' | grep .kicad_pcb'
+    findDiff = 'cd ' + prjctPath + ' && ' + gitProg + ' diff --name-only ' + \
+        artifact1 + ' ' + artifact2 + ' | /usr/bin/grep .kicad_pcb'
 
     changes = Popen(
         findDiff,
@@ -96,10 +99,10 @@ def getGitDiff(diff1, diff2, prjctName, prjctPath):
     if not os.path.exists(outputDir2):
         os.makedirs(outputDir2)
 
-    gitArtifact1 = 'cd ' + prjctPath + ' && git show ' + artifact1 + \
+    gitArtifact1 = 'cd ' + prjctPath + ' && ' + gitProg + ' show ' + artifact1 + \
         ':' + prjctName + ' > ' + outputDir1 + '/' + prjctName
 
-    gitArtifact2 = 'cd ' + prjctPath + ' && git show ' + artifact2 + \
+    gitArtifact2 = 'cd ' + prjctPath + ' && ' + gitProg + ' show ' + artifact2 + \
         ':' + prjctName + ' > ' + outputDir2 + '/' + prjctName
 
     ver1 = Popen(
@@ -120,8 +123,8 @@ def getGitDiff(diff1, diff2, prjctName, prjctPath):
         close_fds=True)
     stdout, stderr = ver2.communicate()
 
-    gitDateTime1 = 'cd ' + prjctPath + ' && git show -s --format="%ci" ' + artifact1
-    gitDateTime2 = 'cd ' + prjctPath + ' && git show -s --format="%ci" ' + artifact2
+    gitDateTime1 = 'cd ' + prjctPath + ' && ' + gitProg + ' show -s --format="%ci" ' + artifact1
+    gitDateTime2 = 'cd ' + prjctPath + ' && ' + gitProg + ' show -s --format="%ci" ' + artifact2
 
     dt1 = Popen(
         gitDateTime1,
@@ -525,18 +528,21 @@ def makePNG(svgDir1, svgDir2, qual, prjctName, prjctPath):
         _, _, _, diff, e = d.split('/')
         print("Converting .svg files in ", d, e, " to .png")
 
+        pngFullPath = prjctPath + plotDir + '/' + diff
+
+        if not os.path.exists(pngFullPath):
+            os.makedirs(pngFullPath)
+
         for file in os.listdir(directory):
 
             filename = os.fsdecode(file)
 
             if filename.endswith(".svg"):
-
                 basename, ext = filename.split('.')
-                command1 = 'convert -density ' + qual + ' -fuzz 1% -trim +repage ' + \
+                command1 = convertProg + ' -density ' + qual + ' -fuzz 10% -trim +repage ' + \
                     d + filename + ' ' + d + basename + '.png'
 
-                svgs = subprocess.Popen(
-                    command1, shell=True, stdout=subprocess.PIPE)
+                svgs = subprocess.Popen(command1, shell=True, stdout=subprocess.PIPE)
                 out, err = svgs.communicate()
 
         print("Inverting .png files in ", d, e)
@@ -548,11 +554,15 @@ def makePNG(svgDir1, svgDir2, qual, prjctName, prjctPath):
 
                 basename, ext = filename.split('.')
 
-                command2 = 'convert ' + d + basename + '.png -negate ' + \
+                """
+                The -negate option replaces each pixel with its complementary color. The -channel RGB 
+                option is necessary as of ImageMagick 7 to prevent the alpha channel (if present) 
+                from being negated. 
+                """
+                command2 = convertProg + ' ' + d + basename + '.png -channel RGB -negate ' + \
                     prjctPath + plotDir + '/' + diff + '/' + basename + '.png'
 
-                pngs = subprocess.Popen(
-                    command2, shell=True, stdout=subprocess.PIPE)
+                pngs = subprocess.Popen(command2, shell=True, stdout=subprocess.PIPE)
                 out, err = pngs.communicate()
 
 
@@ -581,52 +591,50 @@ def comparePNG(diff1, diff2, prjctName, prjctPath):
         if plot.endswith(".png"):
             p1 = pngBasePath + '/' + diff1 + '/' + plot
             p2 = pngBasePath + '/' + diff2 + '/' + plot
-            c1 = 'convert ' + p1 + ' -flatten -grayscale Rec709Luminance ' + p1
-            c2 = 'convert ' + p2 + ' -flatten -grayscale Rec709Luminance ' + p2
-            composite = 'convert ' + p1 + ' ' + p2 + \
+            c1 = convertProg + ' ' + p1 + ' -flatten -grayscale Rec709Luminance ' + p1
+            c2 = convertProg + ' ' + p2 + ' -flatten -grayscale Rec709Luminance ' + p2
+            composite = convertProg + ' ' + p1 + ' ' + p2 + \
                 ' "(" -clone 0-1 -compose darken -composite ")" -channel RGB -combine ' + \
                 diffDir + '/' + plot
-
+            
             comp1 = subprocess.Popen(c1, shell=True, executable='/bin/bash')
-            comp1 = subprocess.Popen(c2, shell=True, executable='/bin/bash')
-            diffs = subprocess.Popen(
-                composite, shell=True, executable='/bin/bash')
+            comp2 = subprocess.Popen(c2, shell=True, executable='/bin/bash')
 
+            diffs = subprocess.Popen(composite, shell=True, executable='/bin/bash')
             out, err = diffs.communicate()
-
-            page, layerExt = plot.split('-')
+            
+            # Accounts for project names containing hyphens
+            splitted = plot.split('-')
+            page = splitted[-2]
+            layerExt = splitted[-1]
+            
             layer, ext = layerExt.split('.')
 
             colour = layerCols.get(layer, '#ffffff')
             print(layer, colour)
 
-            colourize = 'convert ' + diffDir + '/' + plot + ' -fill "' + colour + \
+            colourize = convertProg + ' ' + diffDir + '/' + plot + ' -fill "' + colour + \
                 '" -fuzz 75% -opaque "#ffffff" ' + diffDir + '/' + plot
-
-            diffs = subprocess.Popen(
-                colourize, shell=True, stdout=subprocess.PIPE)
+            
+            diffs = subprocess.Popen(colourize, shell=True, stdout=subprocess.PIPE)
             out, err = diffs.communicate()
 
-            col1A = 'convert ' + p1 + ' -define png:color-type=2 ' + p1
-            col1 = 'convert ' + p1 + ' -fill "' + colour + '" -fuzz 75% -opaque "#ffffff" ' + p1
+            col1A = convertProg + ' ' + p1 + ' -define png:color-type=2 ' + p1
+            col1 = convertProg + ' ' + p1 + ' -fill "' + colour + '" -fuzz 75% -opaque "#ffffff" ' + p1
 
-            col2A = 'convert ' + p2 + ' -define png:color-type=2 ' + p2
-            col2 = 'convert ' + p2 + ' -fill "' + colour + '" -fuzz 75% -opaque "#ffffff" ' + p2
+            col2A = convertProg + ' ' + p2 + ' -define png:color-type=2 ' + p2
+            col2 = convertProg + ' ' + p2 + ' -fill "' + colour + '" -fuzz 75% -opaque "#ffffff" ' + p2
 
-            colour1 = subprocess.Popen(
-                col1A, shell=True, stdout=subprocess.PIPE)
+            colour1 = subprocess.Popen(col1A, shell=True, stdout=subprocess.PIPE)
             out, err = colour1.communicate()
 
-            colour1 = subprocess.Popen(
-                col1, shell=True, stdout=subprocess.PIPE)
+            colour1 = subprocess.Popen(col1, shell=True, stdout=subprocess.PIPE)
             out, err = colour1.communicate()
 
-            colour2 = subprocess.Popen(
-                col2A, shell=True, stdout=subprocess.PIPE)
+            colour2 = subprocess.Popen(col2A, shell=True, stdout=subprocess.PIPE)
             out, err = colour2.communicate()
 
-            colour2 = subprocess.Popen(
-                col2, shell=True, stdout=subprocess.PIPE)
+            colour2 = subprocess.Popen(col2, shell=True, stdout=subprocess.PIPE)
             out, err = colour2.communicate()
 
 
@@ -952,7 +960,12 @@ div.responsive {{
 
             prjct, ext = filename.split('.')
 
-            prj, layer = prjct.split('-')
+            # Accounts for project names containing hyphens
+            splitted = prjct.split('-')
+            prj = splitted[-2]
+            layer = splitted[-1]
+
+            #prj, layer = prjct.split('-')
             print(prj, layer)
             layer = layer.replace('_', '.')
 
@@ -1098,6 +1111,10 @@ if __name__ == "__main__":
         times = getSVNDiff(d1, d2, prjctName, prjctPath)
 
     svgDir1, svgDir2 = makeSVG(d1, d2, prjctName, prjctPath, selectedLayers)
+
+    # Sometimes the SVG just created did not register with the system
+    # resulting in makePNG believing there was no SVG present
+    time.sleep(1)
 
     makePNG(svgDir1, svgDir2, dpi, prjctName, prjctPath)
 
