@@ -1,6 +1,6 @@
 # KiCad-Diff
 
-Was a bash script - new GUI version rewritten in Python3
+Was originaly a bash script, this newer GUI version has been rewritten in Python3 and supports Git, SVN and Fossil as SCM tools.
  
 Scripts for performing image diffs between pcbnew layout revisions. Extended to show the graphical diff in a webpage. Also included some general Kicad/Fossil observations.
 
