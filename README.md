@@ -1,5 +1,20 @@
 # KiCad-Diff
 
+I have extensively reworked this using an entirely new and much faster visual diff strategy.
+It is easily possible to generate SVG files of a kicad board layout using the python interface. In order to compare these files, I have used an feColorMatrix technique within the rendered webpage. This is now MUCH faster - of the order of a few seconds to generate a full webpage of diffs.
+
+![Overview](https://github.com/Gasman2014/KiCad-Diff/blob/SVG/Screen%20Shot%202019-05-18%20at%2014.40.00.png)
+![SVG](https://github.com/Gasman2014/KiCad-Diff/blob/SVG/Screen%20Shot%202019-05-18%20at%2014.35.22.png)
+![SVG](https://github.com/Gasman2014/KiCad-Diff/blob/SVG/Screen%20Shot%202019-05-18%20at%2014.35.44.png)
+
+
+TODO
+Work out a way to zoom in on the three page image- ideally on all three images at the same time (JS is not my strength) 
+Improve the Text diffing.
+
+NB I need to redo the main GUI page as the layers and resolution are no longer necessary.
+
+
 Was originaly a bash script, this newer GUI version has been rewritten in Python3 and supports Git, SVN and Fossil as SCM tools.
  
 Scripts for performing image diffs between pcbnew layout revisions. Extended to show the graphical diff in a webpage. Also included some general Kicad/Fossil observations.
@@ -43,13 +58,9 @@ Dependencies
  
 **Instructions**
   *  Check that the paths to your SCM tools are correct (lines 32-34)
-  *  Install plotPCB2.py in /usr/local/bin (or adjust path in lines 480/481 to suit). 
+  *  Install plotPCB2DIMS.py in /usr/local/bin (or adjust path in lines 480/481 to suit). 
   (I should probably add this sort of stuff to a config file but I might wait for V2...)
-
-  *  Install imagemagick.
   *  Run the main script and select a pair of versions in a source controlled repository from the GUI. 
-  *  Select a resolution. 
-  *  Select which layers you wish to compare.
   
   The script should build a series of svg files and display the diff in a webpage.
  
@@ -60,24 +71,4 @@ Dependencies
   Possibly support other VCS tools.    DONE
   Mechanism to select layer sets and resolution.    DONE
   Improvement in parsing and meaning of text diffs.   IN PROGRESS
-  
-  ## screenshots
-GUI
-![GUI](/Documents/Screen%20Shot%202018-06-04%20at%2022.28.05.png)
 
-Overview
-![screenshot overview](/Documents/Overview.png)
-
-Three panel view
-![screenshot Three panel view](/Documents/3panel.png)
-F_Cu
-![screenshot F-Cu](/Documents/F_Cu.png)
-F_Cu2
-![screenshot TF_Cu2](/Documents/F_Cu2.png)
-F_Fab
-![screenshot F_Fab](/Documents/F_Fab.png)
-F_Mask
-![screenshot F_Mask](/Documents/F_Mask.png)
-
-Output with PCBDraw (In progress)
-![PCBDraw Output](/Documents/diff-74b1-b1d3.png)
