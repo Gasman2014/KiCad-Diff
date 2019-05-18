@@ -1,15 +1,10 @@
 #!/usr/local/bin/python3
+#
+# A python script to select two revisions of a Kicad pcbnew layout
+# held in a suitable version control repository and produce a graphical diff
+# of generated svg files in a web browser.
 
-# TODO Add progress tk pages
-# TODO Make composite images
-# TODO Honour layer selection
-
-# The Python install in macOS is driving me completely mad as you can only run pcbnew
-# scripting from a specific version of python2 placed within the Kicad executable. This makes it
-# impossible to import pcbnew from another python script especially as I have
-# chosen to write the main script in python3. This has annoying consequences as I have to call
-# several processes using subprocess calls and saving and then re-reading
-# the output rather than simply returning them.
+# TODO Place all template text/css text in exteranl files
 
 import os
 import time
@@ -20,24 +15,19 @@ from subprocess import PIPE, STDOUT, Popen
 from tkinter import *
 from tkinter import filedialog, ttk
 from tkinter.messagebox import showinfo
-
-# import imageme
-import PIL
-from PIL import Image
-
 import tkUI
 from tkUI import *
 
-# TODO Incorporate these full paths
+# NOTE Adjust these paths to suit your setup
 
 gitProg = '/usr/bin/git'
 fossilProg = '/usr/local/bin/fossil'
 svnProg = '/usr/bin/svn'
 plotDir = '/Plots'
 webDir = '/web'
-convertProg = '/usr/local/bin/convert'
+diffProg = '/usr/bin/diff'
+plotProg = '/usr/local/bin/plotPCB2_DIMS.py'
 
-# pcbDraw = '~/Kicad/PcbDraw/pcbdraw.py'
 
 layerCols = {
     'F_Cu': "#952927",
@@ -64,6 +54,590 @@ layerCols = {
     'F_CrtYd': "#A7A7A7",
 }
 
+tail = '''
+<div class="clearfix"></div>
+<div style="padding:6px;"></div>
+'''
+
+indexHead = '''
+<!DOCTYPE HTML>
+<html lang="en">
+<meta charset="utf-8" /> 
+<head>
+    <link rel="stylesheet" type="text/css" href="style.css" media="screen" />
+</head>
+<div class="responsivefull">
+    <table style="border-color: #aaaaaa; width: 100%; height: 2px;" border="2px" cellspacing="2px" cellpadding="3px">
+        <tbody>
+            <tr>
+                <td colspan="3" rowspan="3" width="45%">
+                    <div class="title">{TITLE} </div>
+                    <div class="subtitle">{DATE} </div>
+                    <div class="details">{COMPANY} </div>
+                </td>
+                <td width="25%">
+                    <div class="versions">Thickness (mm)</div>
+                </td>
+                <td width="15%">
+                    <div class="versions green">{THICK1}</div>
+                </td>
+                <td width="15%">
+                    <div class="versions red">{THICK2}</div>
+                </td>
+            </tr>
+            <td width="25%">
+                <div class="versions">Modules</div>
+            </td>
+            <td width="15%">
+                <div class="versions green">{MODULES1}</div>
+            </td>
+            <td width="15%">
+                <div class="versions red">{MODULES2}</div>
+            </td>
+            <tr>
+                <td width="25%">
+                    <div class="versions">Drawings</div>
+                </td>
+                <td width="15%">
+                    <div class="versions green">{DRAWINGS1}</div>
+                </td>
+                <td width="15%">
+                    <div class="versions red">{DRAWINGS2}</div>
+                </td>
+            </tr>
+            <tr>
+                <td width="15%">
+                    <div class="versions">Version</div>
+                </td>
+                <td width="15%">
+                    <div class="versions green">{diffDir1}</div>
+                </td>
+                <td width="15%">
+                    <div class="versions red">{diffDir2}</div>
+                </td>
+                <td width="25%">
+                    <div class="versions">Nets</div>
+                </td>
+                <td width="15%">
+                    <div class="versions green">{NETS1}</div>
+                </td>
+                <td width="15%">
+                    <div class="versions red">{NETS2}</div>
+                </td>
+            </tr>
+            <tr>
+                <td width="15%">
+                    <div class="versions">Date</div>
+                </td>
+                <td width="15%">
+                    <div class="versions">{D1DATE}</div>
+                </td>
+                <td width="15%">
+                    <div class="versions">{D2DATE}</div>
+                </td>
+                <td width="25%">
+                    <div class="versions">Tracks</div>
+                </td>
+                <td width="15%">
+                    <div class="versions green">{TRACKS1}</div>
+                </td>
+                <td width="15%">
+                    <div class="versions red">{TRACKS2}</div>
+                </td>
+            </tr>
+            <tr>
+                <td width="15%">
+                    <div class="versions">Time</div>
+                </td>
+                <td width="15%">
+                    <div class="versions">{D1TIME}</div>
+                </td>
+                <td width="15%">
+                    <div class="versions">{D2TIME}</div>
+                </td>
+                <td width="25%">
+                    <div class="versions">Zones</div>
+                </td>
+                <td width="15%">
+                    <div class="versions green">{ZONES1}</div>
+                </td>
+                <td width="15%">
+                    <div class="versions red">{ZONES2}</div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+'''
+
+outfile = '''
+<div class="responsive">
+  <div class="gallery">
+    <a target="_blank" href=../{diff1}/{layername}>
+    <a href=./tryptych/{prj}-{layer}.html> <img class="{layer}" src=../{diff1}/{layername} height="200"> </a>
+    </a>
+    <div class="desc">{layer}</div>
+  </div>
+</div>
+'''
+
+tryptychHTML = '''
+<!DOCTYPE HTML>
+<html lang="en">
+<meta charset="utf-8" /> 
+<head>
+<link rel="stylesheet" type="text/css" href="../style.css" media="screen" />
+<style>
+div.responsive {{
+   padding: 0 6px;
+   float: left;
+   width: 49.99%;
+   }}
+</style>
+    <script src="https://cdn.jsdelivr.net/npm/svg-pan-zoom@3.6.0/dist/svg-pan-zoom.min.js"></script>
+</head>
+<body>
+<div class="title">{prj}</div>
+<div class="subtitle">{layer}</div>
+
+<div class="responsivefull">
+    <div class="gallery">
+        <svg id="composite" width="100%" height="100%" viewBox="0 0 11693 8268" xmlns="http://www.w3.org/2000/svg" version="1.1">
+                        <defs>
+                            <filter id="f1" x="0%" y="0%" width="100%" height="100%">
+                                <feColorMatrix result="original" id="c1" type="matrix" values="1   0   0   0   0
+                                                            0   1   0   1   0
+                                                            0   0   1   1   0
+                                                            0   0   0   1  0 " />
+                            </filter>
+                            <filter id="f2" x="0%" y="0%" width="100%" height="100%">
+                                <feColorMatrix result="original" id="c2" type="matrix" values="1   0   0   1   0
+                                                    0   1   0   0   0
+                                                    0   0   1   0   0
+                                                    0   0   0   .5   0" />
+                            </filter>
+
+                            <pattern id="smallGrid" width="75" height="75" patternUnits="userSpaceOnUse">
+                                <path d="M 75 0 L 0 0 0 75" fill="none" stroke="#444444" stroke-width="2" />
+                            </pattern>
+
+                            <pattern id="grid" width="750" height="750" patternUnits="userSpaceOnUse">
+                                <rect width="750" height="750" fill="url(#smallGrid)" />
+                                <path d="M 750 0 L 0 0 0 750" fill="none" stroke="#666666" stroke-width="5" />
+                            </pattern>
+
+                        </defs>
+
+                    <image x="0" y="0" height="100%" width="100%" filter="url(#f1)" xlink:href="../../{diff2}/{layername}" />    
+                    <image x="0" y="0" height="100%" width="100%" filter="url(#f2)" xlink:href="../../{diff1}/{layername}" />
+                    <rect width="100%" height="100%" fill="url(#grid)" />
+        </svg>
+    </div>
+</div>
+
+<div class="responsive" >
+    <div class="gallery" >
+        <a target="_blank" href={prj}-{layer}.html>
+            <a href=../../{diff1}/{layername}> 
+            <embed id="diff1" class="{layer}" type="image/svg+xml" src=../../{diff1}/{layername} width="100%"> 
+            </a>
+        </a>
+        <div class="desc added">{diff1}</div>
+    </div>
+</div>
+
+<div class="responsive" >
+    <div class="gallery" >
+        <a target="_blank" href = {prj}-{layer}.html>
+            <a href=../../{diff2}/{layername} > 
+            <embed id="diff2" class="{layer}" type="image/svg+xml" src=../../{diff2}/{layername} width="100%">  
+            </a>
+        </a>
+        <div class="desc removed">{diff2}</div>
+    </div>
+</div>
+'''
+
+twopane='''
+<script>
+    window.onload = function() {
+
+        window.zoomBoard = svgPanZoom('#diff1', {
+            zoomEnabled: true,
+            controlIconsEnabled: true,
+            maxZoom:20,
+            minZoom:0.5,
+        });
+
+        window.zoomBoard2 = svgPanZoom('#diff2', {
+            zoomEnabled: true,
+            controlIconsEnabled: true,
+            maxZoom:20,
+            minZoom:0.5,
+        });
+
+        zoomBoard.setOnZoom(function(level) {
+            zoomBoard2.zoom(level)
+            zoomBoard2.pan(zoomBoard.getPan())
+        })
+
+        zoomBoard.setOnPan(function(point) {
+            zoomBoard2.pan(point)
+        })
+
+        zoomBoard2.setOnZoom(function(level) {
+            zoomBoard.zoom(level)
+            zoomBoard.pan(zoomBoard2.getPan())
+        })
+
+        zoomBoard2.setOnPan(function(point) {
+            zoomBoard.pan(point)
+        })
+
+        var panZoomB1 = svgPanZoom("#diff1");
+        panZoomB1.zoomAtPoint(2, {
+        x: -50,
+        y: -50
+        })
+
+        window.zoomComposite = svgPanZoom('#composite', {
+            zoomEnabled: true,
+            controlIconsEnabled: true,
+            fit: true,
+            center: true,
+            });
+      };
+</script>
+</body>
+'''
+
+css = '''
+body {
+    background-color: #2c3031;
+    margin: 0 auto;
+    max-width: 45cm;
+    border: 1pt solid #586e75;
+    padding: 0.5em;
+}
+
+table {
+    border-collapse: collapse;
+    border-spacing: 0;
+    border-color: #e2e3e3;
+    width: 100%; 
+    height: 2px;
+    border: 2px 
+}
+
+html {
+    background-color: #222222;
+    color: #e2e3e3;
+    margin: 1em;
+}
+
+.tabbed {
+    float: left;
+    width: 100%;
+    padding: 0 6px;
+}
+
+.tabbed>input {
+    display: none;
+}
+
+.tabbed>section>h1 {
+    font: 14px arial, sans-serif;
+    float: left;
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0.5em 0.1em 0;
+    overflow: hidden;
+    font-size: 1em;
+    font-weight: normal;
+}
+
+.tabbed>input:first-child+section>h1 {
+    padding-left: 1em;
+}
+
+.tabbed>section>h1>label {
+    font: 14px arial, sans-serif;
+    display: block;
+    padding: 0.25em 0.75em;
+    border: 1px solid #ddd;
+    border-bottom: none;
+    border-top-left-radius: 4px;
+    border-top-right-radius: 4px;
+    box-shadow: 0 0 0.5em rgba(0, 0, 0, 0.0625);
+    background: rgb(50, 50, 50);
+    cursor: pointer;
+}
+
+.tabbed>section>div {
+    position: relative;
+    z-index: 1;
+    float: right;
+    box-sizing: border-box;
+    width: 100%;
+    margin: 1.95em 0 0 -100%;
+    padding: 0.25em 0.75em;
+    border: 1px solid #ddd;
+
+    box-shadow: 0 0 1em rgb(245, 245, 245);
+    background: rgba(70, 67, 67, 0.185);
+}
+
+.tabbed>input:checked+section>h1 {
+    position: relative;
+    z-index: 2;
+    border-bottom: none;
+}
+
+
+.tabbed>input:not(:checked)+section>div {
+    display: none;
+}
+
+a:active,
+a:hover {
+    outline: 0;
+}
+
+
+.gallery {
+    border: 1px solid #ccc;
+    background-color: #222;
+    padding: 5px;
+    align: middle;
+    vertical-align: middle;
+}
+
+.gallery:hover {
+    border: 1px solid #777;
+}
+
+.gallery img {
+    width: 100%;
+    height: auto;
+}
+
+.desc,
+.title {
+    padding: 10px;
+    text-align: center;
+    font: 12px arial, sans-serif;
+}
+
+.title,
+.subtitle,
+.details {
+    padding-left: 10px;
+    text-align: left;
+    font: 20px arial, sans-serif;
+    color: #dddddd;
+}
+
+.subtitle {
+    font: 14px arial, sans-serif;
+}
+
+.details,
+.versions {
+    padding: 5px;
+    font: 12px arial, sans-serif;
+    padding-bottom: 5px;
+}
+
+
+.differences {
+    font: 12px courier, monospace;
+    padding: 5px;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+.responsive {
+    padding: 0 6px;
+    float: left;
+    width: 19.99999%;
+    margin: 6px 0;
+}
+
+@media only screen and (max-width:700px) {
+    .responsive {
+        width: 49.98%;
+        margin: 6px 0;
+    }
+}
+
+@media only screen and (max-width:500px) {
+    .responsive {
+        width: 100%;
+        margin: 6px 0;
+    }
+}
+
+.responsivefull {
+    padding: 0 6px;
+    width: 100%;
+    margin: 3px 0;
+}
+
+.clearfix:after {
+    content: "";
+    display: table;
+    clear: both;
+}
+
+.box {
+    float: left;
+    width: 20px;
+    height: 20px;
+    margin: 5px;
+    border: 1px solid rgba(0, 0, 0, .2);
+}
+
+.red {
+    background: #832320;
+}
+
+.green {
+    background: #44808aa8;
+}
+
+
+.added {
+    color: #5eb6c4;
+    text-align: left;
+}
+
+.removed {
+    color: #ba312d;
+    text-align: right;
+}
+
+.tbr td {
+    color:#ba312d;
+    padding: 10px;
+    font: 12px arial,sans-serif;
+    padding-bottom: 5px;
+}
+
+.tbl td {
+    color: #5eb6c4;
+    padding: 10px;
+    font: 12px arial, sans-serif;
+    padding-bottom: 5px;
+}
+
+.tbr th {
+    text-align: left;
+    background: #832320;
+    padding: 10px;
+    font: 12px arial, sans-serif;
+    font-weight: bold;
+    padding-bottom: 5px;
+}
+
+.tbl th {
+    text-align: left;
+    background: #44808aa8;
+    padding: 10px;
+    font: 12px arial, sans-serif;
+    font-weight: bold;
+    padding-bottom: 5px;
+}
+
+.F_Cu {
+    filter: invert(28%) sepia(50%) saturate(2065%) hue-rotate(334deg) brightness(73%) contrast(97%);
+}
+
+.B_Cu {
+    filter: invert(44%) sepia(14%) saturate(2359%) hue-rotate(70deg) brightness(103%) contrast(82%);
+}
+
+.B_Paste {
+    filter: invert(91%) sepia(47%) saturate(4033%) hue-rotate(139deg) brightness(82%) contrast(91%);
+}
+
+.F_Paste {
+    filter: invert(57%) sepia(60%) saturate(6%) hue-rotate(314deg) brightness(92%) contrast(99%);
+}
+
+.F_SilkS {
+    filter: invert(46%) sepia(44%) saturate(587%) hue-rotate(132deg) brightness(101%) contrast(85%);
+}
+
+.B_SilkS {
+    filter: invert(14%) sepia(27%) saturate(2741%) hue-rotate(264deg) brightness(95%) contrast(102%);
+}
+
+.B_Mask {
+    filter: invert(22%) sepia(56%) saturate(2652%) hue-rotate(277deg) brightness(94%) contrast(87%);
+}
+
+.F_Mask {
+    filter: invert(27%) sepia(51%) saturate(1920%) hue-rotate(269deg) brightness(89%) contrast(96%);
+}
+
+.Edge_Cuts {
+    filter: invert(79%) sepia(79%) saturate(401%) hue-rotate(6deg) brightness(88%) contrast(88%);
+}
+
+.Margin {
+    filter: invert(74%) sepia(71%) saturate(5700%) hue-rotate(268deg) brightness(89%) contrast(84%);
+}
+
+.In1_Cu {
+    filter: invert(69%) sepia(39%) saturate(1246%) hue-rotate(17deg) brightness(97%) contrast(104%);
+}
+
+.In2_Cu {
+    filter: invert(14%) sepia(79%) saturate(5231%) hue-rotate(293deg) brightness(91%) contrast(119%);
+}
+
+.Dwgs_User {
+    filter: invert(40%) sepia(68%) saturate(7431%) hue-rotate(203deg) brightness(89%) contrast(98%);
+}
+
+.Cmts_User {
+    filter: invert(73%) sepia(10%) saturate(1901%) hue-rotate(171deg) brightness(95%) contrast(102%);
+}
+
+.Eco1_User {
+    filter: invert(25%) sepia(98%) saturate(2882%) hue-rotate(109deg) brightness(90%) contrast(104%);
+}
+
+.Eco2_User {
+    filter: invert(85%) sepia(21%) saturate(5099%) hue-rotate(12deg) brightness(91%) contrast(102%);
+}
+
+.B_Fab {
+    filter: invert(60%) sepia(0%) saturate(0%) hue-rotate(253deg) brightness(87%) contrast(90%);
+}
+
+.F_Fab {
+    filter: invert(71%) sepia(21%) saturate(4662%) hue-rotate(21deg) brightness(103%) contrast(100%);
+}
+
+.B_Adhes {
+    filter: invert(24%) sepia(48%) saturate(2586%) hue-rotate(218deg) brightness(88%) contrast(92%);
+}
+
+.F_Adhes {
+    filter: invert(38%) sepia(49%) saturate(1009%) hue-rotate(254deg) brightness(88%) contrast(86%);
+}
+
+.B_CrtYd {
+    filter: invert(79%) sepia(92%) saturate(322%) hue-rotate(3deg) brightness(89%) contrast(92%);
+}
+
+.F_CrtYd {
+    filter: invert(73%) sepia(1%) saturate(0%) hue-rotate(116deg) brightness(92%) contrast(91%);
+}
+'''
 
 def getGitDiff(diff1, diff2, prjctName, prjctPath):
     '''Given two git artifacts, write out two kicad_pcb files to their respective
@@ -83,7 +657,7 @@ def getGitDiff(diff1, diff2, prjctName, prjctPath):
         stderr=PIPE,
         close_fds=True)
     stdout, stderr = changes.communicate()
-
+    changes.wait()
     changed = (stdout.decode('utf-8'))
 
     if changed == '':
@@ -123,6 +697,8 @@ def getGitDiff(diff1, diff2, prjctName, prjctPath):
         close_fds=True)
     stdout, stderr = ver2.communicate()
 
+    ver1.wait(); ver2.wait()
+
     gitDateTime1 = 'cd ' + prjctPath + ' && ' + gitProg + ' show -s --format="%ci" ' + artifact1
     gitDateTime2 = 'cd ' + prjctPath + ' && ' + gitProg + ' show -s --format="%ci" ' + artifact2
 
@@ -134,10 +710,11 @@ def getGitDiff(diff1, diff2, prjctName, prjctPath):
         stderr=PIPE,
         close_fds=True)
     stdout, stderr = dt1.communicate()
+    dt1.wait()
+
 
     dateTime1 = stdout.decode('utf-8')
     date1, time1, UTC = dateTime1.split(' ')
-    print(date1, time1)
 
     dt2 = Popen(
         gitDateTime2,
@@ -147,13 +724,13 @@ def getGitDiff(diff1, diff2, prjctName, prjctPath):
         stderr=PIPE,
         close_fds=True)
     stdout, stderr = dt2.communicate()
+    dt2.wait()
 
     dateTime2 = stdout.decode('utf-8')
     date2, time2, UTC = dateTime2.split(' ')
-    print(date2, time2)
 
     times = date1 + " " + time1 + " " + date2 + " " + time2
-
+    print(times)
     return (times)
 
 
@@ -172,6 +749,7 @@ def getSVNDiff(diff1, diff2, prjctName, prjctPath):
         stderr=PIPE,
         close_fds=True)
     stdout, stderr = changed.communicate()
+    changed.wait()
 
     changed, *boardName = (stdout.decode('utf-8'))
 
@@ -211,6 +789,8 @@ def getSVNDiff(diff1, diff2, prjctName, prjctPath):
         close_fds=True)
     stdout, stderr = ver2.communicate()
 
+    ver1.wait(); ver2.wait()
+
     dateTime1 = 'cd ' + prjctPath + ' && svn log -r' + diff1
     dateTime2 = 'cd ' + prjctPath + ' && svn log -r' + diff2
 
@@ -222,6 +802,8 @@ def getSVNDiff(diff1, diff2, prjctName, prjctPath):
         stderr=PIPE,
         close_fds=True)
     stdout, stderr = dt1.communicate()
+
+    dt1.wait()
     dateTime = stdout.decode('utf-8')
     cmt = (dateTime.splitlines()[1]).split('|')
     _, SVNdate1, SVNtime1, SVNutc, *_ = cmt[2].split(' ')
@@ -234,6 +816,7 @@ def getSVNDiff(diff1, diff2, prjctName, prjctPath):
         stderr=PIPE,
         close_fds=True)
     stdout, stderr = dt2.communicate()
+    dt2.wait()
     dateTime = stdout.decode('utf-8')
     cmt = (dateTime.splitlines()[1]).split('|')
     _, SVNdate2, SVNtime2, SVNutc, *_ = cmt[2].split(' ')
@@ -263,6 +846,7 @@ def getFossilDiff(diff1, diff2, prjctName, prjctPath):
         stderr=PIPE,
         close_fds=True)
     stdout, stderr = changes.communicate()
+    changes.wait()
 
     changed = (stdout.decode('utf-8'))
     print(changed)
@@ -295,6 +879,7 @@ def getFossilDiff(diff1, diff2, prjctName, prjctPath):
         stderr=PIPE,
         close_fds=True)
     stdout, stderr = ver1.communicate()
+    ver1.wait()
 
     info1 = Popen(
         fossilInfo1,
@@ -304,6 +889,7 @@ def getFossilDiff(diff1, diff2, prjctName, prjctPath):
         stderr=PIPE,
         close_fds=True)
     stdout, stderr = info1.communicate()
+    info1.wait()
 
     dateTime = stdout.decode('utf-8')
     dateTime = dateTime.strip()
@@ -318,6 +904,7 @@ def getFossilDiff(diff1, diff2, prjctName, prjctPath):
         stderr=PIPE,
         close_fds=True)
     stdout, stderr = ver2.communicate()
+    ver2.wait()
 
     info2 = Popen(
         fossilInfo2,
@@ -327,6 +914,7 @@ def getFossilDiff(diff1, diff2, prjctName, prjctPath):
         stderr=PIPE,
         close_fds=True)
     stdout, stderr = info2.communicate()
+    info2.wait()
 
     dateTime = stdout.decode('utf-8')
     dateTime = dateTime.strip()
@@ -334,6 +922,8 @@ def getFossilDiff(diff1, diff2, prjctName, prjctPath):
         " ")
 
     dateTime = dateDiff1 + " " + timeDiff1 + " " + dateDiff2 + " " + timeDiff2
+
+    print(dateTime)
 
     return dateTime
 
@@ -352,8 +942,10 @@ def getProject():
 
 def getSCM(prjctPath):
     '''Determines which SCM methodology is in place when passed the enclosing
-    directory. NB no facility to deal with directories with multiple VCS in place.
-    Easy to add additional SCMs but also would need to write handling code'''
+    directory. NB there is no facility to deal with directories with multiple VCS in place
+    and current order of priority is Git > Fossil > SVN.
+    Easy to add additional SCMs but also would need to write handling code
+    '''
 
     scm = ''
 
@@ -367,6 +959,7 @@ def getSCM(prjctPath):
         stderr=PIPE,
         close_fds=True)
     stdout, stderr = git.communicate()
+    git.wait()
     if ((stdout.decode('utf-8') != '') & (stderr.decode('utf-8') == '')):
         scm = 'Git'
 
@@ -380,7 +973,11 @@ def getSCM(prjctPath):
         stderr=PIPE,
         close_fds=True)
     stdout, stderr = fossil.communicate()
-    if ((stdout.decode('utf-8') != '') & (stderr.decode('utf-8') == '')):
+    fossil.wait()
+    print(stdout.decode('utf-8'),"stdERROR=", stderr.decode('utf-8'))
+    #   if ((stdout.decode('utf-8') != '') & (stderr.decode('utf-8') == '')):
+
+    if (stdout.decode('utf-8') != ''):
         scm = 'Fossil'
 
     # check if SVN
@@ -393,6 +990,7 @@ def getSCM(prjctPath):
         stderr=PIPE,
         close_fds=True)
     stdout, stderr = svn.communicate()
+    svn.wait()
     if ((stdout.decode('utf-8') != '') & (stderr.decode('utf-8') == '')):
         scm = 'SVN'
 
@@ -412,8 +1010,9 @@ def fossilDiff(path, kicadPCB):
         stderr=PIPE,
         close_fds=True)
     stdout, _ = fossil.communicate()
+    fossil.wait()
     line = (stdout.decode('utf-8').splitlines())
-    fArtifacts = [a.replace(' ', '\t\t', 5) for a in line]
+    fArtifacts = [a.replace(' ', '       ', 4) for a in line]
     return fArtifacts
 
 
@@ -430,6 +1029,7 @@ def gitDiff(path, kicadPCB):
         stderr=PIPE,
         close_fds=True)
     stdout, _ = git.communicate()
+    git.wait()
     gArtifacts = (stdout.decode('utf-8').splitlines())
     return gArtifacts
 
@@ -447,6 +1047,7 @@ def svnDiff(path, kicadPCB):
         stderr=PIPE,
         close_fds=True)
     stdout, stderr = svn.communicate()
+    svn.wait()
     sArtifacts = (stdout.decode('utf-8').splitlines())
     sArtifacts = list(filter(None, sArtifacts))
     return sArtifacts
@@ -467,8 +1068,8 @@ def makeSVG(d1, d2, prjctName, prjctPath, reqLayers):
     Diff1 = prjctPath + plotDir + '/' + d1 + '/' + prjctName
     Diff2 = prjctPath + plotDir + '/' + d2 + '/' + prjctName
 
-    d1SVG = '/tmp/svg/' + d1
-    d2SVG = '/tmp/svg/' + d2
+    d1SVG = prjctPath + plotDir + '/' + d1
+    d2SVG = prjctPath + plotDir + '/' + d2
 
     if not os.path.exists(d1SVG):
         os.makedirs(d1SVG)
@@ -476,179 +1077,54 @@ def makeSVG(d1, d2, prjctName, prjctPath, reqLayers):
         os.makedirs(d2SVG)
 
 
-#    plot1Cmd = '/usr/local/bin/plotPCB2_DIMS.py ' + Diff1 + " " + d1SVG
-#    plot2Cmd = '/usr/local/bin/plotPCB2_DIMS.py ' + Diff2 + " " + d2SVG
-#    These should return the board dimensions which might be useful for plotting/alignment
+    plot1Cmd = plotProg + ' ' + Diff1 + " " + d1SVG
+    plot2Cmd = plotProg + ' ' + Diff2 + " " + d2SVG
 
-    plot1Cmd = '/usr/local/bin/plotPCB2.py ' + Diff1 + " " + d1SVG
-    plot2Cmd = '/usr/local/bin/plotPCB2.py ' + Diff2 + " " + d2SVG
-
-    Popen(
+    plot1=Popen(
         plot1Cmd,
         shell=True,
         stdin=PIPE,
         stdout=PIPE,
         stderr=PIPE,
         close_fds=True)
-    Popen(
+    stdout, stderr = plot1.communicate()
+    plotDims1 = (stdout.decode('utf-8').splitlines())
+
+
+    plot2=Popen(
         plot2Cmd,
         shell=True,
         stdin=PIPE,
         stdout=PIPE,
         stderr=PIPE,
         close_fds=True)
+    stdout, stderr = plot2.communicate()
+    plotDims2 = (stdout.decode('utf-8').splitlines())
 
-    # if pcbDraw:
-    #     prjct, ext = prjctName.split('.')
-    #     comp1 = pcbDraw + ' /dev/null ' + d1SVG + '/' + prjct + '-Comp.svg ' + Diff1
-    #     comp2 = pcbDraw + ' /dev/null ' + d2SVG + '/' + prjct + '-Comp.svg ' + Diff2
-    #     print(comp1, comp2)
-    #     Popen(comp1, shell=True, stdin=PIPE, stdout=PIPE, stderr=PIPE, close_fds=True)
-    #     Popen(comp2, shell=True, stdin=PIPE, stdout=PIPE, stderr=PIPE, close_fds=True)
-
-    return (d1, d2)
+    plot1.wait(); plot2.wait()
 
 
-def makePNG(svgDir1, svgDir2, qual, prjctName, prjctPath):
-    '''Convert svg files in tmp directories in to .png files with defined
-    quality (dpi)'''
-
-    svgDirTop = '/tmp/svg/' + svgDir1 + '/'
-    svgDirBottom = '/tmp/svg/' + svgDir2 + '/'
-    qual = str(qual.get())
-
-    svgdirs = []
-
-    svgdirs.append(svgDirTop)
-    svgdirs.append(svgDirBottom)
-
-    for d in svgdirs:
-        directory = os.fsencode(d)
-
-        _, _, _, diff, e = d.split('/')
-        print("Converting .svg files in ", d, e, " to .png")
-
-        pngFullPath = prjctPath + plotDir + '/' + diff
-
-        if not os.path.exists(pngFullPath):
-            os.makedirs(pngFullPath)
-
-        for file in os.listdir(directory):
-
-            filename = os.fsdecode(file)
-
-            if filename.endswith(".svg"):
-                basename, ext = filename.split('.')
-                command1 = convertProg + ' -density ' + qual + ' -fuzz 10% -trim +repage ' + \
-                    d + filename + ' ' + d + basename + '.png'
-
-                svgs = subprocess.Popen(command1, shell=True, stdout=subprocess.PIPE)
-                out, err = svgs.communicate()
-
-        print("Inverting .png files in ", d, e)
-        for file in os.listdir(directory):
-
-            filename = os.fsdecode(file)
-
-            if filename.endswith(".png"):
-
-                basename, ext = filename.split('.')
-
-                """
-                The -negate option replaces each pixel with its complementary color. The -channel RGB 
-                option is necessary as of ImageMagick 7 to prevent the alpha channel (if present) 
-                from being negated. 
-                """
-                command2 = convertProg + ' ' + d + basename + '.png -channel RGB -negate ' + \
-                    prjctPath + plotDir + '/' + diff + '/' + basename + '.png'
-
-                pngs = subprocess.Popen(command2, shell=True, stdout=subprocess.PIPE)
-                out, err = pngs.communicate()
+    print(plotDims1[0], plotDims2[0])
 
 
-def comparePNG(diff1, diff2, prjctName, prjctPath):
-    '''Generate png diffs between DIFF_1 and DIFF_2. Originally the intention was
-    to use the ImageMagic 'composite stereo 0' function to identify
-    where items have moved but I could not get this to work.
-    This flattens the original files to greyscale and they need to be converted
-    back to rgb in order to be colourised.'''
-
-    diffDir = prjctPath + plotDir + '/diff-' + diff1 + '-' + diff2
-
-    print("Generating *.png diff files")
-    if not os.path.exists(diffDir):
-        os.makedirs(diffDir)
-
-    pngFullPath1 = prjctPath + plotDir + '/' + diff1
-    pngFullPath2 = prjctPath + plotDir + '/' + diff2
-
-    pngBasePath = prjctPath + plotDir
-
-    directory1 = os.fsencode(pngFullPath1)
-
-    for file in os.listdir(directory1):
-        plot = os.fsdecode(file)
-        if plot.endswith(".png"):
-            p1 = pngBasePath + '/' + diff1 + '/' + plot
-            p2 = pngBasePath + '/' + diff2 + '/' + plot
-            c1 = convertProg + ' ' + p1 + ' -flatten -grayscale Rec709Luminance ' + p1
-            c2 = convertProg + ' ' + p2 + ' -flatten -grayscale Rec709Luminance ' + p2
-            composite = convertProg + ' ' + p1 + ' ' + p2 + \
-                ' "(" -clone 0-1 -compose darken -composite ")" -channel RGB -combine ' + \
-                diffDir + '/' + plot
-
-            comp1 = subprocess.Popen(c1, shell=True, executable='/bin/bash')
-            comp2 = subprocess.Popen(c2, shell=True, executable='/bin/bash')
-
-            diffs = subprocess.Popen(composite, shell=True, executable='/bin/bash')
-            out, err = diffs.communicate()
-
-            # Accounts for project names containing hyphens
-            splitted = plot.split('-')
-            page = splitted[-2]
-            layerExt = splitted[-1]
-
-            layer, ext = layerExt.split('.')
-
-            colour = layerCols.get(layer, '#ffffff')
-            print(layer, colour)
-
-            colourize = convertProg + ' ' + diffDir + '/' + plot + ' -fill "' + colour + \
-                '" -fuzz 75% -opaque "#ffffff" ' + diffDir + '/' + plot
-
-            diffs = subprocess.Popen(colourize, shell=True, stdout=subprocess.PIPE)
-            out, err = diffs.communicate()
-
-            col1A = convertProg + ' ' + p1 + ' -define png:color-type=2 ' + p1
-            col1 = convertProg + ' ' + p1 + ' -fill "' + colour + '" -fuzz 75% -opaque "#ffffff" ' + p1
-
-            col2A = convertProg + ' ' + p2 + ' -define png:color-type=2 ' + p2
-            col2 = convertProg + ' ' + p2 + ' -fill "' + colour + '" -fuzz 75% -opaque "#ffffff" ' + p2
-
-            colour1 = subprocess.Popen(col1A, shell=True, stdout=subprocess.PIPE)
-            out, err = colour1.communicate()
-
-            colour1 = subprocess.Popen(col1, shell=True, stdout=subprocess.PIPE)
-            out, err = colour1.communicate()
-
-            colour2 = subprocess.Popen(col2A, shell=True, stdout=subprocess.PIPE)
-            out, err = colour2.communicate()
-
-            colour2 = subprocess.Popen(col2, shell=True, stdout=subprocess.PIPE)
-            out, err = colour2.communicate()
+    return (d1, d2, plotDims1[0], plotDims2[0])
 
 
 def makeSupportFiles(prjctName, prjctPath):
-    '''Setup web directories for output
+    '''
+    Setup web directories for output
     '''
 
     webd = prjctPath + plotDir + webDir
     webIndex = webd + '/index.html'
+    webStyle = webd + '/style.css'
 
     if not os.path.exists(webd):
         os.makedirs(webd)
-        os.makedirs(webd + '/thumbs')
         os.makedirs(webd + '/tryptych')
+
+    makeCSS = open(webStyle, 'w')
+    makeCSS.write(css)
 
     if os.path.exists(webIndex):
         os.remove(webIndex)
@@ -684,11 +1160,13 @@ def getBoardData(board):
             for key in prms:
                 if len(words) > 1:
                     if key == words[0]:
-                        prms[key] = words[1].strip("\t ()")
+                        complete =""
+                        for i in range(1,len(words)):
+                            complete += words[i].strip("\t ()").replace("\"","") + " "
+                        prms[key] =complete
     return(prms)
 
-
-def makeOutput(diffDir1, diffDir2, prjctName, prjctPath, times):
+def makeOutput(diffDir1, diffDir2, prjctName, prjctPath, times, dim1, dim2):
     '''Write out HTML using template. Iterate through files in diff directories, generating
     thumbnails and three way view (tryptych) page.
     '''
@@ -705,9 +1183,6 @@ def makeOutput(diffDir1, diffDir2, prjctName, prjctPath, times):
 
     board_1_Info = getBoardData(board1)
     board_2_Info = getBoardData(board2)
-
-    print(board_1_Info)
-    print(board_2_Info)
 
     TITLE = board_1_Info.get('title')
     DATE = board_1_Info.get('date')
@@ -727,254 +1202,90 @@ def makeOutput(diffDir1, diffDir2, prjctName, prjctPath, times):
     MODULES2 = board_2_Info.get('modules')
     NETS2 = board_2_Info.get('nets')
 
-    # TODO Improve CSS colourscheme
 
-    indexHead = '''
-    <!DOCTYPE HTML>
-    <html lang="en">
-    <head>
-    <link rel="stylesheet" type="text/css" href="style.css" media="screen" />
+    index=indexHead.format(
+    TITLE=TITLE,
+    DATE=DATE,
+    COMPANY=COMPANY,
+    diffDir1=diffDir1,
+    diffDir2=diffDir2,
+    THICK1=THICK1,
+    THICK2=THICK2,
+    D1DATE=D1DATE,
+    D2DATE=D2DATE,
+    DRAWINGS1=DRAWINGS1,
+    DRAWINGS2=DRAWINGS2,
+    D1TIME=D1TIME,
+    D2TIME=D2TIME,
+    TRACKS1=TRACKS1,
+    TRACKS2=TRACKS2,
+    ZONES1=ZONES1,
+    ZONES2=ZONES2,
+    MODULES1=MODULES1,
+    MODULES2=MODULES2,
+    NETS1=NETS1,
+    NETS2=NETS2)
 
-    </head>
-
-    <table style="border-color: #aaaaaa; width: 100%; height: 2px;" border="2px" cellspacing="2px" cellpadding="3px">
-    <tbody>
-    <tr>
-    <td colspan="6" width="256">
-    <h1>{TITLE}
-    <h5>{DATE}
-    <h5>{COMPANY}
-    </td>
-    </tr>
-    <tr>
-    <td width="83">
-    <div class = "h3"><b>Version</b></div>
-    </td>
-    <td width="89">
-    <div class="h2 green">{diffDir1}</div>
-    </td>
-    <td width="89">
-    <div class="h2 red">{diffDir2}</div>
-    </td>
-    <td width="84">
-    <div class="h3">Thickness (mm)</div>
-    </td>
-    <td width="40">
-    <div class="h2 green">{THICK1}</div>
-    </td>
-    <td width="41">
-    <div class="h2 red">{THICK2}</div>
-    </td>
-    </tr>
-    <tr>
-    <td width="83">
-    <div class="h2">Date</div>
-    </td>
-    <td width="89">
-    <div class="h3">{D1DATE}</div>
-    </td>
-    <td width="89">
-    <div class="h3">{D2DATE}</div>
-    </td>
-    <td width="84">
-    <div class="h3">Drawings</div>
-    </td>
-    <td width="40">
-    <div class="h2 green">{DRAWINGS1}</div>
-    </td>
-    <td width="41">
-    <div class="h2 red">{DRAWINGS2}</div>
-    </td>
-    </tr>
-    <tr>
-    <td width="83">
-    <div class="h3"><strong>Time</div>
-    </td>
-    <td width="89">
-    <div class="h3">{D1TIME}</div>
-    </td>
-    <td width="89">
-    <div class="h3">{D2TIME}</div>
-    </td>
-    <td width="84">
-    <div class="h3">Tracks</div>
-    </td>
-    <td width="40">
-    <div class="h2 green">{TRACKS1}</div>
-    </td>
-    <td width="41">
-    <div class="h2 red">{TRACKS2}</div>
-    </td>
-    </tr>
-    <tr>
-    <td colspan="3" rowspan="3" width="261">
-    </td>
-    <td width="84">
-    <div class="h3">Zones</div>
-    </td>
-    <td width="40">
-    <div class="h2 green">{ZONES1}</div>
-    </td>
-    <td width="41">
-    <div class="h2 red">{ZONES2}</div>
-    </td>
-    </tr>
-    <tr>
-    <td width="84">
-    <div class="h3">Modules</div>
-    </td>
-    <td width="40">
-    <div class="h2 green">{MODULES1}</div>
-    </td>
-    <td width="41">
-    <div class="h2 red">{MODULES2}</div>
-    </td>
-    </tr>
-    <tr>
-    <td width="84">
-    <div class="h3">Nets</div>
-    </td>
-    <td width="40">
-    <div class="h2 green">{NETS1}</div>
-    </td>
-    <td width="41">
-    <div class="h2 red">{NETS2}</div>
-    </td>
-    </tr>
-    </tbody>
-    </table>
-    '''.format(
-        TITLE=TITLE,
-        DATE=DATE,
-        COMPANY=COMPANY,
-        diffDir1=diffDir1,
-        diffDir2=diffDir2,
-        THICK1=THICK1,
-        THICK2=THICK2,
-        D1DATE=D1DATE,
-        D2DATE=D2DATE,
-        DRAWINGS1=DRAWINGS1,
-        DRAWINGS2=DRAWINGS2,
-        D1TIME=D1TIME,
-        D2TIME=D2TIME,
-        TRACKS1=TRACKS1,
-        TRACKS2=TRACKS2,
-        ZONES1=ZONES1,
-        ZONES2=ZONES2,
-        MODULES1=MODULES1,
-        MODULES2=MODULES2,
-        NETS1=NETS1,
-        NETS2=NETS2)
-
-    webOut.write(indexHead)
+    webOut.write(index)
 
     diffCmnd1 = ()
 
-    source = prjctPath + plotDir + '/diff-' + diffDir1 + '-' + diffDir2 + '/'
-
-    thumbDir = prjctPath + plotDir + webDir + '/thumbs'
-
-    if not os.path.exists(thumbDir):
-        os.makedirs(thumbDir)
+    source = prjctPath + "/" + plotDir + "/" + diffDir1 + "/"
 
     tryptychDir = prjctPath + plotDir + webDir + '/tryptych'
 
     if not os.path.exists(tryptychDir):
         os.makedirs(tryptychDir)
 
-    diffs = os.fsencode(source)
-    size = 300, 245
-    for f in os.listdir(diffs):
+    # diffs = os.fsencode(source)
+
+    for f in os.listdir(source):
         filename = os.fsdecode(f)
-        if filename.endswith(".png"):
-            outfile = thumbDir + '/th_' + filename
-            tryptych = tryptychDir + '/' + filename + '.html'
+        if filename.endswith(".svg"):
+            print(filename)
+            file, file_extension = os.path.splitext(filename)
+            tryptych = tryptychDir + '/' + file + '.html'
             *project, layer = filename.split('-')
-            im = PIL.Image.open(source + filename)
-            im.thumbnail(size, PIL.Image.ANTIALIAS)
-            im.save(outfile, "png")
-
-            outfile = '''
-<div class="responsive">
-  <div class="gallery">
-    <a target="_blank" href = tryptych/{0}.html>
-      <img src = thumbs/th_{0} height="200">
-    </a>
-    <div class="desc">{1}</div>
-  </div>
-</div>
-            '''.format(filename, layer[:-4])
-            webOut.write(outfile)
-
-            tryptychOut = open(tryptych, 'w')
-
-            tryptychHTML = '''
-<!DOCTYPE HTML>
-<html lang="en">
-<head>
-<link rel="stylesheet" type="text/css" href="../style.css" media="screen" />
-<style>
-div.responsive {{
-   padding: 0 6px;
-   float: left;
-   width: 49.99%;
-   }}
-</style>
-</head>
-
-<body>
-<h2>{layername}</h> <br>
-
-<div class="responsive" >
-    <div class="gallery" >
-        <a target="_blank" href={layername}.html>
-            <a href=../../{diff1}/{layername}> <img src=../../{diff1}/{layername} width="500"> </a>
-        </a>
-        <div class="desc green">{diff1}</div>
-    </div>
-</div>
-
-<div class="responsive" >
-    <div class="gallery" >
-        <a target="_blank" href = {layername}.html>
-            <a href=../../{diff2}/{layername} > <img src = ../../{diff2}/{layername} width = "500" > </a>
-        </a>
-        <div class="desc red" >{diff2}</div>
-    </div>
-</div>
-
-<div class="responsive" >
-    <div class="gallery" >
-        <a target="_blank" href = ./{plotDir}/{layername}.html>
-            <a href= ../../diff-{diff1}-{diff2}/{layername}> <img src = ../../diff-{diff1}-{diff2}/{layername} width = "500" > </a>
-        </a>
-        <div class="desc white" > Composite </div>
-    </div>
-</div>'''.format(
-                layername=filename,
-                diff1=diffDir1,
-                diff2=diffDir2,
-                plotDir=plotDir)
-
-            tryptychOut.write(tryptychHTML)
-
+            layer, ext = layer.split('.')
             prjct, ext = filename.split('.')
-
             # Accounts for project names containing hyphens
             splitted = prjct.split('-')
             prj = splitted[-2]
             layer = splitted[-1]
+            out=outfile.format(
+                diff1=diffDir1,
+                diff2=diffDir2,
+                dim1=dim1,
+                dim2=dim2,
+                layer=layer,
+                layername=filename,
+                prj=prj)
 
-            #prj, layer = prjct.split('-')
-            print(prj, layer)
-            layer = layer.replace('_', '.')
+            webOut.write(out)
+
+            tryptychOut = open(tryptych, 'w')
+
+            t_out = tryptychHTML.format(
+                layername=filename,
+                diff1=diffDir1,
+                diff2=diffDir2,
+                dim1=dim1,
+                dim2=dim2,
+                plotDir=plotDir,
+                layer=layer,
+                prj=prj)
+
+            tryptychOut.write(t_out)
+
+            diffbase=diffProg+'{prjctPath}{plotDir}/{diff2}/*.kicad_pcb {prjctPath}{plotDir}/{diff1}/*.kicad_pcb >> {prjctPath}{plotDir}/diff.txt'
 
             if not diffCmnd1:
-                diffCmnd1 = 'diff {prjctPath}{plotDir}/{diff2}/*.kicad_pcb {prjctPath}{plotDir}/{diff1}/*.kicad_pcb >> {prjctPath}{plotDir}/diff-{diff1}-{diff2}/diff.txt'.format(
+                diffCmnd1 = diffbase.format(
                     plotDir=plotDir,
                     diff1=diffDir1,
                     diff2=diffDir2,
                     prjctPath=prjctPath)
+                # print(diffCmnd1)
 
                 diff1Txt = Popen(
                     diffCmnd1,
@@ -984,44 +1295,136 @@ div.responsive {{
                     stderr=PIPE,
                     close_fds=True)
                 stdout, stderr = diff1Txt.communicate()
-
-
-            diffCmnd2 = '''diff {prjctPath}{plotDir}/{diff2}/*.kicad_pcb {prjctPath}{plotDir}/{diff1}/*.kicad_pcb | grep {mod} | sed 's/>  /<\/div><div class="differences added">/g' | sed 's/<   /<\/div><div class="differences removed">/g' | sed -e 's/\/n/<\/div>/g' | sed 's/(layer {mod})//g' '''.format(
+                diff1Txt.wait()
+            #sed -e 's/(layer {mod}*)//g' |
+            mod = layer.replace("_",".")
+#            diffCmnd2 = diffProg + ''' --suppress-common-lines {prjctPath}{plotDir}/{diff2}/*.kicad_pcb {prjctPath}{plotDir}/{diff1}/*.kicad_pcb | grep {mod} | sed 's/>  /<\/div><div class="differences added">/g' | sed 's/<   /<\/div><div class="differences removed">/g' | sed 's/\/n/<\/div>/g' | sed 's/(status [1-9][0-9])//g' '''.format(
+            diffCmnd2 = diffProg + ''' --suppress-common-lines {prjctPath}{plotDir}/{diff2}/*.kicad_pcb {prjctPath}{plotDir}/{diff1}/*.kicad_pcb | grep {mod} | sed 's/(status [1-9][0-9])//g' '''.format(
                 layername=filename,
                 plotDir=plotDir,
                 diff1=diffDir1,
                 diff2=diffDir2,
                 prjctPath=prjctPath,
-                mod=layer,
+                mod=mod,
                 webDir=webDir)
 
 
-
             diff2Txt = Popen(
-                diffCmnd2,
-                shell=True,
-                stdin=PIPE,
-                stdout=PIPE,
-                stderr=PIPE,
-                close_fds=True)
+                    diffCmnd2,
+                    shell=True,
+                    stdin=PIPE,
+                    stdout=PIPE,
+                    stderr=PIPE,
+                    close_fds=True)
             stdout, stderr = diff2Txt.communicate()
+            diff2Txt.wait()
             out = stdout.decode('utf8')
-            print(diffCmnd2)
 
-            tryptychOut.write(out)
+            processed = processDiff(out, mod)
+            processed+=twopane
 
-            tail = '''
-<div class="clearfix"></div>
-<div style="padding:6px;">
-</div>'''
-            tryptychOut.write(tail)
-
-    tail = '''
-<div class="clearfix"></div>
-<div style="padding:6px;">
-</div>'''
-
+            tryptychOut.write(processed)
     webOut.write(tail)
+
+def processDiff(diffText, mod):
+
+    keywords=[
+        ("(module ","Modules",("Component","Reference","Timestamp")),
+        ("(gr_text ","Text",("Text","Position")),
+        ("(via ","Vias",("Coordinate","Size","Drill","Layers","Net")),
+        ("(fp_text ","FP Text",("Reference","Coordinate")),
+        ("(pad ","Pads",("Number","Type","Shape","Coordinate","Size","Layers","Ratio")),
+        ("(gr_line ","Graphics",("Start","End ","Width","Net")),
+        ("(fp_arc","Arcs",("Start","End ","Angle","Width")),
+        ("(segment","Segments",("Start","End ","Width","Net","Timestamp")),
+        ("(fp_circle","Circles",("Centre","End ","Width")),
+    ]
+
+    d={
+        "\(start ":"<td>",
+        "\(end ":"<td>",
+        "\(width ":"<td>",
+        "\(tedit ":"<td>",
+        "\(tstamp ":"<td>",
+        "\(at ":"<td>",
+        "\(size ":"<td>",
+        "\(drill ":"<td>",
+        "\(layers ":"<td>",
+        "\(net ":"<td>",
+        "\(roundrect_rratio ":"<td>",
+        "\(angle ":"<td>",
+        "\(center ":"<td>",
+        "\)":"</td>",
+        "user (\w+)":r'<td>\1</td>',
+        "reference (\w+)":r'<td>\1</td>',
+        "([0-9]) smd":r'<td>\1</td><td>Surface</td>',
+        "roundrect":"<td>Rounded</td>",
+        "rect":"<td>Rectangle</td>",
+        "(\w.+):(\w.+)":r'<td>\1 \2</td>',
+        "(?<=\")(.*)(?=\")":r'<td>\1</td>',
+        "[\"]":r'',
+        "[**]":r'',
+        }
+#   (pad 25 thru_hole oval (at 7.62 7.62 90) (size 1.6 1.6) (drill 0.8) (layers *.Cu *.Mask)
+
+
+ #         "[0-9] smd":"<td>Surface</td>",
+    final =""
+    content = ""
+    output = ""
+    combined = ""
+    header = ""
+    tbL = ""
+    tbR = ""
+    checked = "checked"
+
+    
+    top1='''<input name='tabbed' id='tabbed{tabn}' type='radio' {checked}><section><h1><label for='tabbed{tabn}'>{label}</label></h1><div>{content}</div></section>'''
+    tsl='''<div class='responsive'>
+                <div class = 'tbl'>
+                    <table style="border-color: #aaaaaa; width: 100%; height: 2px;" border="2px" cellspacing="2px" cellpadding="3px">'''
+    tsr='''<div class='responsive'>
+                <div class = 'tbr'>
+                    <table style="border-color: #aaaaaa; width: 100%; height: 2px;" border="2px" cellspacing="2px" cellpadding="3px">'''
+    clearfix ='''<div class='clearfix'>
+                </div>
+                <div style='padding:6px;'>
+                </div>'''
+    
+
+ 
+    for indx,layerInfo in enumerate(keywords):
+        combined = tbL = tbR = ""
+        for indx2,parameter in enumerate(layerInfo[2]):
+            tbR = tbR + "<th>" + parameter + "</th>"
+            tbL = tbL + "<th>" + parameter + "</th>"
+        for line in diffText.splitlines():
+            if ((layerInfo[0] in line) and (mod in line)):
+                output = line.replace(layerInfo[0], "")
+                output = output.replace("(layer " + mod + ")", "")
+                # print(output)
+                for item in d.keys():
+                    output = re.sub(item, d[item], output)
+
+                if output.count("<td>") == indx2:
+                    output += "<td></td>"
+                if output == "<td>":
+                    output = ""
+                output += "</tr>"
+                # print(output)
+
+                if output[0]==">":
+                    tbL = tbL + "<tr>" + output[1:]
+                elif output[0] == "<":
+                    tbR = tbR + "<tr>" + output[1:]
+            
+        combined = tsl + tbL + "</table></div></div>" + tsr + tbR + "</table></div></div>"
+        content = top1.format(tabn=indx,content=combined,label=layerInfo[1],checked=checked)
+        checked=""
+
+        final = final + content
+    final = "<div class = 'tabbed'>"+ final + "</div>" + clearfix
+    return(final)
 
 
 def popup_showinfo(progress):
@@ -1042,18 +1445,6 @@ class Splash(tk.Toplevel):
         self.update()
         if action == "cancel":
             self.quit()
-
-
-# class Progress(tk.Toplevel):
-#     def __init__(self, parent):
-#         tk.Toplevel.__init__(self, parent)
-#         tk.Toplevel.withdraw(self)
-#         tk.Toplevel.update(self)
-#         action = label(
-#             self,
-#             message=progress).pack()
-#         self.update()
-
 
 if __name__ == "__main__":
 
@@ -1078,6 +1469,10 @@ if __name__ == "__main__":
         artifacts = fossilDiff(prjctPath, prjctName)
     if scm == 'SVN':
         artifacts = svnDiff(prjctPath, prjctName)
+    if scm == '':
+        print("This project does not appear to be under version control")
+        sys.exit(0)
+
 
     dpi, d1, d2, layers = tkUI.runGUI(artifacts, prjctName, prjctPath, scm)
 
@@ -1085,22 +1480,8 @@ if __name__ == "__main__":
     print("Commit1", d1)
     print("Commit2", d2)
 
+    #£TODO Remove this layer dependancy
     selectedLayers = []
-
-    if not os.path.exists('/tmp/svg'):
-        os.makedirs('/tmp/svg')
-
-    # progress = StringVar()
-    # progress.set('Processing')
-    # m = Label(gui, textvariable=progress)
-    # m.pack()
-    with open('/tmp/svg/layers', 'w') as f:
-        for l in layers:
-            # progress.set("Layer: " + l)
-            # gui.update_idletasks()
-            if layers[l].get() == 1:
-                f.write(l)
-                f.write('\n')
 
     if scm == 'Git':
         times = getGitDiff(d1, d2, prjctName, prjctPath)
@@ -1113,23 +1494,12 @@ if __name__ == "__main__":
         d2 = a2[1:]
         times = getSVNDiff(d1, d2, prjctName, prjctPath)
 
-    svgDir1, svgDir2 = makeSVG(d1, d2, prjctName, prjctPath, selectedLayers)
 
-    # Sometimes the SVG just created did not register with the system
-    # resulting in makePNG believing there was no SVG present
-    time.sleep(1)
-
-    makePNG(svgDir1, svgDir2, dpi, prjctName, prjctPath)
-
-    # outpng = pcbdraw.draw_pretty_pcb(prjctName)
-
-    comparePNG(svgDir1, svgDir2, prjctName, prjctPath)
+    svgDir1, svgDir2, boardDims1, boardDims2 = makeSVG(d1, d2, prjctName, prjctPath, selectedLayers)
 
     makeSupportFiles(prjctName, prjctPath)
 
-    # imageme.serve_dir(prjctPath + plotDir)
-
-    makeOutput(svgDir1, svgDir2, prjctName, prjctPath, times)
+    makeOutput(svgDir1, svgDir2, prjctName, prjctPath, times, boardDims1, boardDims2)
 
     webbrowser.open(
         'file://' + os.path.realpath(prjctPath + plotDir + webDir + '/index.html'))
