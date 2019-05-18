@@ -1,5 +1,8 @@
 # KiCad-Diff
 
+NEWS
+Added new SVG Branch which is much faster and compares SVGs directly rather than doing renderings in ImageMagick. Still needing some work but illustrates proof of concept.
+
 Was originaly a bash script, this newer GUI version has been rewritten in Python3 and supports Git, SVN and Fossil as SCM tools.
  
 Scripts for performing image diffs between pcbnew layout revisions. Extended to show the graphical diff in a webpage. Also included some general Kicad/Fossil observations.
