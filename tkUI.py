@@ -113,7 +113,7 @@ def runGUI(checkouts_top, prjctName, prjctPath, scm):
             frame2, text=b, variable=buttons[b], onvalue=1, offvalue=0).pack(anchor='w')
 
     commitTop = Variable()
-    listTop = Listbox(frame3, bd=0, selectmode=SINGLE, exportselection=False)
+    listTop = Listbox(frame3, bd=0, selectmode=SINGLE, exportselection=False, font='TkFixedFont')
     listTop.grid(column=0, row=0, sticky=(N, E, W))
     scrollTop = ttk.Scrollbar(frame3, orient=VERTICAL, command=listTop.yview)
     scrollTop.grid(column=1, row=0, sticky=(N, E, W))
@@ -122,8 +122,12 @@ def runGUI(checkouts_top, prjctName, prjctPath, scm):
     listTop.bind('<<ListboxSelect>>', CurSelect)
 
     commitBottom = Variable()
-    listBottom = Listbox(frame4, bd=0, selectmode=SINGLE,
-                         exportselection=False)
+    listBottom = Listbox(
+        frame4,
+        bd=0,
+        selectmode=SINGLE,
+        exportselection=False,
+        font='TkFixedFont')
     listBottom.grid(column=0, row=0, sticky=(N, E, W))
     scrollBottom = ttk.Scrollbar(
         frame4, orient=VERTICAL, command=listBottom.yview)

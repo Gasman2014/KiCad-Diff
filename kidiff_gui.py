@@ -596,18 +596,18 @@ def comparePNG(diff1, diff2, prjctName, prjctPath):
             composite = convertProg + ' ' + p1 + ' ' + p2 + \
                 ' "(" -clone 0-1 -compose darken -composite ")" -channel RGB -combine ' + \
                 diffDir + '/' + plot
-            
+
             comp1 = subprocess.Popen(c1, shell=True, executable='/bin/bash')
             comp2 = subprocess.Popen(c2, shell=True, executable='/bin/bash')
 
             diffs = subprocess.Popen(composite, shell=True, executable='/bin/bash')
             out, err = diffs.communicate()
-            
+
             # Accounts for project names containing hyphens
             splitted = plot.split('-')
             page = splitted[-2]
             layerExt = splitted[-1]
-            
+
             layer, ext = layerExt.split('.')
 
             colour = layerCols.get(layer, '#ffffff')
@@ -615,7 +615,7 @@ def comparePNG(diff1, diff2, prjctName, prjctPath):
 
             colourize = convertProg + ' ' + diffDir + '/' + plot + ' -fill "' + colour + \
                 '" -fuzz 75% -opaque "#ffffff" ' + diffDir + '/' + plot
-            
+
             diffs = subprocess.Popen(colourize, shell=True, stdout=subprocess.PIPE)
             out, err = diffs.communicate()
 
@@ -975,16 +975,6 @@ div.responsive {{
                     diff1=diffDir1,
                     diff2=diffDir2,
                     prjctPath=prjctPath)
-                print(diffCmnd1)
-
-                diffCmnd2 = '''diff {prjctPath}{plotDir}/{diff2}/*.kicad_pcb {prjctPath}{plotDir}/{diff1}/*.kicad_pcb | grep {mod} | sed 's/>  /<\/div><div class="differences added">/g' | sed 's/<   /<\/div><div class="differences removed">/g' | sed 's/\/n/<\/div>/g' '''.format(
-                    layername=filename,
-                    plotDir=plotDir,
-                    diff1=diffDir1,
-                    diff2=diffDir2,
-                    prjctPath=prjctPath,
-                    mod=layer,
-                    webDir=webDir)
 
                 diff1Txt = Popen(
                     diffCmnd1,
@@ -995,15 +985,28 @@ div.responsive {{
                     close_fds=True)
                 stdout, stderr = diff1Txt.communicate()
 
-                diff2Txt = Popen(
-                    diffCmnd2,
-                    shell=True,
-                    stdin=PIPE,
-                    stdout=PIPE,
-                    stderr=PIPE,
-                    close_fds=True)
-                stdout, stderr = diff2Txt.communicate()
-                out = stdout.decode('utf8')
+
+            diffCmnd2 = '''diff {prjctPath}{plotDir}/{diff2}/*.kicad_pcb {prjctPath}{plotDir}/{diff1}/*.kicad_pcb | grep {mod} | sed 's/>  /<\/div><div class="differences added">/g' | sed 's/<   /<\/div><div class="differences removed">/g' | sed -e 's/\/n/<\/div>/g' | sed 's/(layer {mod})//g' '''.format(
+                layername=filename,
+                plotDir=plotDir,
+                diff1=diffDir1,
+                diff2=diffDir2,
+                prjctPath=prjctPath,
+                mod=layer,
+                webDir=webDir)
+
+
+
+            diff2Txt = Popen(
+                diffCmnd2,
+                shell=True,
+                stdin=PIPE,
+                stdout=PIPE,
+                stderr=PIPE,
+                close_fds=True)
+            stdout, stderr = diff2Txt.communicate()
+            out = stdout.decode('utf8')
+            print(diffCmnd2)
 
             tryptychOut.write(out)
 
