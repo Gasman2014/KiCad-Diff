@@ -1,4 +1,4 @@
-#!/Applications/kicad.app/Contents/Frameworks/Python.framework/Versions/Current/bin/python
+#!/Applications/KiCad/kicad.app/Contents/Frameworks/Python.framework/Versions/Current/bin/python
 
 '''
 Kicad plot pcb file.
@@ -22,7 +22,8 @@ print(reqLayers)
 
 
 board = LoadBoard(boardName)
-
+nets = pcbnew.NETINFO_LIST(board)
+print(nets)
 pctl = pcbnew.PLOT_CONTROLLER(board)
 pctl.SetColorMode(True)
 

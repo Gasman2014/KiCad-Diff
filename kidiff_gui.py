@@ -4,7 +4,7 @@
 # held in a suitable version control repository and produce a graphical diff
 # of generated svg files in a web browser.
 
-# TODO Place all template text/css text in exteranl files
+# TODO Place all template text/css text in external files
 
 import os
 import time
@@ -17,6 +17,8 @@ from tkinter import filedialog, ttk
 from tkinter.messagebox import showinfo
 import tkUI
 from tkUI import *
+import http.server
+import socketserver
 
 # NOTE Adjust these paths to suit your setup
 
@@ -27,6 +29,9 @@ plotDir = '/Plots'
 webDir = '/web'
 diffProg = '/usr/bin/diff'
 plotProg = '/usr/local/bin/plotPCB2_DIMS.py'
+
+PORT = 9090
+Handler = http.server.SimpleHTTPRequestHandler
 
 
 layerCols = {
@@ -200,115 +205,98 @@ div.responsive {{
 <div class="title">{prj}</div>
 <div class="subtitle">{layer}</div>
 
-<div class="responsivefull">
-    <div class="gallery">
-        <svg id="composite" width="100%" height="100%" viewBox="0 0 11693 8268" xmlns="http://www.w3.org/2000/svg" version="1.1">
-                        <defs>
-                            <filter id="f1" x="0%" y="0%" width="100%" height="100%">
-                                <feColorMatrix result="original" id="c1" type="matrix" values="1   0   0   0   0
-                                                            0   1   0   1   0
-                                                            0   0   1   1   0
-                                                            0   0   0   1  0 " />
-                            </filter>
-                            <filter id="f2" x="0%" y="0%" width="100%" height="100%">
-                                <feColorMatrix result="original" id="c2" type="matrix" values="1   0   0   1   0
-                                                    0   1   0   0   0
-                                                    0   0   1   0   0
-                                                    0   0   0   .5   0" />
-                            </filter>
 
-                            <pattern id="smallGrid" width="75" height="75" patternUnits="userSpaceOnUse">
-                                <path d="M 75 0 L 0 0 0 75" fill="none" stroke="#444444" stroke-width="2" />
-                            </pattern>
+     <div id="compo-container" style="width: 100%; height: 800px;">
+        <svg id="svg-id" xmlns="http://www.w3.org/2000/svg" style="display: inline; width: inherit; min-width: inherit; max-width: inherit; height: inherit; min-height: inherit; max-height: inherit;" version="1.1">
+            <g>
+                <svg id="compo">
+                    <defs>
+                        <filter id="f1">
+                            <feColorMatrix id="c1" type="matrix" values="1   0   0   0   0
+                  0   1   0   1   0
+                  0   0   1   1   0
+                  0   0   0   1   0 " />
+                        </filter>
+                    </defs>
+                    <image x="0" y="0" height="100%" width="100%" filter="url(#f1)" xlink:href="../../{diff1}/{layername}" />
+                </svg>
 
-                            <pattern id="grid" width="750" height="750" patternUnits="userSpaceOnUse">
-                                <rect width="750" height="750" fill="url(#smallGrid)" />
-                                <path d="M 750 0 L 0 0 0 750" fill="none" stroke="#666666" stroke-width="5" />
-                            </pattern>
-
-                        </defs>
-
-                    <image x="0" y="0" height="100%" width="100%" filter="url(#f1)" xlink:href="../../{diff2}/{layername}" />    
-                    <image x="0" y="0" height="100%" width="100%" filter="url(#f2)" xlink:href="../../{diff1}/{layername}" />
-                    <rect width="100%" height="100%" fill="url(#grid)" />
+                <svg id="compo2">
+                    <defs>
+                        <filter id="f2">
+                            <feColorMatrix id="c2" type="matrix" values="1   0   0   1   0
+                  0   1   0   0   0
+                  0   0   1   0   0
+                  0   0   0   .5   0" />
+                        </filter>
+                    </defs>
+                    <image x="0" y="0" height="100%" width="100%" filter="url(#f2)" xlink:href="../../{diff2}/{layername}" />
+                </svg>
+            </g>
         </svg>
     </div>
+
+<div id="sbs-container"  width=100%; height=100% >
+<embed id="diff1" class="{layer}" type="image/svg+xml" style="width: 50%; float: left; border:1px solid black;" src="../../{diff1}/{layername}" />
+<embed id="diff2" class="{layer}" type="image/svg+xml" style="width: 50%; border:1px solid black;" src="../../{diff2}/{layername}" />
 </div>
 
-<div class="responsive" >
-    <div class="gallery" >
-        <a target="_blank" href={prj}-{layer}.html>
-            <a href=../../{diff1}/{layername}> 
-            <embed id="diff1" class="{layer}" type="image/svg+xml" src=../../{diff1}/{layername} width="100%"> 
-            </a>
-        </a>
-        <div class="desc added">{diff1}</div>
-    </div>
-</div>
-
-<div class="responsive" >
-    <div class="gallery" >
-        <a target="_blank" href = {prj}-{layer}.html>
-            <a href=../../{diff2}/{layername} > 
-            <embed id="diff2" class="{layer}" type="image/svg+xml" src=../../{diff2}/{layername} width="100%">  
-            </a>
-        </a>
-        <div class="desc removed">{diff2}</div>
-    </div>
-</div>
 '''
 
 twopane='''
 <script>
-    window.onload = function() {
-
-        window.zoomBoard = svgPanZoom('#diff1', {
-            zoomEnabled: true,
-            controlIconsEnabled: true,
-            maxZoom:20,
-            minZoom:0.5,
-        });
-
-        window.zoomBoard2 = svgPanZoom('#diff2', {
-            zoomEnabled: true,
-            controlIconsEnabled: true,
-            maxZoom:20,
-            minZoom:0.5,
-        });
-
-        zoomBoard.setOnZoom(function(level) {
-            zoomBoard2.zoom(level)
-            zoomBoard2.pan(zoomBoard.getPan())
-        })
-
-        zoomBoard.setOnPan(function(point) {
-            zoomBoard2.pan(point)
-        })
-
-        zoomBoard2.setOnZoom(function(level) {
-            zoomBoard.zoom(level)
-            zoomBoard.pan(zoomBoard2.getPan())
-        })
-
-        zoomBoard2.setOnPan(function(point) {
-            zoomBoard.pan(point)
-        })
-
-        var panZoomB1 = svgPanZoom("#diff1");
-        panZoomB1.zoomAtPoint(2, {
-        x: -50,
-        y: -50
-        })
-
-        window.zoomComposite = svgPanZoom('#composite', {
-            zoomEnabled: true,
-            controlIconsEnabled: true,
-            fit: true,
-            center: true,
+        // Don't use window.onLoad like this in production, because it can only listen to one function.
+        window.onload = function() {
+            // Expose variable for testing purposes
+            window.panZoomDiff = svgPanZoom('#svg-id', {
+                zoomEnabled: true,
+                controlIconsEnabled: true,
+                center: true,
+                minZoom: 1.5,
+                maxZoom: 20,
             });
-      };
+            // Expose variable to use for testing
+            window.zoomDiff = svgPanZoom('#diff1', {
+                zoomEnabled: true,
+                controlIconsEnabled: true,
+                minZoom: 1.5,
+                maxZoom: 20,
+                // Uncomment this in order to get Y asis synchronized pan
+                // beforePan: function(oldP, newP) {return {y:false}},
+            });
+
+            // Expose variable to use for testing
+            window.zoomDiff2 = svgPanZoom('#diff2', {
+                zoomEnabled: true,
+                controlIconsEnabled: true,
+                minZoom: 1.5,
+                maxZoom: 20,
+            });
+
+            zoomDiff.setOnZoom(function(level) {
+                zoomDiff2.zoom(level)
+                zoomDiff2.pan(zoomDiff.getPan())
+            })
+
+            zoomDiff.setOnPan(function(point) {
+                zoomDiff2.pan(point)
+            })
+
+            zoomDiff2.setOnZoom(function(level) {
+                zoomDiff.zoom(level)
+                zoomDiff.pan(zoomDiff2.getPan())
+            })
+
+            zoomDiff2.setOnPan(function(point) {
+                zoomDiff.pan(point)
+            })
+
+        };
 </script>
+
 </body>
+
+</html>
 '''
 
 css = '''
@@ -1298,7 +1286,7 @@ def makeOutput(diffDir1, diffDir2, prjctName, prjctPath, times, dim1, dim2):
                 diff1Txt.wait()
             #sed -e 's/(layer {mod}*)//g' |
             mod = layer.replace("_",".")
-#            diffCmnd2 = diffProg + ''' --suppress-common-lines {prjctPath}{plotDir}/{diff2}/*.kicad_pcb {prjctPath}{plotDir}/{diff1}/*.kicad_pcb | grep {mod} | sed 's/>  /<\/div><div class="differences added">/g' | sed 's/<   /<\/div><div class="differences removed">/g' | sed 's/\/n/<\/div>/g' | sed 's/(status [1-9][0-9])//g' '''.format(
+            #            diffCmnd2 = diffProg + ''' --suppress-common-lines {prjctPath}{plotDir}/{diff2}/*.kicad_pcb {prjctPath}{plotDir}/{diff1}/*.kicad_pcb | grep {mod} | sed 's/>  /<\/div><div class="differences added">/g' | sed 's/<   /<\/div><div class="differences removed">/g' | sed 's/\/n/<\/div>/g' | sed 's/(status [1-9][0-9])//g' '''.format(
             diffCmnd2 = diffProg + ''' --suppress-common-lines {prjctPath}{plotDir}/{diff2}/*.kicad_pcb {prjctPath}{plotDir}/{diff1}/*.kicad_pcb | grep {mod} | sed 's/(status [1-9][0-9])//g' '''.format(
                 layername=filename,
                 plotDir=plotDir,
@@ -1365,10 +1353,10 @@ def processDiff(diffText, mod):
         "[\"]":r'',
         "[**]":r'',
         }
-#   (pad 25 thru_hole oval (at 7.62 7.62 90) (size 1.6 1.6) (drill 0.8) (layers *.Cu *.Mask)
+    #   (pad 25 thru_hole oval (at 7.62 7.62 90) (size 1.6 1.6) (drill 0.8) (layers *.Cu *.Mask)
 
 
- #         "[0-9] smd":"<td>Surface</td>",
+    #         "[0-9] smd":"<td>Surface</td>",
     final =""
     content = ""
     output = ""
@@ -1378,7 +1366,7 @@ def processDiff(diffText, mod):
     tbR = ""
     checked = "checked"
 
-    
+
     top1='''<input name='tabbed' id='tabbed{tabn}' type='radio' {checked}><section><h1><label for='tabbed{tabn}'>{label}</label></h1><div>{content}</div></section>'''
     tsl='''<div class='responsive'>
                 <div class = 'tbl'>
@@ -1390,9 +1378,9 @@ def processDiff(diffText, mod):
                 </div>
                 <div style='padding:6px;'>
                 </div>'''
-    
 
- 
+
+
     for indx,layerInfo in enumerate(keywords):
         combined = tbL = tbR = ""
         for indx2,parameter in enumerate(layerInfo[2]):
@@ -1417,7 +1405,7 @@ def processDiff(diffText, mod):
                     tbL = tbL + "<tr>" + output[1:]
                 elif output[0] == "<":
                     tbR = tbR + "<tr>" + output[1:]
-            
+
         combined = tsl + tbL + "</table></div></div>" + tsr + tbR + "</table></div></div>"
         content = top1.format(tabn=indx,content=combined,label=layerInfo[1],checked=checked)
         checked=""
@@ -1433,6 +1421,11 @@ def popup_showinfo(progress):
     p.pack()
 
 
+
+class Handler(http.server.SimpleHTTPRequestHandler):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, directory=os.path.realpath(prjctPath + plotDir), **kwargs)
+
 class Splash(tk.Toplevel):
     def __init__(self, parent):
         tk.Toplevel.__init__(self, parent)
@@ -1445,6 +1438,14 @@ class Splash(tk.Toplevel):
         self.update()
         if action == "cancel":
             self.quit()
+
+
+def startWebServer():
+    with socketserver.TCPServer(("", PORT), Handler) as httpd:
+        print("serving at port", PORT)
+        webbrowser.open('http://127.0.0.1:' + str(PORT) + '/web/index.html')
+        httpd.serve_forever()
+
 
 if __name__ == "__main__":
 
@@ -1501,5 +1502,7 @@ if __name__ == "__main__":
 
     makeOutput(svgDir1, svgDir2, prjctName, prjctPath, times, boardDims1, boardDims2)
 
+    startWebServer()
+
     webbrowser.open(
-        'file://' + os.path.realpath(prjctPath + plotDir + webDir + '/index.html'))
+        'http://127.0.0.1:' + str(PORT) + '/web/index.html')
