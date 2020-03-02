@@ -76,9 +76,8 @@ indexHead = '''
         <tbody>
             <tr>
                 <td colspan="3" rowspan="3" width="45%">
-                    <div class="title">{TITLE} </div>
-                    <div class="subtitle">{DATE} </div>
-                    <div class="details">{COMPANY} </div>
+                    <div class="title"> Title: {TITLE} </div>
+                    <div class="details"> Company: {COMPANY} </div>
                 </td>
                 <td width="25%">
                     <div class="versions">Thickness (mm)</div>
@@ -1151,7 +1150,8 @@ def getBoardData(board):
                         complete =""
                         for i in range(1,len(words)):
                             complete += words[i].strip("\t ()").replace("\"","") + " "
-                        prms[key] =complete
+                        prms[key] = complete
+    print(prms)
     return(prms)
 
 def makeOutput(diffDir1, diffDir2, prjctName, prjctPath, times, dim1, dim2):
@@ -1212,7 +1212,8 @@ def makeOutput(diffDir1, diffDir2, prjctName, prjctPath, times, dim1, dim2):
     MODULES1=MODULES1,
     MODULES2=MODULES2,
     NETS1=NETS1,
-    NETS2=NETS2)
+    NETS2=NETS2,
+    )
 
     webOut.write(index)
 
