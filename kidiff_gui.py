@@ -4,7 +4,13 @@
 # held in a suitable version control repository and produce a graphical diff
 # of generated svg files in a web browser.
 
-# TODO Place all template text/css text in external files
+# TODO [ ] Place all template text/css text in external files
+# TODO [ ] Improve display of artifacts in diff choice window
+# TODO [ ] Consider changing GUI elements to wxPython
+# TODO [*] Manage any missing SCM paths - reflect available SCM progs in splash screen
+# TODO [ ] Adjust <div> for three pane output to have white outer border, not filter colour
+# TODO [ ] Improve three pane output layout, perhaps with diff tree on LHS and not underneath
+#
 
 import os
 import time
@@ -19,8 +25,14 @@ import tkUI
 from tkUI import *
 import http.server
 import socketserver
+socketserver.TCPServer.allow_reuse_address = True
 
+# -------------------------------------------------------------------------
 # NOTE Adjust these paths to suit your setup
+# If you do not use one (or more) of these SCMs, please set to ''
+# This program attempts to auto-identify which SCM is in use.
+# In the event of multiple SCMs being in use in one repository, the order of priority
+# is Fossil > Git > SVN.
 
 gitProg = '/usr/bin/git'
 fossilProg = '/usr/local/bin/fossil'
@@ -30,9 +42,15 @@ webDir = '/web'
 diffProg = '/usr/bin/diff'
 plotProg = '/usr/local/bin/plotPCB2_DIMS.py'
 
-PORT = 9090
-Handler = http.server.SimpleHTTPRequestHandler
 
+# -------------------------------------------------------------------------
+# NOTE Adjust this port to suit your requirements. Must be >1000.
+
+PORT = 9090
+
+
+# -------------------------------------------------------------------------
+# NOTE Please adjust these colours to suit your requirements.
 
 layerCols = {
     'F_Cu': "#952927",
@@ -58,6 +76,14 @@ layerCols = {
     'B_CrtYd': "#D3D04B",
     'F_CrtYd': "#A7A7A7",
 }
+
+Handler = http.server.SimpleHTTPRequestHandler
+
+
+# ------------------------------------------HTML Template Blocks-------------------------------------------
+#
+# NOTE These should go into external files to clean up and seperate the code
+#
 
 tail = '''
 <div class="clearfix"></div>
@@ -937,49 +963,52 @@ def getSCM(prjctPath):
     scm = ''
 
     # Check if git
-    gitCmd = 'cd ' + prjctPath + ' && ' + gitProg + ' status'
-    git = Popen(
-        gitCmd,
-        shell=True,
-        stdin=PIPE,
-        stdout=PIPE,
-        stderr=PIPE,
-        close_fds=True)
-    stdout, stderr = git.communicate()
-    git.wait()
-    if ((stdout.decode('utf-8') != '') & (stderr.decode('utf-8') == '')):
-        scm = 'Git'
+    if (gitProg != ''):
+        gitCmd = 'cd ' + prjctPath + ' && ' + gitProg + ' status'
+        git = Popen(
+            gitCmd,
+            shell=True,
+            stdin=PIPE,
+            stdout=PIPE,
+            stderr=PIPE,
+            close_fds=True)
+        stdout, stderr = git.communicate()
+        git.wait()
+        if ((stdout.decode('utf-8') != '') & (stderr.decode('utf-8') == '')):
+            scm = 'Git'
 
     # check if Fossil
-    fossilCmd = 'cd ' + prjctPath + ' && ' + fossilProg + ' status'
-    fossil = Popen(
-        fossilCmd,
-        shell=True,
-        stdin=PIPE,
-        stdout=PIPE,
-        stderr=PIPE,
-        close_fds=True)
-    stdout, stderr = fossil.communicate()
-    fossil.wait()
-    print(stdout.decode('utf-8'),"stdERROR=", stderr.decode('utf-8'))
-    #   if ((stdout.decode('utf-8') != '') & (stderr.decode('utf-8') == '')):
+    if (fossilProg != ''):
+        fossilCmd = 'cd ' + prjctPath + ' && ' + fossilProg + ' status'
+        fossil = Popen(
+            fossilCmd,
+            shell=True,
+            stdin=PIPE,
+            stdout=PIPE,
+            stderr=PIPE,
+            close_fds=True)
+        stdout, stderr = fossil.communicate()
+        fossil.wait()
+        print(stdout.decode('utf-8'),"stdERROR=", stderr.decode('utf-8'))
+        #   if ((stdout.decode('utf-8') != '') & (stderr.decode('utf-8') == '')):
 
-    if (stdout.decode('utf-8') != ''):
-        scm = 'Fossil'
+        if (stdout.decode('utf-8') != ''):
+            scm = 'Fossil'
 
     # check if SVN
-    svnCmd = 'cd ' + prjctPath + ' && ' + svnProg + ' log | perl -l40pe "s/^-+/\n/"'
-    svn = Popen(
-        svnCmd,
-        shell=True,
-        stdin=PIPE,
-        stdout=PIPE,
-        stderr=PIPE,
-        close_fds=True)
-    stdout, stderr = svn.communicate()
-    svn.wait()
-    if ((stdout.decode('utf-8') != '') & (stderr.decode('utf-8') == '')):
-        scm = 'SVN'
+    if (svnProg != ''):
+        svnCmd = 'cd ' + prjctPath + ' && ' + svnProg + ' log | perl -l4svn log0pe "s/^-+/\n/"'
+        svn = Popen(
+            svnCmd,
+            shell=True,
+            stdin=PIPE,
+            stdout=PIPE,
+            stderr=PIPE,
+            close_fds=True)
+        stdout, stderr = svn.communicate()
+        svn.wait()
+        if ((stdout.decode('utf-8') != '') & (stderr.decode('utf-8') == '')):
+            scm = 'SVN'
 
     return scm
 
@@ -988,7 +1017,18 @@ def fossilDiff(path, kicadPCB):
     '''Returns list of Fossil artifacts from a directory containing a
     *.kicad_pcb file.'''
 
+    # NOTE Assemble a list of artefacts. Unfortunatly, Fossil doesn't give any easily configurable length.
+    # NOTE Using the -W option results in multiline diffs
+    # NOTE 'fossil -finfo' looks like this
+    # 2017-05-19 [21d331ea6b] Preliminary work on CvPCB association and component values (user: johnpateman, artifact: [1100d6e077], branch: Ver_3V3)
+    # 2017-05-07 [2d1e20f431] Initial commit (user: johnpateman, artifact: [24336219cc], branch: trunk)
+    # NOTE 'fossil -finfo -b' looks like this
+    # 21d331ea6b 2017-05-19 johnpate Ver_3V3 Preliminary work on CvPCB association a
+    # 2d1e20f431 2017-05-07 johnpate trunk Initial commit
+    # TODO Consider parsing the output of fossil finfo and split off date, artifactID, mesage, user and branch
+
     fossilCmd = 'cd ' + path + ' && ' + fossilProg + ' finfo -b ' + kicadPCB
+
     fossil = Popen(
         fossilCmd,
         shell=True,
@@ -999,7 +1039,8 @@ def fossilDiff(path, kicadPCB):
     stdout, _ = fossil.communicate()
     fossil.wait()
     line = (stdout.decode('utf-8').splitlines())
-    fArtifacts = [a.replace(' ', '       ', 4) for a in line]
+    # fArtifacts = [a.replace(' ', '       ', 4) for a in line]
+    fArtifacts = [a.replace(' ', '\t', 4) for a in line]
     return fArtifacts
 
 
@@ -1042,10 +1083,8 @@ def svnDiff(path, kicadPCB):
 
 def makeSVG(d1, d2, prjctName, prjctPath, reqLayers):
     '''Hands off required .kicad_pcb files to "plotPCB2.py"
-    and generate .svg files. Does not use the 'reqLayers as the plotting routine
-    is written in python2 and can't seem to pass layer list easily. Routine is
-    v quick so no major overhead in plotting unescessay layers to svg. Easiest to
-    write it to a 'layers' file in the output directory'''
+    and generate .svg files. Routine is
+    v quick so all layers are plotted to svg.'''
 
     print("Generating .svg files")
 
@@ -1421,13 +1460,23 @@ def popup_showinfo(progress):
     p = Label(gui, Text=display)
     p.pack()
 
+def scmAvailable():
+    SCMS = ''
+    if (fossilProg != ''):
+        SCMS = SCMS + "Fossil \n"
+    if (gitProg != ''):
+        SCMS = SCMS + "Git \n"
+    if (svnProg != ''):
+        SCMS = SCMS + "SVN "
+    
+    return (SCMS)
 
 
 class Handler(http.server.SimpleHTTPRequestHandler):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, directory=os.path.realpath(prjctPath + plotDir), **kwargs)
 
-class Splash(tk.Toplevel):
+class Select(tk.Toplevel):
     def __init__(self, parent):
         tk.Toplevel.__init__(self, parent)
         tk.Toplevel.withdraw(self)
@@ -1435,7 +1484,7 @@ class Splash(tk.Toplevel):
         action = messagebox.askokcancel(
             self,
             message="Select a *.kicad_pcb file under version control",
-            detail="Git, Fossil or SVN supported")
+            detail="Available: \n\n" + SCMS)
         self.update()
         if action == "cancel":
             self.quit()
@@ -1450,11 +1499,16 @@ def startWebServer():
 
 if __name__ == "__main__":
 
-    gui = tk.Tk()
+    SCMS = scmAvailable()
+    print(SCMS)
+    if (SCMS == ""):
+        print("You need to have at least one SCM program path identified in lines 32 - 40")
+        exit()
+    gui = tk.Tk(SCMS)
     gui.withdraw()
     gui.update()
-    splash = Splash(gui)
-    splash.destroy()
+    Select = Select(gui)
+    Select.destroy()
     prjctPath, prjctName = getProject()
     gui.update()
     gui.deiconify()
@@ -1472,13 +1526,12 @@ if __name__ == "__main__":
     if scm == 'SVN':
         artifacts = svnDiff(prjctPath, prjctName)
     if scm == '':
-        print("This project does not appear to be under version control")
+        print("This project is either not under version control or you have not set the path to the approriate SCM program in lines 32-40")
         sys.exit(0)
 
 
-    dpi, d1, d2, layers = tkUI.runGUI(artifacts, prjctName, prjctPath, scm)
+    d1, d2 = tkUI.runGUI(artifacts, prjctName, prjctPath, scm)
 
-    print("Resolution (dpi) : ", dpi.get())
     print("Commit1", d1)
     print("Commit2", d2)
 
