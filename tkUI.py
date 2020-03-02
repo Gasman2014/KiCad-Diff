@@ -10,19 +10,11 @@ global root, commitTop, commitBottom
 
 def runProgram():
     # Just break out of mainloop to return current variables
-    root.quit()
 
+    root.destroy()
 
-# class Splash(tk.Toplevel):
-#     def __init__(self, parent):
-#         tk.Toplevel.__init__(self, parent)
-#         self.title("Kicad Visual Diff")
-#         action = messagebox.askokcancel(self,
-#                                         message="Select a *.kicad_pcb file under version control", detail="Git, Fossil or SVN supported")
-
-#         self.update()
-#         if action == "cancel":
-#             self.quit()
+def quit():
+    root.destroy()
 
 
 def CurSelect(event):
@@ -81,8 +73,8 @@ def runGUI(checkouts_top, prjctName, prjctPath, scm):
 
     commitTop = Variable()
     listTop = Listbox(
-        frame2, 
-        bd=0, 
+        frame2,
+        bd=0,
         selectmode=SINGLE,
         exportselection=False,
         font='TkFixedFont')
@@ -148,5 +140,5 @@ def runGUI(checkouts_top, prjctName, prjctPath, scm):
 
     root.update()
     root.mainloop()
-
-    return(commitTop, commitBottom)
+    return (commitTop, commitBottom)
+    root.destroy()

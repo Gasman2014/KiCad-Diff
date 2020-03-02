@@ -4,13 +4,15 @@
 # held in a suitable version control repository and produce a graphical diff
 # of generated svg files in a web browser.
 
-# TODO [ ] Place all template text/css text in external files
-# TODO [ ] Improve display of artifacts in diff choice window
-# TODO [ ] Consider changing GUI elements to wxPython
-# TODO [*] Manage any missing SCM paths - reflect available SCM progs in splash screen
-# TODO [ ] Adjust <div> for three pane output to have white outer border, not filter colour
-# TODO [ ] Improve three pane output layout, perhaps with diff tree on LHS and not underneath
-#
+# TODO [ ] Place all template text/css text in external files.
+# TODO [ ] Improve display of artifacts in diff choice window.
+# TODO [ ] Consider changing GUI elements to wxPython.
+# TODO [*] Manage any missing SCM paths - reflect available SCM progs in splash screen.
+# TODO [ ] Adjust <div> for three pane output to have white outer border & pan-zoom control, not filter colour.
+# TODO [ ] Improve three pane output layout, perhaps with diff tree on LHS and not underneath.
+
+# DEBUG Tk window not being destroyed when closed.
+# DEBUG Minor error with parsing FP_Text diff.
 
 import os
 import time
@@ -82,8 +84,8 @@ Handler = http.server.SimpleHTTPRequestHandler
 
 # ------------------------------------------HTML Template Blocks-------------------------------------------
 #
-# NOTE These should go into external files to clean up and seperate the code
-#
+# FIXME These should go into external files to clean up and seperate the code
+
 
 tail = '''
 <div class="clearfix"></div>
@@ -652,6 +654,8 @@ a:hover {
 }
 '''
 
+# ----------------------Main Functions begin here---------------------------------------
+# 
 def getGitDiff(diff1, diff2, prjctName, prjctPath):
     '''Given two git artifacts, write out two kicad_pcb files to their respective
     directories (named after the artifact). Returns the date and time of both commits'''
@@ -942,7 +946,9 @@ def getFossilDiff(diff1, diff2, prjctName, prjctPath):
 
 
 def getProject():
-
+    '''File select dialogue. Opens Tk File browser and 
+    selector set for .kicad_pcb files. Returns path and file name
+    '''
     selected = tk.filedialog.askopenfile(
         initialdir="~/",
         title="Select kicad_pcb file in a VC directory",
@@ -962,40 +968,7 @@ def getSCM(prjctPath):
 
     scm = ''
 
-    # Check if git
-    if (gitProg != ''):
-        gitCmd = 'cd ' + prjctPath + ' && ' + gitProg + ' status'
-        git = Popen(
-            gitCmd,
-            shell=True,
-            stdin=PIPE,
-            stdout=PIPE,
-            stderr=PIPE,
-            close_fds=True)
-        stdout, stderr = git.communicate()
-        git.wait()
-        if ((stdout.decode('utf-8') != '') & (stderr.decode('utf-8') == '')):
-            scm = 'Git'
-
-    # check if Fossil
-    if (fossilProg != ''):
-        fossilCmd = 'cd ' + prjctPath + ' && ' + fossilProg + ' status'
-        fossil = Popen(
-            fossilCmd,
-            shell=True,
-            stdin=PIPE,
-            stdout=PIPE,
-            stderr=PIPE,
-            close_fds=True)
-        stdout, stderr = fossil.communicate()
-        fossil.wait()
-        print(stdout.decode('utf-8'),"stdERROR=", stderr.decode('utf-8'))
-        #   if ((stdout.decode('utf-8') != '') & (stderr.decode('utf-8') == '')):
-
-        if (stdout.decode('utf-8') != ''):
-            scm = 'Fossil'
-
-    # check if SVN
+    # check if SVN program installed and then check if *.kicad_pcb is in a SVN checkout
     if (svnProg != ''):
         svnCmd = 'cd ' + prjctPath + ' && ' + svnProg + ' log | perl -l4svn log0pe "s/^-+/\n/"'
         svn = Popen(
@@ -1009,6 +982,37 @@ def getSCM(prjctPath):
         svn.wait()
         if ((stdout.decode('utf-8') != '') & (stderr.decode('utf-8') == '')):
             scm = 'SVN'
+
+    # check if Fossil program installed and then check if *.kicad_pcb is in a Fossil checkout
+    if (fossilProg != ''):
+        fossilCmd = 'cd ' + prjctPath + ' && ' + fossilProg + ' status'
+        fossil = Popen(
+            fossilCmd,
+            shell=True,
+            stdin=PIPE,
+            stdout=PIPE,
+            stderr=PIPE,
+            close_fds=True)
+        stdout, stderr = fossil.communicate()
+        fossil.wait()
+        # print(stdout.decode('utf-8'),"stdERROR=", stderr.decode('utf-8'))
+        if (stdout.decode('utf-8') != ''):
+            scm = 'Fossil'
+
+    # Check if Git program installed and then check if *.kicad_pcb is in a Git checkout
+    if (gitProg != ''):
+        gitCmd = 'cd ' + prjctPath + ' && ' + gitProg + ' status'
+        git = Popen(
+            gitCmd,
+            shell=True,
+            stdin=PIPE,
+            stdout=PIPE,
+            stderr=PIPE,
+            close_fds=True)
+        stdout, stderr = git.communicate()
+        git.wait()
+        if ((stdout.decode('utf-8') != '') & (stderr.decode('utf-8') == '')):
+            scm = 'Git'
 
     return scm
 
@@ -1081,7 +1085,7 @@ def svnDiff(path, kicadPCB):
     return sArtifacts
 
 
-def makeSVG(d1, d2, prjctName, prjctPath, reqLayers):
+def makeSVG(d1, d2, prjctName, prjctPath):
     '''Hands off required .kicad_pcb files to "plotPCB2.py"
     and generate .svg files. Routine is
     v quick so all layers are plotted to svg.'''
@@ -1393,10 +1397,7 @@ def processDiff(diffText, mod):
         "[\"]":r'',
         "[**]":r'',
         }
-    #   (pad 25 thru_hole oval (at 7.62 7.62 90) (size 1.6 1.6) (drill 0.8) (layers *.Cu *.Mask)
 
-
-    #         "[0-9] smd":"<td>Surface</td>",
     final =""
     content = ""
     output = ""
@@ -1514,10 +1515,8 @@ if __name__ == "__main__":
     gui.deiconify()
 
     scm = getSCM(prjctPath)
-
-    print(scm)
-
     gui.destroy()
+
 
     if scm == 'Git':
         artifacts = gitDiff(prjctPath, prjctName)
@@ -1535,9 +1534,6 @@ if __name__ == "__main__":
     print("Commit1", d1)
     print("Commit2", d2)
 
-    #£TODO Remove this layer dependancy
-    selectedLayers = []
-
     if scm == 'Git':
         times = getGitDiff(d1, d2, prjctName, prjctPath)
     if scm == 'Fossil':
@@ -1550,7 +1546,7 @@ if __name__ == "__main__":
         times = getSVNDiff(d1, d2, prjctName, prjctPath)
 
 
-    svgDir1, svgDir2, boardDims1, boardDims2 = makeSVG(d1, d2, prjctName, prjctPath, selectedLayers)
+    svgDir1, svgDir2, boardDims1, boardDims2 = makeSVG(d1, d2, prjctName, prjctPath)
 
     makeSupportFiles(prjctName, prjctPath)
 
