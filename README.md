@@ -65,7 +65,7 @@ Dependencies
   Possibly support other VCS tools.    DONE
   Mechanism to select layer sets and resolution.    DONE
   Improvement in parsing and meaning of text diffs.   IN PROGRESS
-  
+
   ## screenshots
 GUI
 ![GUI](/Documents/Screen%20Shot%202018-06-04%20at%2022.28.05.png)
