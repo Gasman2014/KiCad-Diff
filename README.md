@@ -25,25 +25,37 @@ Was originaly a bash script, this newer GUI version has been rewritten in Python
   Adjust <div> for three pane output to have white outer border & pan-zoom control, not filter colour.
   Improve three pane output layout, perhaps with diff tree on LHS and not underneath.
 
-  ## Screenshots
+## Screenshots
+
 GUI
+
 ![GUI](/Documents/gui.png)
+
 ![GUI](/Documents/gui2.png)
 
 Overview
+
 ![Overview](/Documents/overview.png)
 
+
 Main view
+
 ![Main](/Documents/main1.png)
+
 ![Main](/Documents/main2.png)
 
+
 Diff
+
 ![Fab Layer Diff](/Documents/diff.png)
+
 
 Fab Layer 
 ![Fab layer side by side](/Documents/pair.png)
 
+
 Cu Layer
 ![Cu difference view](/Documents/cu.png)
+
 ![Cu layer - 3 pane view](/Documents/composite.png)
 
