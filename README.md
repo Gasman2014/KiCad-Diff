@@ -10,52 +10,55 @@ Was originaly a bash script, this newer GUI version has been rewritten in Python
  
 
 **Instructions**
-  *  Check that the paths to your SCM tools are correct (lines 39-45)
-  *  Install plotPCB2.py in /usr/local/bin (or adjust path in lines 45 to suit). 
+  *  Check that the paths to your SCM tools are correct (lines 39-45). You do not need to install all of these but if you do not have, e.g. SVN, make sure that you set svnProg=''.
+  *  Install 'plotPCB2.py' in /usr/local/bin (or adjust path in lines 45 to suit). This program actually generates the SVG files.
   *  Run the main script and select a pair of versions in a source controlled repository from the GUI.
+  *  The terminal should give you some useful information on progress. Please include a copy of this if you have any issues.
+  *  Hit Ctrl + C to terminate the webserver.
 
-  The script should build a series of svg files and display the diff in a webpage.
+  The script should build a series of svg files and display the diff in a webpage. YIf a web page doesn't open automatically, navigate to "http://127.0.0.1:9090/web/index.html" to view the output. You can adjust the port used (9090 by default) if this conflicts with your existing set-up.
  
 
-  Plans:
-  Improvement in parsing and meaning of text diffs.
-  Place all template text/css text in external files.
-  Improve display of artifacts in diff choice window.
-  Consider changing GUI elements to wxPython.
-  Adjust <div> for three pane output to have white outer border & pan-zoom control, not filter colour.
-  Improve three pane output layout, perhaps with diff tree on LHS and not underneath.
+***Plans***
+  1. Improvement in parsing and meaning of text diffs.
+  2. Place all template text/css text in external files.
+  3. Improve display of artifacts in diff choice window.
+  4. Consider changing GUI elements to wxPython.
+  5. Adjustfor three pane output to have white outer border & pan-zoom control, not filter colour.
+  6. Improve three pane output layout, perhaps with diff tree on LHS and not underneath.
 
-## Screenshots
 
-GUI
+***Screenshots***
 
+***GUI***
 ![GUI](/Documents/gui.png)
 
 ![GUI](/Documents/gui2.png)
 
-Overview
 
-![Overview](/Documents/overview.png)
+***Overview***
+![Overview](/Documents/Overview.png)
 
 
-Main view
-
+***Main view***
 ![Main](/Documents/main1.png)
 
 ![Main](/Documents/main2.png)
 
 
-Diff
-
+***Diff***
 ![Fab Layer Diff](/Documents/diff.png)
 
 
-Fab Layer 
+***Fab Layer***
 ![Fab layer side by side](/Documents/pair.png)
 
 
-Cu Layer
+***F_Cu Layer***
 ![Cu difference view](/Documents/cu.png)
 
 ![Cu layer - 3 pane view](/Documents/composite.png)
 
+
+***Text Diff***
+![Text Diff](/Documents/text.png)
