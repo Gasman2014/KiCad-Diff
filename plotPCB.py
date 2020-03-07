@@ -1,13 +1,10 @@
-#!/Applications/KiCad/kicad.app/Contents/Frameworks/Python.framework/Versions/Current/bin/python
+#!/usr/bin/env python3
 
 '''
 Kicad plot pcb file.
 Plot variety of svg files in plot directory
 '''
 
-import sys
-sys.path.insert(0, "/Applications/Kicad/kicad.app/Contents/Frameworks/python/site-packages/")
-import pcbnew
 from pcbnew import *
 
 # Load board and initialize plot controller

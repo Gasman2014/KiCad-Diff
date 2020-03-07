@@ -1,4 +1,4 @@
-#!/usr/local/bin/python3
+#!/usr/bin/env python3
 #
 # A python script to select two revisions of a Kicad pcbnew layout
 # held in a suitable version control repository and produce a graphical diff
@@ -42,7 +42,7 @@ svnProg = '/usr/bin/svn'
 plotDir = '/Plots'
 webDir = '/web'
 diffProg = '/usr/bin/diff'
-plotProg = '/usr/local/bin/plotPCB2_DIMS.py'
+plotProg = '/usr/local/bin/plotPCB.py'
 
 
 # -------------------------------------------------------------------------
