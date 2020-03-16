@@ -12,9 +12,7 @@ import pcbnew
 from pcbnew import *
 
 
-def processBoard(boardName,
-                 plotDir):  # Load board and initialize plot controller
-
+def processBoard(boardName, plotDir):  # Load board and initialize plot controller
     board = LoadBoard(boardName)
     boardbox = board.ComputeBoundingBox()
     boardxl = boardbox.GetX()
