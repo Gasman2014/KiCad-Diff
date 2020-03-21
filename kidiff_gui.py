@@ -42,7 +42,8 @@ svnProg = '/usr/bin/svn'
 plotDir = '/Plots'
 webDir = '/web'
 diffProg = '/usr/bin/diff'
-plotProg = '/usr/local/bin/plotPCB2_DIMS.py'
+plotProg = '/usr/local/bin/plotPCB.py'
+# plotProg = '/usr/local/bin/plotPCB_macOS.py'
 
 
 # -------------------------------------------------------------------------
