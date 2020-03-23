@@ -44,12 +44,13 @@ webDir = '/web'
 diffProg = '/usr/bin/diff'
 plotProg = '/usr/local/bin/plotPCB.py'
 # plotProg = '/usr/local/bin/plotPCB_macOS.py'
+grepProg = '/usr/bin/grep'
 
 
 # -------------------------------------------------------------------------
 # NOTE Adjust this port to suit your requirements. Must be >1000.
 
-PORT = 9090
+PORT = 9091
 
 
 # -------------------------------------------------------------------------
@@ -665,7 +666,9 @@ def getGitDiff(diff1, diff2, prjctName, prjctPath):
     artifact2 = diff2[:6]
 
     findDiff = 'cd ' + prjctPath + ' && ' + gitProg + ' diff --name-only ' + \
-        artifact1 + ' ' + artifact2 + ' | /usr/bin/grep .kicad_pcb'
+        artifact1 + ' ' + artifact2 + ' | ' + grepProg + ' *.kicad_pcb'
+
+    print(findDiff)
 
     changes = Popen(
         findDiff,
@@ -697,6 +700,8 @@ def getGitDiff(diff1, diff2, prjctName, prjctPath):
     gitArtifact2 = 'cd ' + prjctPath + ' && ' + gitProg + ' show ' + artifact2 + \
         ':' + prjctName + ' > ' + outputDir2 + '/' + prjctName
 
+    print(gitArtifact1, gitArtifact2)
+
     ver1 = Popen(
         gitArtifact1,
         shell=True,
@@ -719,6 +724,8 @@ def getGitDiff(diff1, diff2, prjctName, prjctPath):
 
     gitDateTime1 = 'cd ' + prjctPath + ' && ' + gitProg + ' show -s --format="%ci" ' + artifact1
     gitDateTime2 = 'cd ' + prjctPath + ' && ' + gitProg + ' show -s --format="%ci" ' + artifact2
+
+    print(gitDateTime1,gitDateTime2)
 
     dt1 = Popen(
         gitDateTime1,
@@ -1111,6 +1118,8 @@ def makeSVG(d1, d2, prjctName, prjctPath):
     plot1Cmd = plotProg + ' ' + Diff1 + " " + d1SVG
     plot2Cmd = plotProg + ' ' + Diff2 + " " + d2SVG
 
+    print(plot1Cmd,plot2Cmd)
+
     plot1=Popen(
         plot1Cmd,
         shell=True,
@@ -1135,7 +1144,7 @@ def makeSVG(d1, d2, prjctName, prjctPath):
     plot1.wait(); plot2.wait()
 
 
-    print(plotDims1[0], plotDims2[0])
+    print(plotDims1, plotDims2)
 
 
     return (d1, d2, plotDims1[0], plotDims2[0])
