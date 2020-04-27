@@ -1515,7 +1515,7 @@ if __name__ == "__main__":
     if (SCMS == ""):
         print("You need to have at least one SCM program path identified in lines 32 - 40")
         exit()
-    gui = tk.Tk(SCMS)
+    gui = tk.Tk(':0.0', SCMS)
     gui.withdraw()
     gui.update()
     Select = Select(gui)

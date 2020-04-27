@@ -5,12 +5,14 @@ Kicad plot pcb file.
 Plot variety of svg files in plot directory
 '''
 
+import pcbnew
 from pcbnew import *
+
 
 
 def processBoard(boardName, plotDir):  # Load board and initialize plot controller
 
-    board = LoadBoard(boardName)
+    board = pcbnew.LoadBoard(boardName)
     boardbox = board.ComputeBoundingBox()
     boardxl = boardbox.GetX()
     boardyl = boardbox.GetY()
