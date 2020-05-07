@@ -5,6 +5,7 @@ Kicad plot pcb file.
 Plot variety of svg files in plot directory
 '''
 
+import sys
 import pcbnew
 from pcbnew import *
 

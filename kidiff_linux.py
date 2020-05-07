@@ -29,6 +29,17 @@ import http.server
 import socketserver
 socketserver.TCPServer.allow_reuse_address = True
 
+if sys.version_info[0] >= 3:
+    unicode = str
+
+def _escape_string( val ):
+    # Make unicode
+    val = unicode( val )
+    # Escape stuff
+    val = val.replace( u'\\', u'\\\\' )
+    val = val.replace( u' ', u'\\ ' )
+    return ''.join(val.splitlines())
+
 # -------------------------------------------------------------------------
 # NOTE Adjust these paths to suit your setup
 # If you do not use one (or more) of these SCMs, please set to ''
@@ -37,12 +48,13 @@ socketserver.TCPServer.allow_reuse_address = True
 # is Fossil > Git > SVN.
 
 gitProg = '/usr/bin/git'
-fossilProg = '/usr/local/bin/fossil'
+fossilProg = ''
 svnProg = '/usr/bin/svn'
-plotDir = '/Plots'
+plotDir = '/plots'
 webDir = '/web'
 diffProg = '/usr/bin/diff'
-plotProg = '/usr/local/bin/plotPCB.py'
+plotProg = '/home/spendless/sandpit/KiCad-Diff/plotPCB.py'
+# plotProg = '/usr/local/bin/plotPCB.py'
 # plotProg = '/usr/local/bin/plotPCB_macOS.py'
 grepProg = '/usr/bin/grep'
 
@@ -50,7 +62,7 @@ grepProg = '/usr/bin/grep'
 # -------------------------------------------------------------------------
 # NOTE Adjust this port to suit your requirements. Must be >1000.
 
-PORT = 9091
+PORT = 9092
 
 
 # -------------------------------------------------------------------------
@@ -686,7 +698,7 @@ def getGitPath(prjctName, prjctPath):
 
     gitPathProcess.wait()
 
-    return stdout.decode('utf-8')
+    return _escape_string(stdout.decode('utf-8'))
 
 def getGitDiff(diff1, diff2, prjctName, prjctPath):
     '''Given two git artifacts, write out two kicad_pcb files to their respective
@@ -695,10 +707,8 @@ def getGitDiff(diff1, diff2, prjctName, prjctPath):
     artifact1 = diff1[:6]
     artifact2 = diff2[:6]
 
-    findDiff = 'cd ' + prjctPath + ' && ' + gitProg + ' diff --name-only ' + \
-        artifact1 + ' ' + artifact2 + ' | ' + grepProg + ' *.kicad_pcb'
-
-    print(findDiff)
+    findDiff = 'cd ' + _escape_string(prjctPath) + ' && ' + gitProg + ' diff --name-only ' + \
+        artifact1 + ' ' + artifact2 + ' | ' + grepProg + ' .kicad_pcb'
 
     changes = Popen(
         findDiff,
@@ -724,15 +734,13 @@ def getGitDiff(diff1, diff2, prjctName, prjctPath):
     if not os.path.exists(outputDir2):
         os.makedirs(outputDir2)
 
-    gitPath = getGitPath(prjctName, prjctPath)
+    gitPath = getGitPath(prjctName, _escape_string(prjctPath))
 
-    gitArtifact1 = 'cd ' + prjctPath + ' && ' + gitProg + ' show ' + artifact1 + \
-        ':' + gitPath + ' > ' + outputDir1 + '/' + prjctName
+    gitArtifact1 = 'cd ' + _escape_string(prjctPath) + ' && ' + gitProg + ' show ' + artifact1 + \
+        ':' + gitPath + ' > ' + _escape_string(outputDir1) + '/' + prjctName
 
-    gitArtifact2 = 'cd ' + prjctPath + ' && ' + gitProg + ' show ' + artifact2 + \
-        ':' + gitPath + ' > ' + outputDir2 + '/' + prjctName
-
-    print(gitArtifact1, gitArtifact2)
+    gitArtifact2 = 'cd ' + _escape_string(prjctPath) + ' && ' + gitProg + ' show ' + artifact2 + \
+        ':' + gitPath + ' > ' + _escape_string(outputDir2) + '/' + prjctName
 
     ver1 = Popen(
         gitArtifact1,
@@ -754,8 +762,8 @@ def getGitDiff(diff1, diff2, prjctName, prjctPath):
 
     ver1.wait(); ver2.wait()
 
-    gitDateTime1 = 'cd ' + prjctPath + ' && ' + gitProg + ' show -s --format="%ci" ' + artifact1
-    gitDateTime2 = 'cd ' + prjctPath + ' && ' + gitProg + ' show -s --format="%ci" ' + artifact2
+    gitDateTime1 = 'cd ' + _escape_string(prjctPath) + ' && ' + gitProg + ' show -s --format="%ci" ' + artifact1
+    gitDateTime2 = 'cd ' + _escape_string(prjctPath) + ' && ' + gitProg + ' show -s --format="%ci" ' + artifact2
 
     print(gitDateTime1,gitDateTime2)
 
@@ -892,8 +900,8 @@ def getFossilDiff(diff1, diff2, prjctName, prjctPath):
     artifact1 = diff1[:6]
     artifact2 = diff2[:6]
 
-    findDiff = 'cd ' + prjctPath + ' && fossil diff --brief -r ' + \
-        artifact1 + ' --to ' + artifact2 + ' | grep .kicad_pcb'
+    findDiff = 'cd ' + _escape_string(prjctPath) + ' && fossil diff --brief -r ' + \
+        artifact1 + ' --to ' + artifact2 + ' | ' + grepProg + ' .kicad_pcb'
 
     changes = Popen(
         findDiff,
@@ -920,13 +928,13 @@ def getFossilDiff(diff1, diff2, prjctName, prjctPath):
     if not os.path.exists(outputDir2):
         os.makedirs(outputDir2)
 
-    fossilArtifact1 = 'cd ' + prjctPath + ' && fossil cat ' + prjctPath + '/' + prjctName + \
+    fossilArtifact1 = 'cd ' + _escape_string(prjctPath) + ' && fossil cat ' + _escape_string(prjctPath) + '/' + prjctName + \
         ' -r ' + artifact1 + ' > ' + outputDir1 + '/' + prjctName
-    fossilArtifact2 = 'cd ' + prjctPath + ' && fossil cat ' + prjctPath + '/' + prjctName + \
+    fossilArtifact2 = 'cd ' + _escape_string(prjctPath) + ' && fossil cat ' + _escape_string(prjctPath) + '/' + prjctName + \
         ' -r ' + artifact2 + ' > ' + outputDir2 + '/' + prjctName
 
-    fossilInfo1 = 'cd ' + prjctPath + ' && fossil info ' + artifact1
-    fossilInfo2 = 'cd ' + prjctPath + ' && fossil info ' + artifact2
+    fossilInfo1 = 'cd ' + _escape_string(prjctPath) + ' && fossil info ' + artifact1
+    fossilInfo2 = 'cd ' + _escape_string(prjctPath) + ' && fossil info ' + artifact2
 
     ver1 = Popen(
         fossilArtifact1,
@@ -1110,7 +1118,7 @@ def svnDiff(path, kicadPCB):
     '''Returns list of SVN resvisions from a directory containing a
     *.kicad_pcb file.'''
     svnCmd = 'cd ' + path + ' && ' + svnProg + ' log -r HEAD:0 | perl -l40pe "s/^-+/\n/"'
-    print(svnCmd)
+
     svn = Popen(
         svnCmd,
         shell=True,
@@ -1146,11 +1154,8 @@ def makeSVG(d1, d2, prjctName, prjctPath):
     if not os.path.exists(d2SVG):
         os.makedirs(d2SVG)
 
-
-    plot1Cmd = plotProg + ' ' + Diff1 + " " + d1SVG
-    plot2Cmd = plotProg + ' ' + Diff2 + " " + d2SVG
-
-    print(plot1Cmd,plot2Cmd)
+    plot1Cmd = plotProg + ' ' + _escape_string(Diff1) + ' ' + _escape_string(d1SVG)
+    plot2Cmd = plotProg + ' ' + _escape_string(Diff2) + ' ' + _escape_string(d2SVG)
 
     plot1=Popen(
         plot1Cmd,
@@ -1174,9 +1179,6 @@ def makeSVG(d1, d2, prjctName, prjctPath):
     plotDims2 = (stdout.decode('utf-8').splitlines())
 
     plot1.wait(); plot2.wait()
-
-
-    print(plotDims1, plotDims2)
 
 
     return (d1, d2, plotDims1[0], plotDims2[0])
@@ -1245,8 +1247,8 @@ def makeOutput(diffDir1, diffDir2, prjctName, prjctPath, times, dim1, dim2):
     '''
     webd = prjctPath + plotDir + webDir
 
-    board1 = prjctPath + "/" + plotDir + "/" + diffDir1 + "/" + prjctName
-    board2 = prjctPath + "/" + plotDir + "/" + diffDir2 + "/" + prjctName
+    board1 = prjctPath + plotDir + "/" + diffDir1 + "/" + prjctName
+    board2 = prjctPath + plotDir + "/" + diffDir2 + "/" + prjctName
 
     webIndex = webd + '/index.html'
 
@@ -1304,7 +1306,7 @@ def makeOutput(diffDir1, diffDir2, prjctName, prjctPath, times, dim1, dim2):
 
     diffCmnd1 = ()
 
-    source = prjctPath + "/" + plotDir + "/" + diffDir1 + "/"
+    source = prjctPath + plotDir + "/" + diffDir1 + "/"
 
     tryptychDir = prjctPath + plotDir + webDir + '/tryptych'
 
@@ -1358,7 +1360,7 @@ def makeOutput(diffDir1, diffDir2, prjctName, prjctPath, times, dim1, dim2):
                     plotDir=plotDir,
                     diff1=diffDir1,
                     diff2=diffDir2,
-                    prjctPath=prjctPath)
+                    prjctPath=_escape_string(prjctPath))
                 # print(diffCmnd1)
 
                 diff1Txt = Popen(
@@ -1373,13 +1375,14 @@ def makeOutput(diffDir1, diffDir2, prjctName, prjctPath, times, dim1, dim2):
             #sed -e 's/(layer {mod}*)//g' |
             mod = layer.replace("_",".")
             #            diffCmnd2 = diffProg + ''' --suppress-common-lines {prjctPath}{plotDir}/{diff2}/*.kicad_pcb {prjctPath}{plotDir}/{diff1}/*.kicad_pcb | grep {mod} | sed 's/>  /<\/div><div class="differences added">/g' | sed 's/<   /<\/div><div class="differences removed">/g' | sed 's/\/n/<\/div>/g' | sed 's/(status [1-9][0-9])//g' '''.format(
-            diffCmnd2 = diffProg + ''' --suppress-common-lines {prjctPath}{plotDir}/{diff2}/*.kicad_pcb {prjctPath}{plotDir}/{diff1}/*.kicad_pcb | grep {mod} | sed 's/(status [1-9][0-9])//g' '''.format(
+            diffCmnd2 = diffProg + ''' --suppress-common-lines {prjctPath}{plotDir}/{diff2}/*.kicad_pcb {prjctPath}{plotDir}/{diff1}/*.kicad_pcb | {grepProg} {mod} | sed 's/(status [1-9][0-9])//g' '''.format(
                 layername=filename,
                 plotDir=plotDir,
                 diff1=diffDir1,
                 diff2=diffDir2,
-                prjctPath=prjctPath,
+                prjctPath=_escape_string(prjctPath),
                 mod=mod,
+                grepProg=grepProg,
                 webDir=webDir)
 
 
@@ -1543,7 +1546,7 @@ def startWebServer():
 if __name__ == "__main__":
 
     SCMS = scmAvailable()
-    print(SCMS)
+
     if (SCMS == ""):
         print("You need to have at least one SCM program path identified in lines 32 - 40")
         exit()
@@ -1556,22 +1559,22 @@ if __name__ == "__main__":
     gui.update()
     gui.deiconify()
 
-    scm = getSCM(prjctPath)
+    scm = getSCM(_escape_string(prjctPath))
     gui.destroy()
 
 
     if scm == 'Git':
-        artifacts = gitDiff(prjctPath, prjctName)
+        artifacts = gitDiff(_escape_string(prjctPath), prjctName)
     if scm == 'Fossil':
-        artifacts = fossilDiff(prjctPath, prjctName)
+        artifacts = fossilDiff(_escape_string(prjctPath), prjctName)
     if scm == 'SVN':
-        artifacts = svnDiff(prjctPath, prjctName)
+        artifacts = svnDiff(_escape_string(prjctPath), prjctName)
     if scm == '':
         print("This project is either not under version control or you have not set the path to the approriate SCM program in lines 32-40")
         sys.exit(0)
 
 
-    d1, d2 = tkUI.runGUI(artifacts, prjctName, prjctPath, scm)
+    d1, d2 = tkUI.runGUI(artifacts, prjctName, prjctPath, 'Git')
 
     print("Commit1", d1)
     print("Commit2", d2)
