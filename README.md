@@ -11,6 +11,7 @@ There is an additional 'Text Diff' which is helpful for identifying specific are
 
 This was originally written as a bash script, this newer GUI version has been rewritten in Python3 and supports Git, SVN and Fossil as SCM tools. I have also removed many of the dependencies.
  
+ ![Cu difference view](/Documents/cu.png)
 
 **Instructions**
   *  Check that the paths to your SCM tools are correct (lines 39-45). You do not need to install all of these but if you do not have one make sure that you set it to null  e.g. if you don't have SVN installed, make sure you set svnProg=''.
@@ -66,7 +67,6 @@ This was originally written as a bash script, this newer GUI version has been re
 
 ***F_Cu Layer***
 ![Cu difference view](/Documents/cu.png)
-
 ![Cu layer - 3 pane view](/Documents/composite.png)
 
 
