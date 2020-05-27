@@ -32,6 +32,8 @@ socketserver.TCPServer.allow_reuse_address = True
 if sys.version_info[0] >= 3:
     unicode = str
 
+executablePath = os.path.dirname(os.path.realpath(__file__))
+
 def _escape_string( val ):
     # Make unicode
     val = unicode( val )
@@ -53,7 +55,7 @@ svnProg = '/usr/bin/svn'
 plotDir = '/plots'
 webDir = '/web'
 diffProg = '/usr/bin/diff'
-plotProg = '/home/spendless/sandpit/KiCad-Diff/plotPCB.py'
+plotProg = executablePath + '/plotPCB.py'
 # plotProg = '/usr/local/bin/plotPCB.py'
 # plotProg = '/usr/local/bin/plotPCB_macOS.py'
 grepProg = '/usr/bin/grep'
@@ -1166,7 +1168,9 @@ def makeSVG(d1, d2, prjctName, prjctPath):
         close_fds=True)
     stdout, stderr = plot1.communicate()
     plotDims1 = (stdout.decode('utf-8').splitlines())
-
+    errors = stderr.decode('utf-8')
+    if errors != "":
+        print("Plot1 error: " + errors)
 
     plot2=Popen(
         plot2Cmd,
@@ -1177,6 +1181,9 @@ def makeSVG(d1, d2, prjctName, prjctPath):
         close_fds=True)
     stdout, stderr = plot2.communicate()
     plotDims2 = (stdout.decode('utf-8').splitlines())
+    errors = stderr.decode('utf-8')
+    if errors != "":
+        print("Plot2 error: " + errors)
 
     plot1.wait(); plot2.wait()
 
