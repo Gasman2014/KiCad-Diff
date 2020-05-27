@@ -673,7 +673,7 @@ def getGitPath(prjctName, prjctPath):
 
     gitRoot = stdout.decode('utf-8')
 
-    gitPathCmd = 'cd ' + _escape_string(gitRoot) + ' && ' + gitProg + ' ls-tree -r --name-only HEAD | ' + grepProg + ' -m 1 ' + prjctName
+    gitPathCmd = 'cd ' + gitRoot + ' && ' + gitProg + ' ls-tree -r --name-only HEAD | ' + grepProg + ' -m 1 ' + prjctName
 
     gitPathProcess = Popen(
         gitPathCmd,
