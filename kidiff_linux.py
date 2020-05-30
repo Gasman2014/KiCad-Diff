@@ -29,6 +29,8 @@ import http.server
 import socketserver
 socketserver.TCPServer.allow_reuse_address = True
 
+import argparse
+
 if sys.version_info[0] >= 3:
     unicode = str
 
@@ -43,29 +45,20 @@ def _escape_string( val ):
     return ''.join(val.splitlines())
 
 # -------------------------------------------------------------------------
-# NOTE Adjust these paths to suit your setup
-# If you do not use one (or more) of these SCMs, please set to ''
-# This program attempts to auto-identify which SCM is in use.
-# In the event of multiple SCMs being in use in one repository, the order of priority
-# is Fossil > Git > SVN.
 
-gitProg = '/usr/bin/git'
-fossilProg = ''
-svnProg = '/usr/bin/svn'
+# Tools should be on the PATH
+# Much more flexible approach
+# To add plotPCB.py, kidiff_linux.py and kidiff_gui.py to the path use the following example
+# Example: source ./env.sh
+gitProg = 'git'
+fossilProg = 'fossil'
+svnProg = 'svn'
+diffProg = 'diff'
+grepProg = 'grep'
+plotProg = 'plotPCB.py'
+
 plotDir = '/plots'
 webDir = '/web'
-diffProg = '/usr/bin/diff'
-plotProg = executablePath + '/plotPCB.py'
-# plotProg = '/usr/local/bin/plotPCB.py'
-# plotProg = '/usr/local/bin/plotPCB_macOS.py'
-grepProg = '/usr/bin/grep'
-
-
-# -------------------------------------------------------------------------
-# NOTE Adjust this port to suit your requirements. Must be >1000.
-
-PORT = 9092
-
 
 # -------------------------------------------------------------------------
 # NOTE Please adjust these colours to suit your requirements.
@@ -1543,45 +1536,83 @@ class Select(tk.Toplevel):
             self.quit()
 
 
-def startWebServer():
-    with socketserver.TCPServer(("", PORT), Handler) as httpd:
-        print("serving at port", PORT)
-        webbrowser.open('http://127.0.0.1:' + str(PORT) + '/web/index.html')
+def startWebServer(port):
+    with socketserver.TCPServer(("", port), Handler) as httpd:
+        print("serving at port", port)
+        webbrowser.open('http://127.0.0.1:' + str(port) + '/web/index.html')
         httpd.serve_forever()
 
 
+def parse_cli_args():
+    parser = argparse.ArgumentParser(description='Kicad PCB bisual diffs.')
+    parser.add_argument('-d', "--display", type=str, help="Set DISPLAY value, default :1.0", default=':1.0')
+    parser.add_argument('-a', "--commit1", type=str, help="Commit1", default='HEAD')
+    parser.add_argument('-b', "--commit2", type=str, help="Commit2", default='HEAD')
+    parser.add_argument('-s', "--scm", type=str,  help="Select SCM (Git, SVN, Fossil)")
+    parser.add_argument('-g', "--gui", action='store_true', help="Use gui")
+    parser.add_argument('-p', "--port", type=int, help="Set webserver port", default=9092)
+    parser.add_argument("kicad_pcb", help="Kicad PCB")
+    args = parser.parse_args()
+    print(args)
+    return args
+
+
 if __name__ == "__main__":
+
+    args = parse_cli_args()
 
     SCMS = scmAvailable()
 
     if (SCMS == ""):
         print("You need to have at least one SCM program path identified in lines 32 - 40")
         exit()
-    gui = tk.Tk(':0.0', SCMS)
-    gui.withdraw()
-    gui.update()
-    Select = Select(gui)
-    Select.destroy()
-    prjctPath, prjctName = getProject()
-    gui.update()
-    gui.deiconify()
 
-    scm = getSCM(_escape_string(prjctPath))
-    gui.destroy()
+    prjctPath = os.path.dirname(os.path.realpath(args.kicad_pcb))
+    prjctName = os.path.basename(os.path.realpath(args.kicad_pcb))
 
+    print("prjctPath", prjctPath)
+    print("prjctName", prjctName)
 
-    if scm == 'Git':
-        artifacts = gitDiff(_escape_string(prjctPath), prjctName)
-    if scm == 'Fossil':
-        artifacts = fossilDiff(_escape_string(prjctPath), prjctName)
-    if scm == 'SVN':
-        artifacts = svnDiff(_escape_string(prjctPath), prjctName)
-    if scm == '':
-        print("This project is either not under version control or you have not set the path to the approriate SCM program in lines 32-40")
-        sys.exit(0)
+    if args.scm:
+        scm = args.scm
 
+    if args.gui:
 
-    d1, d2 = tkUI.runGUI(artifacts, prjctName, prjctPath, 'Git')
+        gui = tk.Tk(args.display, SCMS)
+        gui.withdraw()
+        gui.update()
+
+        Select = Select(gui)
+        Select.destroy()
+
+        gui.update()
+        gui.deiconify()
+
+        scm = getSCM(_escape_string(prjctPath))
+        gui.destroy()
+
+    if args.commit1 == "" or args.commit2 == "":
+
+        if scm == 'Git':
+            artifacts = gitDiff(_escape_string(prjctPath), prjctName)
+        if scm == 'Fossil':
+            artifacts = fossilDiff(_escape_string(prjctPath), prjctName)
+        if scm == 'SVN':
+            artifacts = svnDiff(_escape_string(prjctPath), prjctName)
+        if scm == '':
+            print("This project is either not under version control or you have not set the path to the approriate SCM program in lines 32-40")
+            sys.exit(0)
+
+    else:
+        artifacts = []
+
+    # d1, d2 = tkUI.runGUI(artifacts, prjctName, prjctPath, 'Git')
+
+    # How to get the hash when the branch was created
+    # git reflog show yardbird-0.3.2-ci2 | grep Created
+
+    d1 = args.commit1
+    d2 = args.commit2
 
     print("Commit1", d1)
     print("Commit2", d2)
@@ -1597,14 +1628,13 @@ if __name__ == "__main__":
         d2 = a2[1:]
         times = getSVNDiff(d1, d2, prjctName, prjctPath)
 
-
     svgDir1, svgDir2, boardDims1, boardDims2 = makeSVG(d1, d2, prjctName, prjctPath)
 
     makeSupportFiles(prjctName, prjctPath)
 
     makeOutput(svgDir1, svgDir2, prjctName, prjctPath, times, boardDims1, boardDims2)
 
-    startWebServer()
+    startWebServer(args.port)
 
     webbrowser.open(
-        'http://127.0.0.1:' + str(PORT) + '/web/index.html')
+        'http://127.0.0.1:' + str(args.port) + '/web/index.html')
