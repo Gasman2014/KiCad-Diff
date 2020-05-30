@@ -1551,6 +1551,7 @@ def parse_cli_args():
     parser.add_argument('-s', "--scm", type=str,  help="Select SCM (Git, SVN, Fossil)")
     parser.add_argument('-g', "--gui", action='store_true', help="Use gui")
     parser.add_argument('-p', "--port", type=int, help="Set webserver port", default=9092)
+    parser.add_argument('-w', "--webserver-disable", action='store_true', help="Does not execute webserver (just generate images)")
     parser.add_argument("kicad_pcb", help="Kicad PCB")
     args = parser.parse_args()
     print(args)
@@ -1634,7 +1635,6 @@ if __name__ == "__main__":
 
     makeOutput(svgDir1, svgDir2, prjctName, prjctPath, times, boardDims1, boardDims2)
 
-    startWebServer(args.port)
-
-    webbrowser.open(
-        'http://127.0.0.1:' + str(args.port) + '/web/index.html')
+    if not args.webserver_disable:
+        startWebServer(args.port)
+        webbrowser.open('http://127.0.0.1:' + str(args.port) + '/web/index.html')
