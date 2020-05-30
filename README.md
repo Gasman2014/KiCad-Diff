@@ -29,7 +29,7 @@ The script should build a series of svg files and display the diff in a webpage.
 There should be some output in the launch terminal. Please copy this and include it in any issues posted. If the program is not working, please check that you can run the `plotPCB.py` routine directly by invoking it from the command line and passing it two arguments (1) The name of a `*.kicad_pcb` file and (2) a test directory for the plots to end up in;
 
 ```
-plotPCB.py TestBoard.kicad_pcb testdir
+plotPCB.py boar.kicad_pcb output_folder
 ```
 
 # Command Line Usage
@@ -62,43 +62,41 @@ optional arguments:
 
   1. Improvement in parsing and meaning of text diffs.
   2. Place all template text/css text in external files.
-  3. Improve display of artefacts in diff choice window.
+  3. Improve display of artifacts in diff choice window.
   4. Consider changing GUI elements to wxPython.
-  5. Adjust for three pane output to have white outer border & pan-zoom control, not filter colour.
+  5. Adjust for three pane output to have white outer border & pan-zoom control, not filter color.
   6. Improve three pane output layout, perhaps with diff tree on LHS and not underneath.
   7. Consider adding 'Preferences' for this program.
 
 
-***Screenshots***
+# Screenshots
 
-***GUI***
+### GUI
 ![GUI](/Documents/gui.png)
 
 ![GUI](/Documents/gui2.png)
 
 
-***Overview***
+### Overview
 ![Overview](/Documents/Overview.png)
 
-
-***Main view***
+### Main view
 ![Main](/Documents/main1.png)
 
 ![Main](/Documents/main2.png)
 
 
-***Diff***
+### Diff
 ![Fab Layer Diff](/Documents/diff.png)
 
 
-***Fab Layer***
+### Fab Layer
 ![Fab layer side by side](/Documents/pair.png)
 
 
-***F_Cu Layer***
+### F_Cu Layer
 ![Cu difference view](/Documents/cu.png)
 ![Cu layer - 3 pane view](/Documents/composite.png)
 
-
-***Text Diff***
+### Text Diff
 ![Text Diff](/Documents/text.png)
