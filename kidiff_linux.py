@@ -1544,7 +1544,7 @@ def startWebServer(port):
 
 
 def parse_cli_args():
-    parser = argparse.ArgumentParser(description='Kicad PCB bisual diffs.')
+    parser = argparse.ArgumentParser(description='Kicad PCB visual diffs.')
     parser.add_argument('-d', "--display", type=str, help="Set DISPLAY value, default :1.0", default=':1.0')
     parser.add_argument('-a', "--commit1", type=str, help="Commit1", default='HEAD')
     parser.add_argument('-b', "--commit2", type=str, help="Commit2", default='HEAD')
