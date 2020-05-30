@@ -1592,7 +1592,7 @@ if __name__ == "__main__":
         scm = getSCM(_escape_string(prjctPath))
         gui.destroy()
 
-    if args.commit1 == "" or args.commit2 == "":
+    if args.commit1 == "" and args.commit2 == "":
 
         if scm == 'Git':
             artifacts = gitDiff(_escape_string(prjctPath), prjctName)
@@ -1604,13 +1604,10 @@ if __name__ == "__main__":
             print("This project is either not under version control or you have not set the path to the approriate SCM program in lines 32-40")
             sys.exit(0)
 
+        d1, d2 = tkUI.runGUI(artifacts, prjctName, prjctPath, scm)
+
     else:
         artifacts = []
-
-    # d1, d2 = tkUI.runGUI(artifacts, prjctName, prjctPath, 'Git')
-
-    # How to get the hash when the branch was created
-    # git reflog show yardbird-0.3.2-ci2 | grep Created
 
     d1 = args.commit1
     d2 = args.commit2
