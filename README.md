@@ -62,7 +62,7 @@ optional arguments:
 There should be some output in the launch terminal. Please copy this and include it in any issues posted. If the program is not working, please check that you can run the `plotPCB.py` routine directly by invoking it from the command line and passing it two arguments (1) The name of a `*.kicad_pcb` file and (2) a test directory for the plots to end up in;
 
 ```
-plotPCB.py boar.kicad_pcb output_folder
+plotPCB.py board.kicad_pcb output_folder
 ```
 
 ## Next Steps
