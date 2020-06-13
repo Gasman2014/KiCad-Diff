@@ -55,7 +55,7 @@ fossilProg = 'fossil'
 svnProg = 'svn'
 diffProg = 'diff'
 grepProg = 'grep'
-plotProg = 'plotPCB.py'
+plotProg = executablePath + '/plotPCB.py'
 
 plotDir = '/plots'
 webDir = '/web'
@@ -988,10 +988,16 @@ def getFossilDiff(diff1, diff2, prjctName, prjctPath):
     return dateTime
 
 
-def getProject():
+def getProject(display, SCMS):
     '''File select dialogue. Opens Tk File browser and 
     selector set for .kicad_pcb files. Returns path and file name
     '''
+    gui = tk.Tk(display, SCMS)
+    gui.withdraw()
+    gui.update()
+    select = Select(gui)
+    select.destroy()
+
     selected = tk.filedialog.askopenfile(
         initialdir="~/",
         title="Select kicad_pcb file in a VC directory",
@@ -999,6 +1005,7 @@ def getProject():
     if selected:
         path, prjct = os.path.split(selected.name)
 
+    gui.destroy()
     return (path, prjct)
 
 
@@ -1535,7 +1542,6 @@ class Select(tk.Toplevel):
         if action == "cancel":
             self.quit()
 
-
 def startWebServer(port):
     with socketserver.TCPServer(("", port), Handler) as httpd:
         print("serving at port", port)
@@ -1545,14 +1551,13 @@ def startWebServer(port):
 
 def parse_cli_args():
     parser = argparse.ArgumentParser(description='Kicad PCB visual diffs.')
+    parser.add_argument('-a', "--commit1", type=str, help="Commit1")
+    parser.add_argument('-b', "--commit2", type=str, help="Commit2")
     parser.add_argument('-d', "--display", type=str, help="Set DISPLAY value, default :1.0", default=':1.0')
-    parser.add_argument('-a', "--commit1", type=str, help="Commit1", default='HEAD')
-    parser.add_argument('-b', "--commit2", type=str, help="Commit2", default='HEAD')
-    parser.add_argument('-s', "--scm", type=str,  help="Select SCM (Git, SVN, Fossil)")
-    parser.add_argument('-g', "--gui", action='store_true', help="Use gui")
     parser.add_argument('-p', "--port", type=int, help="Set webserver port", default=9092)
+    parser.add_argument('-s', "--scm", type=str,  help="Select SCM (Git, SVN, Fossil)")
     parser.add_argument('-w', "--webserver-disable", action='store_true', help="Does not execute webserver (just generate images)")
-    parser.add_argument("kicad_pcb", help="Kicad PCB")
+    parser.add_argument("kicad_pcb", nargs='?', help="Kicad PCB")
     args = parser.parse_args()
     print(args)
     return args
@@ -1568,49 +1573,41 @@ if __name__ == "__main__":
         print("You need to have at least one SCM program path identified in lines 32 - 40")
         exit()
 
-    prjctPath = os.path.dirname(os.path.realpath(args.kicad_pcb))
-    prjctName = os.path.basename(os.path.realpath(args.kicad_pcb))
+    if args.kicad_pcb is None:
+        prjctPath, prjctName = getProject(args.display, SCMS)
+    else:
+        prjctPath = os.path.dirname(os.path.realpath(args.kicad_pcb))
+        prjctName = os.path.basename(os.path.realpath(args.kicad_pcb))
 
     print("prjctPath", prjctPath)
     print("prjctName", prjctName)
 
     if args.scm:
         scm = args.scm
-
-    if args.gui:
-
-        gui = tk.Tk(args.display, SCMS)
-        gui.withdraw()
-        gui.update()
-
-        Select = Select(gui)
-        Select.destroy()
-
-        gui.update()
-        gui.deiconify()
-
+    else:
         scm = getSCM(_escape_string(prjctPath))
-        gui.destroy()
 
-    if args.commit1 == "" and args.commit2 == "":
 
-        if scm == 'Git':
-            artifacts = gitDiff(_escape_string(prjctPath), prjctName)
-        if scm == 'Fossil':
-            artifacts = fossilDiff(_escape_string(prjctPath), prjctName)
-        if scm == 'SVN':
-            artifacts = svnDiff(_escape_string(prjctPath), prjctName)
-        if scm == '':
-            print("This project is either not under version control or you have not set the path to the approriate SCM program in lines 32-40")
-            sys.exit(0)
+    if scm == 'Git':
+        artifacts = gitDiff(_escape_string(prjctPath), prjctName)
+    if scm == 'Fossil':
+        artifacts = fossilDiff(_escape_string(prjctPath), prjctName)
+    if scm == 'SVN':
+        artifacts = svnDiff(_escape_string(prjctPath), prjctName)
+    if scm == '':
+        print("This project is either not under version control or you have not set the path to the approriate SCM program in lines 32-40")
+        sys.exit(0)
 
+    if args.commit1 is None and args.commit2 is None:
         d1, d2 = tkUI.runGUI(artifacts, prjctName, prjctPath, scm)
 
     else:
-        artifacts = []
-
-    d1 = args.commit1
-    d2 = args.commit2
+        d1 = args.commit1
+        d2 = args.commit2
+        if args.commit1 is None:
+            d1 = artifacts[0]
+        if args.commit2 is None:
+            d2 = artifacts[0]
 
     print("Commit1", d1)
     print("Commit2", d2)

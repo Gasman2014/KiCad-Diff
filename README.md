@@ -14,18 +14,25 @@ This was originally written as a bash script, this newer GUI version has been re
 
 ## Instructions
 
-- Check that the paths to your SCM tools are correct (lines 39-45). You do not need to install all of these but if you do not have one make sure that you set it to null  e.g. if you don't have SVN installed, make sure you set svnProg=''.
+### General
 - Ensure that you have Python3 installed. Why? https://www.pythonclock.org 
-- Install 'plotPCB.py' in /usr/local/bin (or adjust path in lines 45 to suit) This needs to be executable. This program actually generates the necessary SVG files.
-- MacOS requires a bit of tweaking - KiCad on macOS uses a locally installed version of python and NOT the system python. For other *nix operating systems, the site-packages are installed under the system python so don't need any further adjustment. For macOS, use the 'plotPCB_macOS.py' file. This also assumes that KiCad is installed normally in the 'Applications' folder
-- Run the main script and select a pair of versions in a source controlled repository from the GUI. The GUI should show which SCM is in use.
 - The terminal should give you some useful information on progress. Please include a copy of this if you have any issues.
 - Hit `Ctrl+C` to terminate the webserver.
+
+### Linux and MacOS
+- Run the main script `kidiff_linux.py`. Use `--help` option for usage.
+- [Optional] Temporarily add `kidiff_linux.py` to your PATH with `. env.sh`
+- [MacOS only] KiCad on macOS uses a locally installed version of python and NOT the system python. For other *nix operating systems, the site-packages are installed under the system python so don't need any further adjustment. For macOS, use the 'plotPCB_macOS.py' file. This also assumes that KiCad is installed normally in the 'Applications' folder
+
+### Windows
+- Run `kidiff_gui.py` script
+- Check that the paths to your SCM tools are correct (lines 39-45). You do not need to install all of these but if you do not have one make sure that you set it to null  e.g. if you don't have SVN installed, make sure you set svnProg=''.
+- Check that the path to `plotPCB.py` is correct in `kidiff_gui.py`
 
 The script should build a series of svg files and display the diff in a webpage. If a web page doesn't open automatically, navigate to "http://127.0.0.1:9090/web/index.html" to view the output. You can adjust the port used (9090 by default) if this conflicts with your existing set-up.
 
 
-## Command Line Usage
+## Command Line Usage [Linux and MacOS]
 
 ```
 ➜ ./kidiff_linux.py -h
@@ -38,15 +45,14 @@ positional arguments:
 
 optional arguments:
   -h, --help            show this help message and exit
-  -d DISPLAY, --display DISPLAY
-                        Set DISPLAY value, default :1.0
   -a COMMIT1, --commit1 COMMIT1
                         Commit1
   -b COMMIT2, --commit2 COMMIT2
                         Commit2
-  -s SCM, --scm SCM     Select SCM (Git, SVN, Fossil)
-  -g, --gui             Use gui
+  -d DISPLAY, --display DISPLAY
+                        Set DISPLAY value, default :1.0
   -p PORT, --port PORT  Set webserver port
+  -s SCM, --scm SCM     Select SCM (Git, SVN, Fossil)
   -w, --webserver-disable
                         Does not execute webserver (just generate images)
 ```
