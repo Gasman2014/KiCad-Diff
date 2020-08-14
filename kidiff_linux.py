@@ -703,7 +703,7 @@ def getGitDiff(diff1, diff2, prjctName, prjctPath):
     artifact2 = diff2[:6]
 
     findDiff = 'cd ' + _escape_string(prjctPath) + ' && ' + gitProg + ' diff --name-only ' + \
-        artifact1 + ' ' + artifact2 + ' | ' + grepProg + ' .kicad_pcb'
+        artifact1 + ' ' + artifact2 + ' . | ' + grepProg + ' .kicad_pcb'
 
     changes = Popen(
         findDiff,
