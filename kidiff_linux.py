@@ -1333,7 +1333,7 @@ def makeOutput(diffDir1, diffDir2, prjctName, prjctPath, times, dim1, dim2):
             prjct, ext = filename.split('.')
             # Accounts for project names containing hyphens
             splitted = prjct.split('-')
-            prj = splitted[-2]
+            prj = "-".join(splitted[0:-1])
             layer = splitted[-1]
             out=outfile.format(
                 diff1=diffDir1,
