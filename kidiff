@@ -55,7 +55,7 @@ fossilProg = 'fossil'
 svnProg = 'svn'
 diffProg = 'diff'
 grepProg = 'grep'
-plotProg = executablePath + '/plotPCB.py'
+plotProg = executablePath + '/plotpcb'
 
 plotDir = '/plots'
 webDir = '/web'
