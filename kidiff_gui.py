@@ -29,29 +29,36 @@ import http.server
 import socketserver
 socketserver.TCPServer.allow_reuse_address = True
 
-# -------------------------------------------------------------------------
-# NOTE Adjust these paths to suit your setup
-# If you do not use one (or more) of these SCMs, please set to ''
-# This program attempts to auto-identify which SCM is in use.
-# In the event of multiple SCMs being in use in one repository, the order of priority
-# is Fossil > Git > SVN.
+import argparse
 
-gitProg = '/usr/bin/git'
-fossilProg = '/usr/local/bin/fossil'
-svnProg = '/usr/bin/svn'
-plotDir = '/Plots'
+if sys.version_info[0] >= 3:
+    unicode = str
+
+executablePath = os.path.dirname(os.path.realpath(__file__))
+
+def _escape_string( val ):
+    # Make unicode
+    val = unicode( val )
+    # Escape stuff
+    val = val.replace( u'\\', u'\\\\' )
+    val = val.replace( u' ', u'\\ ' )
+    return ''.join(val.splitlines())
+
+# -------------------------------------------------------------------------
+
+# Tools should be on the PATH
+# Much more flexible approach
+# To add plotPCB.py, kidiff_linux.py and kidiff_gui.py to the path use the following example
+# Example: source ./env.sh
+gitProg = 'git'
+fossilProg = 'fossil'
+svnProg = 'svn'
+diffProg = 'diff'
+grepProg = 'grep'
+plotProg = executablePath + '/plotPCB.py'
+
+plotDir = '/plots'
 webDir = '/web'
-diffProg = '/usr/bin/diff'
-plotProg = '/usr/local/bin/plotPCB.py'
-# plotProg = '/usr/local/bin/plotPCB_macOS.py'
-grepProg = '/usr/bin/grep'
-
-
-# -------------------------------------------------------------------------
-# NOTE Adjust this port to suit your requirements. Must be >1000.
-
-PORT = 9091
-
 
 # -------------------------------------------------------------------------
 # NOTE Please adjust these colours to suit your requirements.
@@ -673,7 +680,7 @@ def getGitPath(prjctName, prjctPath):
 
     gitRoot = stdout.decode('utf-8')
 
-    gitPathCmd = 'cd ' + gitRoot + ' && ' + gitProg + ' ls-tree -r --name-only HEAD | ' + grepProg + ' -m 1 ' + prjctName
+    gitPathCmd = 'cd ' + _escape_string(gitRoot) + ' && ' + gitProg + ' ls-tree -r --name-only HEAD | ' + grepProg + ' -m 1 ' + prjctName
 
     gitPathProcess = Popen(
         gitPathCmd,
@@ -686,7 +693,7 @@ def getGitPath(prjctName, prjctPath):
 
     gitPathProcess.wait()
 
-    return stdout.decode('utf-8')
+    return _escape_string(stdout.decode('utf-8'))
 
 def getGitDiff(diff1, diff2, prjctName, prjctPath):
     '''Given two git artifacts, write out two kicad_pcb files to their respective
@@ -695,10 +702,8 @@ def getGitDiff(diff1, diff2, prjctName, prjctPath):
     artifact1 = diff1[:6]
     artifact2 = diff2[:6]
 
-    findDiff = 'cd ' + prjctPath + ' && ' + gitProg + ' diff --name-only ' + \
-        artifact1 + ' ' + artifact2 + ' | ' + grepProg + ' *.kicad_pcb'
-
-    print(findDiff)
+    findDiff = 'cd ' + _escape_string(prjctPath) + ' && ' + gitProg + ' diff --name-only ' + \
+        artifact1 + ' ' + artifact2 + ' . | ' + grepProg + ' .kicad_pcb'
 
     changes = Popen(
         findDiff,
@@ -724,15 +729,13 @@ def getGitDiff(diff1, diff2, prjctName, prjctPath):
     if not os.path.exists(outputDir2):
         os.makedirs(outputDir2)
 
-    gitPath = getGitPath(prjctName, prjctPath)
+    gitPath = getGitPath(prjctName, _escape_string(prjctPath))
 
-    gitArtifact1 = 'cd ' + prjctPath + ' && ' + gitProg + ' show ' + artifact1 + \
-        ':' + gitPath + ' > ' + outputDir1 + '/' + prjctName
+    gitArtifact1 = 'cd ' + _escape_string(prjctPath) + ' && ' + gitProg + ' show ' + artifact1 + \
+        ':' + gitPath + ' > ' + _escape_string(outputDir1) + '/' + prjctName
 
-    gitArtifact2 = 'cd ' + prjctPath + ' && ' + gitProg + ' show ' + artifact2 + \
-        ':' + gitPath + ' > ' + outputDir2 + '/' + prjctName
-
-    print(gitArtifact1, gitArtifact2)
+    gitArtifact2 = 'cd ' + _escape_string(prjctPath) + ' && ' + gitProg + ' show ' + artifact2 + \
+        ':' + gitPath + ' > ' + _escape_string(outputDir2) + '/' + prjctName
 
     ver1 = Popen(
         gitArtifact1,
@@ -754,8 +757,8 @@ def getGitDiff(diff1, diff2, prjctName, prjctPath):
 
     ver1.wait(); ver2.wait()
 
-    gitDateTime1 = 'cd ' + prjctPath + ' && ' + gitProg + ' show -s --format="%ci" ' + artifact1
-    gitDateTime2 = 'cd ' + prjctPath + ' && ' + gitProg + ' show -s --format="%ci" ' + artifact2
+    gitDateTime1 = 'cd ' + _escape_string(prjctPath) + ' && ' + gitProg + ' show -s --format="%ci" ' + artifact1
+    gitDateTime2 = 'cd ' + _escape_string(prjctPath) + ' && ' + gitProg + ' show -s --format="%ci" ' + artifact2
 
     print(gitDateTime1,gitDateTime2)
 
@@ -892,8 +895,8 @@ def getFossilDiff(diff1, diff2, prjctName, prjctPath):
     artifact1 = diff1[:6]
     artifact2 = diff2[:6]
 
-    findDiff = 'cd ' + prjctPath + ' && fossil diff --brief -r ' + \
-        artifact1 + ' --to ' + artifact2 + ' | grep .kicad_pcb'
+    findDiff = 'cd ' + _escape_string(prjctPath) + ' && fossil diff --brief -r ' + \
+        artifact1 + ' --to ' + artifact2 + ' | ' + grepProg + ' .kicad_pcb'
 
     changes = Popen(
         findDiff,
@@ -920,13 +923,13 @@ def getFossilDiff(diff1, diff2, prjctName, prjctPath):
     if not os.path.exists(outputDir2):
         os.makedirs(outputDir2)
 
-    fossilArtifact1 = 'cd ' + prjctPath + ' && fossil cat ' + prjctPath + '/' + prjctName + \
+    fossilArtifact1 = 'cd ' + _escape_string(prjctPath) + ' && fossil cat ' + _escape_string(prjctPath) + '/' + prjctName + \
         ' -r ' + artifact1 + ' > ' + outputDir1 + '/' + prjctName
-    fossilArtifact2 = 'cd ' + prjctPath + ' && fossil cat ' + prjctPath + '/' + prjctName + \
+    fossilArtifact2 = 'cd ' + _escape_string(prjctPath) + ' && fossil cat ' + _escape_string(prjctPath) + '/' + prjctName + \
         ' -r ' + artifact2 + ' > ' + outputDir2 + '/' + prjctName
 
-    fossilInfo1 = 'cd ' + prjctPath + ' && fossil info ' + artifact1
-    fossilInfo2 = 'cd ' + prjctPath + ' && fossil info ' + artifact2
+    fossilInfo1 = 'cd ' + _escape_string(prjctPath) + ' && fossil info ' + artifact1
+    fossilInfo2 = 'cd ' + _escape_string(prjctPath) + ' && fossil info ' + artifact2
 
     ver1 = Popen(
         fossilArtifact1,
@@ -985,17 +988,24 @@ def getFossilDiff(diff1, diff2, prjctName, prjctPath):
     return dateTime
 
 
-def getProject():
+def getProject(display, SCMS):
     '''File select dialogue. Opens Tk File browser and 
     selector set for .kicad_pcb files. Returns path and file name
     '''
+    gui = tk.Tk(display, SCMS)
+    gui.withdraw()
+    gui.update()
+    select = Select(gui)
+    select.destroy()
+
     selected = tk.filedialog.askopenfile(
         initialdir="~/",
-        title="Select kicad_pcb file in a VC directory",
-        filetypes=(("KiCad pcb files", "*.kicad_pcb"), ("all files", "*.*")))
+        title="Select a board file (*.kicad_pcb) file under version control",
+        filetypes=(("KiCad PCB files", "*.kicad_pcb"), ("all files", "*.*")))
     if selected:
         path, prjct = os.path.split(selected.name)
 
+    gui.destroy()
     return (path, prjct)
 
 
@@ -1110,7 +1120,7 @@ def svnDiff(path, kicadPCB):
     '''Returns list of SVN resvisions from a directory containing a
     *.kicad_pcb file.'''
     svnCmd = 'cd ' + path + ' && ' + svnProg + ' log -r HEAD:0 | perl -l40pe "s/^-+/\n/"'
-    print(svnCmd)
+    #print(svnCmd)
     svn = Popen(
         svnCmd,
         shell=True,
@@ -1146,11 +1156,8 @@ def makeSVG(d1, d2, prjctName, prjctPath):
     if not os.path.exists(d2SVG):
         os.makedirs(d2SVG)
 
-
-    plot1Cmd = plotProg + ' ' + Diff1 + " " + d1SVG
-    plot2Cmd = plotProg + ' ' + Diff2 + " " + d2SVG
-
-    print(plot1Cmd,plot2Cmd)
+    plot1Cmd = plotProg + ' ' + _escape_string(Diff1) + ' ' + _escape_string(d1SVG)
+    plot2Cmd = plotProg + ' ' + _escape_string(Diff2) + ' ' + _escape_string(d2SVG)
 
     plot1=Popen(
         plot1Cmd,
@@ -1161,7 +1168,9 @@ def makeSVG(d1, d2, prjctName, prjctPath):
         close_fds=True)
     stdout, stderr = plot1.communicate()
     plotDims1 = (stdout.decode('utf-8').splitlines())
-
+    errors = stderr.decode('utf-8')
+    if errors != "":
+        print("Plot1 error: " + errors)
 
     plot2=Popen(
         plot2Cmd,
@@ -1172,6 +1181,9 @@ def makeSVG(d1, d2, prjctName, prjctPath):
         close_fds=True)
     stdout, stderr = plot2.communicate()
     plotDims2 = (stdout.decode('utf-8').splitlines())
+    errors = stderr.decode('utf-8')
+    if errors != "":
+        print("Plot2 error: " + errors)
 
     plot1.wait(); plot2.wait()
 
@@ -1245,8 +1257,8 @@ def makeOutput(diffDir1, diffDir2, prjctName, prjctPath, times, dim1, dim2):
     '''
     webd = prjctPath + plotDir + webDir
 
-    board1 = prjctPath + "/" + plotDir + "/" + diffDir1 + "/" + prjctName
-    board2 = prjctPath + "/" + plotDir + "/" + diffDir2 + "/" + prjctName
+    board1 = prjctPath + plotDir + "/" + diffDir1 + "/" + prjctName
+    board2 = prjctPath + plotDir + "/" + diffDir2 + "/" + prjctName
 
     webIndex = webd + '/index.html'
 
@@ -1304,7 +1316,7 @@ def makeOutput(diffDir1, diffDir2, prjctName, prjctPath, times, dim1, dim2):
 
     diffCmnd1 = ()
 
-    source = prjctPath + "/" + plotDir + "/" + diffDir1 + "/"
+    source = prjctPath + plotDir + "/" + diffDir1 + "/"
 
     tryptychDir = prjctPath + plotDir + webDir + '/tryptych'
 
@@ -1324,7 +1336,7 @@ def makeOutput(diffDir1, diffDir2, prjctName, prjctPath, times, dim1, dim2):
             prjct, ext = filename.split('.')
             # Accounts for project names containing hyphens
             splitted = prjct.split('-')
-            prj = splitted[-2]
+            prj = "-".join(splitted[0:-1])
             layer = splitted[-1]
             out=outfile.format(
                 diff1=diffDir1,
@@ -1358,7 +1370,7 @@ def makeOutput(diffDir1, diffDir2, prjctName, prjctPath, times, dim1, dim2):
                     plotDir=plotDir,
                     diff1=diffDir1,
                     diff2=diffDir2,
-                    prjctPath=prjctPath)
+                    prjctPath=_escape_string(prjctPath))
                 # print(diffCmnd1)
 
                 diff1Txt = Popen(
@@ -1373,13 +1385,14 @@ def makeOutput(diffDir1, diffDir2, prjctName, prjctPath, times, dim1, dim2):
             #sed -e 's/(layer {mod}*)//g' |
             mod = layer.replace("_",".")
             #            diffCmnd2 = diffProg + ''' --suppress-common-lines {prjctPath}{plotDir}/{diff2}/*.kicad_pcb {prjctPath}{plotDir}/{diff1}/*.kicad_pcb | grep {mod} | sed 's/>  /<\/div><div class="differences added">/g' | sed 's/<   /<\/div><div class="differences removed">/g' | sed 's/\/n/<\/div>/g' | sed 's/(status [1-9][0-9])//g' '''.format(
-            diffCmnd2 = diffProg + ''' --suppress-common-lines {prjctPath}{plotDir}/{diff2}/*.kicad_pcb {prjctPath}{plotDir}/{diff1}/*.kicad_pcb | grep {mod} | sed 's/(status [1-9][0-9])//g' '''.format(
+            diffCmnd2 = diffProg + ''' --suppress-common-lines {prjctPath}{plotDir}/{diff2}/*.kicad_pcb {prjctPath}{plotDir}/{diff1}/*.kicad_pcb | {grepProg} {mod} | sed 's/(status [1-9][0-9])//g' '''.format(
                 layername=filename,
                 plotDir=plotDir,
                 diff1=diffDir1,
                 diff2=diffDir2,
-                prjctPath=prjctPath,
+                prjctPath=_escape_string(prjctPath),
                 mod=mod,
+                grepProg=grepProg,
                 webDir=webDir)
 
 
@@ -1526,52 +1539,79 @@ class Select(tk.Toplevel):
         tk.Toplevel.update(self)
         action = messagebox.askokcancel(
             self,
-            message="Select a *.kicad_pcb file under version control",
+            message="Select the board file (*.kicad_pcb) file under version control",
             detail="Available: \n\n" + SCMS)
         self.update()
         if action == "cancel":
             self.quit()
 
 
-def startWebServer():
-    with socketserver.TCPServer(("", PORT), Handler) as httpd:
-        print("serving at port", PORT)
-        webbrowser.open('http://127.0.0.1:' + str(PORT) + '/web/index.html')
+def startWebServer(port):
+    with socketserver.TCPServer(("", port), Handler) as httpd:
+        print("serving at port", port)
+        webbrowser.open('http://127.0.0.1:' + str(port) + '/web/index.html')
         httpd.serve_forever()
+
+
+def parse_cli_args():
+    parser = argparse.ArgumentParser(description='Kicad PCB visual diffs.')
+    parser.add_argument('-a', "--commit1", type=str, help="Commit1")
+    parser.add_argument('-b', "--commit2", type=str, help="Commit2")
+    parser.add_argument('-d', "--display", type=str, help="Set DISPLAY value, default :1.0", default=':1.0')
+    parser.add_argument('-p', "--port", type=int, help="Set webserver port", default=9092)
+    parser.add_argument('-s', "--scm", type=str,  help="Select SCM (Git, SVN, Fossil)")
+    parser.add_argument('-w', "--webserver-disable", action='store_true', help="Does not execute webserver (just generate images)")
+    parser.add_argument("kicad_pcb", nargs='?', help="Kicad PCB")
+    args = parser.parse_args()
+    print(args)
+    return args
 
 
 if __name__ == "__main__":
 
+    args = parse_cli_args()
+
     SCMS = scmAvailable()
-    print(SCMS)
+
     if (SCMS == ""):
         print("You need to have at least one SCM program path identified in lines 32 - 40")
         exit()
-    gui = tk.Tk(':0.0', SCMS)
-    gui.withdraw()
-    gui.update()
-    Select = Select(gui)
-    Select.destroy()
-    prjctPath, prjctName = getProject()
-    gui.update()
-    gui.deiconify()
 
-    scm = getSCM(prjctPath)
-    gui.destroy()
+    if args.kicad_pcb is None:
+        prjctPath, prjctName = getProject(args.display, SCMS)
+    else:
+        prjctPath = os.path.dirname(os.path.realpath(args.kicad_pcb))
+        prjctName = os.path.basename(os.path.realpath(args.kicad_pcb))
+
+    print("prjctPath", prjctPath)
+    print("prjctName", prjctName)
+
+    if args.scm:
+        scm = args.scm
+    else:
+        scm = getSCM(_escape_string(prjctPath))
 
 
     if scm == 'Git':
-        artifacts = gitDiff(prjctPath, prjctName)
+        artifacts = gitDiff(_escape_string(prjctPath), prjctName)
     if scm == 'Fossil':
-        artifacts = fossilDiff(prjctPath, prjctName)
+        artifacts = fossilDiff(_escape_string(prjctPath), prjctName)
     if scm == 'SVN':
-        artifacts = svnDiff(prjctPath, prjctName)
+        artifacts = svnDiff(_escape_string(prjctPath), prjctName)
     if scm == '':
         print("This project is either not under version control or you have not set the path to the approriate SCM program in lines 32-40")
         sys.exit(0)
 
+    if args.commit1 is None and args.commit2 is None:
+        d1, d2 = tkUI.runGUI(artifacts, prjctName, prjctPath, scm)
 
-    d1, d2 = tkUI.runGUI(artifacts, prjctName, prjctPath, scm)
+    else:
+        d1 = args.commit1
+        d2 = args.commit2
+        if args.commit1 is None:
+            d1 = artifacts[0]
+        if args.commit2 is None:
+            d2 = artifacts[0]
 
     print("Commit1", d1)
     print("Commit2", d2)
@@ -1587,14 +1627,12 @@ if __name__ == "__main__":
         d2 = a2[1:]
         times = getSVNDiff(d1, d2, prjctName, prjctPath)
 
-
     svgDir1, svgDir2, boardDims1, boardDims2 = makeSVG(d1, d2, prjctName, prjctPath)
 
     makeSupportFiles(prjctName, prjctPath)
 
     makeOutput(svgDir1, svgDir2, prjctName, prjctPath, times, boardDims1, boardDims2)
 
-    startWebServer()
-
-    webbrowser.open(
-        'http://127.0.0.1:' + str(PORT) + '/web/index.html')
+    if not args.webserver_disable:
+        startWebServer(args.port)
+        webbrowser.open('http://127.0.0.1:' + str(args.port) + '/web/index.html')
