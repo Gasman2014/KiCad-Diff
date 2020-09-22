@@ -1,10 +1,14 @@
 #!/usr/bin/env python3
 
+# Interpreter to use on first line when using MacOs
+#!/Applications/Kicad/kicad.app/Contents/Frameworks/Python.framework/Versions/Current/bin/python
+
 '''
 Plot layers of Kicad PCB board into .svg files
 '''
 
 import argparse
+
 import sys
 
 import platform
@@ -14,9 +18,7 @@ if platform.system() == 'Darwin':
 import pcbnew
 from pcbnew import *
 
-
-def processBoard(boardName, plotDir, quiet):
-    '''Load board and initialize plot controller'''
+def processBoard(boardName, plotDir):  # Load board and initialize plot controller
 
     board = pcbnew.LoadBoard(boardName)
     boardbox = board.ComputeBoundingBox()
@@ -71,8 +73,8 @@ def processBoard(boardName, plotDir, quiet):
         ("F_Cu",      pcbnew.F_Cu,      "Top copper"),
         ("In1_Cu",    pcbnew.In1_Cu,    "Inner1 copper"),
         ("In2_Cu",    pcbnew.In2_Cu,    "Inner2 copper"),
-        ("In3_Cu",    pcbnew.In3_Cu,    "Inner3 copper"),
-        ("In4_Cu",    pcbnew.In4_Cu,    "Inner4 copper"),
+        ("In3_Cu",    pcbnew.In2_Cu,    "Inner3 copper"),
+        ("In4_Cu",    pcbnew.In2_Cu,    "Inner4 copper"),
         ("B_Cu",      pcbnew.B_Cu,      "Bottom copper"),
         ("F_Adhes",   pcbnew.F_Adhes,   "Adhesive top"),
         ("B_Adhes",   pcbnew.B_Adhes,   "Adhesive bottom"),
@@ -91,7 +93,7 @@ def processBoard(boardName, plotDir, quiet):
         ("F_CrtYd",   pcbnew.F_CrtYd,   "Courtyard top"),
         ("B_CrtYd",   pcbnew.B_CrtYd,   "Courtyard bottom"),
         ("F_Fab",     pcbnew.F_Fab,     "Fab top"),
-        ("B_Fab",     pcbnew.B_Fab,     "Fab bottom")
+        ("B_Fab",     pcbnew.B_Fab,     "Fab bottom"),
     ]
 
     for layer_info in layers:
@@ -105,19 +107,20 @@ def processBoard(boardName, plotDir, quiet):
 def parse_cli_args():
     parser = argparse.ArgumentParser(description='Plot PCB Layers')
     parser.add_argument('-o', "--output_folder", type=str, help="Output folder")
-    parser.add_argument('-q', "--quiet", action='store_true', help="Disable output")
-    parser.add_argument("kicad_pcb", nargs=1, help="Kicad PCB")
+    parser.add_argument("kicad_pcb", nargs='?', help="Kicad PCB")
     args = parser.parse_args()
+    print(args)
     return args
-
 
 if __name__ == "__main__":
 
     args = parse_cli_args()
 
-    boardName = args.kicad_pcb[0]
+    boardName = args.kicad_pcb
 
     if args.output_folder:
         plotDir = args.output_folder
+    else:
+        plotDir = "./"
 
-    processBoard(boardName, plotDir, args.quiet)
+    processBoard(boardName, plotDir)
