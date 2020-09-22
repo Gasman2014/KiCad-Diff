@@ -1156,8 +1156,8 @@ def makeSVG(d1, d2, prjctName, prjctPath):
     if not os.path.exists(d2SVG):
         os.makedirs(d2SVG)
 
-    plot1Cmd = plotProg + ' ' + _escape_string(Diff1) + ' ' + _escape_string(d1SVG)
-    plot2Cmd = plotProg + ' ' + _escape_string(Diff2) + ' ' + _escape_string(d2SVG)
+    plot1Cmd = plotProg + ' ' + _escape_string(Diff1) + ' -o ' + _escape_string(d1SVG)
+    plot2Cmd = plotProg + ' ' + _escape_string(Diff2) + ' -o ' + _escape_string(d2SVG)
 
     plot1=Popen(
         plot1Cmd,
@@ -1187,6 +1187,7 @@ def makeSVG(d1, d2, prjctName, prjctPath):
 
     plot1.wait(); plot2.wait()
 
+    print(plotDims1, plotDims2)
 
     return (d1, d2, plotDims1[0], plotDims2[0])
 
