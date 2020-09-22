@@ -1000,8 +1000,8 @@ def getProject(display, SCMS):
 
     selected = tk.filedialog.askopenfile(
         initialdir="~/",
-        title="Select kicad_pcb file in a VC directory",
-        filetypes=(("KiCad pcb files", "*.kicad_pcb"), ("all files", "*.*")))
+        title="Select a board file (*.kicad_pcb) file under version control",
+        filetypes=(("KiCad PCB files", "*.kicad_pcb"), ("all files", "*.*")))
     if selected:
         path, prjct = os.path.split(selected.name)
 
@@ -1536,11 +1536,12 @@ class Select(tk.Toplevel):
         tk.Toplevel.update(self)
         action = messagebox.askokcancel(
             self,
-            message="Select a *.kicad_pcb file under version control",
+            message="Select the board file (*.kicad_pcb) file under version control",
             detail="Available: \n\n" + SCMS)
         self.update()
         if action == "cancel":
             self.quit()
+
 
 def startWebServer(port):
     with socketserver.TCPServer(("", port), Handler) as httpd:
