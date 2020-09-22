@@ -10,8 +10,8 @@ global root, commitTop, commitBottom
 
 def runProgram():
     # Just break out of mainloop to return current variables
-
     root.destroy()
+
 
 def quit():
     root.destroy()
@@ -33,7 +33,9 @@ def CurSelect(event):
 
 def runGUI(checkouts_top, prjctName, prjctPath, scm):
 
-    global  root, commitTop, commitBottom
+    global root
+    global commitTop
+    global commitBottom
 
     checkouts_bottom = checkouts_top[:]
 
@@ -41,35 +43,28 @@ def runGUI(checkouts_top, prjctName, prjctPath, scm):
 
     root.configure(background='#ececec')
 
-    root.title("Kicad Visual Diff")
-    # root.geometry('1200x700')
+    root.title("Kicad Visual Layout Diff")
+    root.geometry('800x700')
 
-    frame1 = tk.LabelFrame(root, text=scm, width=1000,
-                           height=50, bd=1, background='#ececec')
-    frame2 = tk.LabelFrame(root, text="Commit 1", width=1000,
-                           height=200, bd=1, background='#ececec')
-    frame3 = tk.LabelFrame(root, text="Commit 2", width=1000,
-                           height=200, bd=1, background='#ececec')
-    frame4 = tk.LabelFrame(root, width=1000,
-                           height=50, bd=0, background='#ececec')
+    frame1 = tk.LabelFrame(root, text=scm, width=1000, height=50, bd=1, background='#ececec')
+    frame2 = tk.LabelFrame(root, text="Commit 1", width=1000, height=200, bd=1, background='#ececec')
+    frame3 = tk.LabelFrame(root, text="Commit 2", width=1000, height=200, bd=1, background='#ececec')
+    frame4 = tk.LabelFrame(root, width=1000, height=50, bd=0, background='#ececec')
 
     frame1.grid(row=0, column=0, padx=25, sticky='N E W S')
     frame2.grid(row=1, column=0, padx=25, sticky='N E W')
     frame3.grid(row=2, column=0, padx=25, sticky='N EW')
     frame4.grid(row=3, column=0, padx=25, sticky='N E W S')
 
-    # root.grid_columnconfigure(0, weight=1)
-    # root.grid_columnconfigure(1, weight=10)
+    root.grid_columnconfigure(0, weight=1)
 
-    root.grid_rowconfigure(0, minsize=50, weight=1)
+    root.grid_rowconfigure(0, minsize=50,  weight=1)
     root.grid_rowconfigure(1, minsize=200, weight=2)
     root.grid_rowconfigure(2, minsize=200, weight=2)
-    root.grid_rowconfigure(3, minsize=50, weight=1)
+    root.grid_rowconfigure(3, minsize=50,  weight=1)
 
     tk.Label(frame1, text=prjctPath, bg='#ececec').pack(side=LEFT, padx=10)
     tk.Label(frame1, text=prjctName, bg='#ececec').pack(side=LEFT, padx=10)
-
-
 
     commitTop = Variable()
     listTop = Listbox(
@@ -107,18 +102,15 @@ def runGUI(checkouts_top, prjctName, prjctPath, scm):
     frame3.grid_columnconfigure(1, weight=0)
     frame3.grid_rowconfigure(0, weight=1)
 
-    buttonOK = ttk.Button(
-        frame4, text="OK", command=runProgram, default='active')
+    buttonOK = ttk.Button(frame4, text="OK", command=runProgram, default='active')
     buttonOK.grid(column=2, row=0, sticky='w', pady=10)
 
     buttonCancel = ttk.Button(frame4, text="Cancel", command=quit)
     buttonCancel.grid(column=1, row=0, sticky='e', pady=10)
 
-
     frame4.grid_columnconfigure(0, weight=0)
     frame4.grid_columnconfigure(1, weight=0)
     frame4.grid_columnconfigure(2, weight=10)
-
 
     for line in checkouts_top:
         listTop.insert(END, line)
@@ -127,7 +119,7 @@ def runGUI(checkouts_top, prjctName, prjctPath, scm):
         listTop.itemconfigure(i, background='#ececec')
 
     for line in checkouts_bottom:
-        #        listBottom.insert(END, line[0:-1])
+        # listBottom.insert(END, line[0:-1])
         listBottom.insert(END, line)
 
     for i in range(1, len(checkouts_bottom), 2):
@@ -140,5 +132,6 @@ def runGUI(checkouts_top, prjctName, prjctPath, scm):
 
     root.update()
     root.mainloop()
-    return (commitTop, commitBottom)
+
+    return(commitTop, commitBottom)
     root.destroy()
