@@ -1,18 +1,18 @@
 #!/Applications/Kicad/kicad.app/Contents/Frameworks/Python.framework/Versions/Current/bin/python
+
 '''
 Kicad plot pcb file.
 Plot variety of svg files in plot directory
 '''
 
 import sys
-sys.path.insert(
-    0,
-    "/Applications/Kicad/kicad.app/Contents/Frameworks/python/site-packages/")
+sys.path.insert(0,"/Applications/Kicad/kicad.app/Contents/Frameworks/python/site-packages/")
 import pcbnew
 from pcbnew import *
 
 
 def processBoard(boardName, plotDir):  # Load board and initialize plot controller
+
     board = pcbnew.LoadBoard(boardName)
     boardbox = board.ComputeBoundingBox()
     boardxl = boardbox.GetX()

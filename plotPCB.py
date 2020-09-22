@@ -10,7 +10,6 @@ import pcbnew
 from pcbnew import *
 
 
-
 def processBoard(boardName, plotDir):  # Load board and initialize plot controller
 
     board = pcbnew.LoadBoard(boardName)
