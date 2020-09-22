@@ -11,15 +11,12 @@ import sys
 
 
 def runProgram():
-    root.destroy()
-
-
-def quit(self):
+    # Just break out of mainloop to return current variables
     root.destroy()
     exit(0)
 
 
-def cancel():
+def quit():
     root.destroy()
     exit(0)
 
@@ -62,28 +59,6 @@ def select_scm_gui():
 
     tk.Label(root, text="""Select the project's SCM""", justify=tk.CENTER, padx=20).pack()
 
-    for val, language in enumerate(scms):
-         tk.Radiobutton(
-            root,
-            text=language,
-            indicatoron=0,
-            width=20,
-            padx=20,
-            variable=v,
-            command=ShowChoice,
-            value=val).pack(anchor=tk.W)
-
-    root.mainloop()
-
-    try:
-        scm = v.get()
-    except:
-        scm = v
-    return scms[scm]
-
-
-def runGUI(checkouts_top, prjctName, kicad_project_path, prjctPath, scm):
-
     global root
     global commitTop
     global commitBottom
@@ -98,10 +73,10 @@ def runGUI(checkouts_top, prjctName, kicad_project_path, prjctPath, scm):
     root.title("Kicad Visual Layout Diff")
     root.geometry('800x700')
 
-    frame1 = tk.LabelFrame(root, text=scm.upper(), width=1000, height=25, bd=1, background='#ececec')
-    frame2 = tk.LabelFrame(root, text="Commit 1 (a)", width=1000, height=200, bd=1, background='#ececec')
-    frame3 = tk.LabelFrame(root, text="Commit 2 (b)", width=1000, height=200, bd=1, background='#ececec')
-    frame4 = tk.LabelFrame(root, width=1000, height=10, bd=0, background='#ececec')
+    frame1 = tk.LabelFrame(root, text=scm, width=1000, height=50, bd=1, background='#ececec')
+    frame2 = tk.LabelFrame(root, text="Commit 1", width=1000, height=200, bd=1, background='#ececec')
+    frame3 = tk.LabelFrame(root, text="Commit 2", width=1000, height=200, bd=1, background='#ececec')
+    frame4 = tk.LabelFrame(root, width=1000, height=50, bd=0, background='#ececec')
 
     frame1.grid(row=0, column=0, padx=25, sticky='N E W S')
     frame2.grid(row=1, column=0, padx=25, sticky='N E W')
@@ -110,19 +85,15 @@ def runGUI(checkouts_top, prjctName, kicad_project_path, prjctPath, scm):
 
     root.grid_columnconfigure(0, weight=1)
 
-    root.grid_rowconfigure(0, minsize=25,  weight=2)
-    root.grid_rowconfigure(1, minsize=200, weight=4)
-    root.grid_rowconfigure(2, minsize=200, weight=4)
-    root.grid_rowconfigure(3, minsize=10,  weight=1)
+    root.grid_rowconfigure(0, minsize=50,  weight=1)
+    root.grid_rowconfigure(1, minsize=200, weight=2)
+    root.grid_rowconfigure(2, minsize=200, weight=2)
+    root.grid_rowconfigure(3, minsize=50,  weight=1)
 
     if kicad_project_path == '.':
         pcb_path = prjctPath + "/" + prjctName
     else:
         pcb_path = prjctPath + "/" + kicad_project_path + "/" + prjctName
-
-    pcb_path = pcb_path.replace("//", "/")
-
-    tk.Label(frame1, text=pcb_path, bg='#ececec').pack(side=LEFT, padx=10)
 
     commitTop = Variable()
     listTop = Listbox(
@@ -191,15 +162,5 @@ def runGUI(checkouts_top, prjctName, kicad_project_path, prjctPath, scm):
     root.update()
     root.mainloop()
 
-    try:
-        commitTop_str = commitTop.get()
-    except:
-        commitTop_str = commitTop
-
-    try:
-        commitBottom_str = commitBottom.get()
-    except:
-        commitBottom_str = commitBottom
-
-    return(commitTop_str, commitBottom_str)
+    return(commitTop, commitBottom)
     root.destroy()
