@@ -1,0 +1,14 @@
+#!/bin/bash
+
+# Wrapper for the plotPCB.py script
+# It should work on Linux, Mac and possibly on Windows
+
+SCRIPT=$(readlink -f $0)
+SCRIPTPATH=$(dirname $SCRIPT)
+
+if [[ "$OSTYPE" == "darwing" ]]
+then
+	/Applications/Kicad/kicad.app/Contents/Frameworks/Python.framework/Versions/Current/bin/python ${SCRIPTPATH}/plotPCB.py $*
+else
+	/usr/bin/env python3 ${SCRIPTPATH}/plotPCB.py $*
+fi
