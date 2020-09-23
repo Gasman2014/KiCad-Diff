@@ -10,13 +10,14 @@ global root, commitTop, commitBottom
 import sys
 
 
+import sys
+
 def runProgram():
     # Just break out of mainloop to return current variables
     root.destroy()
     exit(0)
 
-
-def quit():
+def quit(self):
     root.destroy()
     exit(0)
 
@@ -67,7 +68,7 @@ def select_scm_gui():
 
     root = Tk()
     root.bind("<Escape>", quit)
-
+    
     root.configure(background='#ececec')
 
     root.title("Kicad Visual Layout Diff")
