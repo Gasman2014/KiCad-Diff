@@ -1,8 +1,5 @@
 #!/usr/bin/env python3
 
-# Interpreter to use on first line when using MacOs
-#!/Applications/Kicad/kicad.app/Contents/Frameworks/Python.framework/Versions/Current/bin/python
-
 '''
 Plot layers of Kicad PCB board into .svg files
 '''
@@ -80,9 +77,8 @@ def processBoard(boardName, plotDir):  # Load board and initialize plot controll
 def parse_cli_args():
     parser = argparse.ArgumentParser(description='Plot PCB Layers')
     parser.add_argument('-o', "--output_folder", type=str, help="Output folder")
-    parser.add_argument("kicad_pcb", nargs='?', help="Kicad PCB")
+    parser.add_argument("kicad_pcb", nargs=1, help="Kicad PCB")
     args = parser.parse_args()
-    print(args)
     return args
 
 if __name__ == "__main__":
