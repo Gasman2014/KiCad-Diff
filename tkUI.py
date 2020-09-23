@@ -8,12 +8,13 @@ from tkinter import filedialog, ttk, messagebox
 global root, commitTop, commitBottom
 
 
+import sys
+
 def runProgram():
     # Just break out of mainloop to return current variables
     root.destroy()
 
-
-def quit():
+def quit(self):
     root.destroy()
 
 
@@ -40,7 +41,8 @@ def runGUI(checkouts_top, prjctName, prjctPath, scm):
     checkouts_bottom = checkouts_top[:]
 
     root = Tk()
-
+    root.bind("<Escape>", quit)
+    
     root.configure(background='#ececec')
 
     root.title("Kicad Visual Layout Diff")
