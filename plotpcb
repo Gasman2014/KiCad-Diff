@@ -6,7 +6,7 @@
 SCRIPT=$(readlink -f $0)
 SCRIPTPATH=$(dirname $SCRIPT)
 
-if [[ "$OSTYPE" == "darwing" ]]
+if [[ "$OSTYPE" == "darwin" ]]
 then
 	/Applications/Kicad/kicad.app/Contents/Frameworks/Python.framework/Versions/Current/bin/python ${SCRIPTPATH}/plotPCB.py $*
 else
