@@ -55,10 +55,10 @@ def runGUI(checkouts_top, prjctName, kicad_project_path, prjctPath, scm):
     root.title("Kicad Visual Layout Diff")
     root.geometry('800x700')
 
-    frame1 = tk.LabelFrame(root, text=scm, width=1000, height=50, bd=1, background='#ececec')
+    frame1 = tk.LabelFrame(root, text=scm.upper(), width=1000, height=25, bd=1, background='#ececec')
     frame2 = tk.LabelFrame(root, text="Commit 1", width=1000, height=200, bd=1, background='#ececec')
     frame3 = tk.LabelFrame(root, text="Commit 2", width=1000, height=200, bd=1, background='#ececec')
-    frame4 = tk.LabelFrame(root, width=1000, height=50, bd=0, background='#ececec')
+    frame4 = tk.LabelFrame(root, width=1000, height=10, bd=0, background='#ececec')
 
     frame1.grid(row=0, column=0, padx=25, sticky='N E W S')
     frame2.grid(row=1, column=0, padx=25, sticky='N E W')
@@ -67,10 +67,10 @@ def runGUI(checkouts_top, prjctName, kicad_project_path, prjctPath, scm):
 
     root.grid_columnconfigure(0, weight=1)
 
-    root.grid_rowconfigure(0, minsize=50,  weight=1)
-    root.grid_rowconfigure(1, minsize=200, weight=2)
-    root.grid_rowconfigure(2, minsize=200, weight=2)
-    root.grid_rowconfigure(3, minsize=50,  weight=1)
+    root.grid_rowconfigure(0, minsize=25,  weight=2)
+    root.grid_rowconfigure(1, minsize=200, weight=4)
+    root.grid_rowconfigure(2, minsize=200, weight=4)
+    root.grid_rowconfigure(3, minsize=10,  weight=1)
 
     tk.Label(frame1, text=prjctPath, bg='#ececec').pack(side=LEFT, padx=10)
     tk.Label(frame1, text=kicad_project_path + "/" + prjctName, bg='#ececec').pack(side=LEFT, padx=10)
