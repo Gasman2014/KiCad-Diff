@@ -83,7 +83,7 @@ def getProject(display, scm):
     # select.destroy()
 
     selected = tk.filedialog.askopenfile(
-        initialdir="~/",
+        initialdir=os.getcwd(),
         title="Select the .kicad_pcb file in your " + scm.upper() + " repository",
         filetypes=(("KiCad PCB files", "*.kicad_pcb"), ("all files", "*.*")))
 
