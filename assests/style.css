@@ -237,6 +237,8 @@ a:hover {
 .F_Cu      { filter: invert(28%) sepia(50%) saturate(2065%) hue-rotate(334deg) brightness(73%)  contrast(97%);  }
 .In1_Cu    { filter: invert(69%) sepia(39%) saturate(1246%) hue-rotate(17deg)  brightness(97%)  contrast(104%); }
 .In2_Cu    { filter: invert(14%) sepia(79%) saturate(5231%) hue-rotate(293deg) brightness(91%)  contrast(119%); }
+.In3_Cu    { filter: invert(14%) sepia(79%) saturate(5231%) hue-rotate(293deg) brightness(91%)  contrast(119%); }
+.In4_Cu    { filter: invert(14%) sepia(79%) saturate(5231%) hue-rotate(293deg) brightness(91%)  contrast(119%); }
 .B_Cu      { filter: invert(44%) sepia(14%) saturate(2359%) hue-rotate(70deg)  brightness(103%) contrast(82%);  }
 .F_Mask    { filter: invert(27%) sepia(51%) saturate(1920%) hue-rotate(269deg) brightness(89%)  contrast(96%);  }
 .B_Mask    { filter: invert(22%) sepia(56%) saturate(2652%) hue-rotate(277deg) brightness(94%)  contrast(87%);  }
@@ -256,3 +258,4 @@ a:hover {
 .B_Adhes   { filter: invert(24%) sepia(48%) saturate(2586%) hue-rotate(218deg) brightness(88%)  contrast(92%);  }
 .F_CrtYd   { filter: invert(73%) sepia(1%)  saturate(0%)    hue-rotate(116deg) brightness(92%)  contrast(91%);  }
 .B_CrtYd   { filter: invert(79%) sepia(92%) saturate(322%)  hue-rotate(3deg)   brightness(89%)  contrast(92%);  }
+
