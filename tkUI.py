@@ -10,14 +10,17 @@ global root, commitTop, commitBottom
 import sys
 
 
-import sys
-
 def runProgram():
-    # Just break out of mainloop to return current variables
     root.destroy()
     exit(0)
 
+
 def quit(self):
+    root.destroy()
+    exit(0)
+
+
+def cancel():
     root.destroy()
     exit(0)
 
@@ -36,29 +39,7 @@ def CurSelect(event):
         commitBottom = picked
 
 
-def select_scm_gui():
-
-    global root
-
-    root = tk.Tk()
-    root.title("SCM")
-
-    root.bind("<Escape>", quit)
-    root.protocol('WM_DELETE_WINDOW', cancel)
-
-    v = tk.IntVar()
-    v.set(-1)
-
-    scms = [
-        ("Fossil"),
-        ("Git"),
-        ("SVN"),
-    ]
-
-    def ShowChoice():
-        root.destroy()
-
-    tk.Label(root, text="""Select the project's SCM""", justify=tk.CENTER, padx=20).pack()
+def runGUI(checkouts_top, prjctName, kicad_project_path, prjctPath, scm):
 
     global root
     global commitTop
@@ -91,10 +72,8 @@ def select_scm_gui():
     root.grid_rowconfigure(2, minsize=200, weight=2)
     root.grid_rowconfigure(3, minsize=50,  weight=1)
 
-    if kicad_project_path == '.':
-        pcb_path = prjctPath + "/" + prjctName
-    else:
-        pcb_path = prjctPath + "/" + kicad_project_path + "/" + prjctName
+    tk.Label(frame1, text=prjctPath, bg='#ececec').pack(side=LEFT, padx=10)
+    tk.Label(frame1, text=kicad_project_path + "/" + prjctName, bg='#ececec').pack(side=LEFT, padx=10)
 
     commitTop = Variable()
     listTop = Listbox(
@@ -163,5 +142,15 @@ def select_scm_gui():
     root.update()
     root.mainloop()
 
-    return(commitTop, commitBottom)
+    try: 
+        commitTop_str = commitTop.get()
+    except:
+        commitTop_str = commitTop
+
+    try:
+        commitBottom_str = commitBottom.get()
+    except:
+        commitBottom_str = commitBottom
+
+    return(commitTop_str, commitBottom_str)
     root.destroy()
