@@ -303,7 +303,6 @@ def getSVNDiff(diff1, diff2, prjctName, prjctPath):
     _, SVNdate2, SVNtime2, SVNutc, *_ = cmt[2].split(' ')
 
     times = SVNdate1 + " " + SVNtime1 + " " + SVNdate2 + " " + SVNtime2
-
     # print(times)
 
     return (times)
