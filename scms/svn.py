@@ -8,7 +8,7 @@ from subprocess import PIPE, STDOUT, Popen
 import settings
 
 
-def getSVNDiff(diff1, diff2, prjctName, prjctPath):
+def get_boards(diff1, diff2, prjctName, prjctPath):
     '''Given two SVN revisions, write out two kicad_pcb files to their respective
     directories (named after the revision number). Returns the date and time of both commits'''
 
@@ -101,7 +101,7 @@ def getSVNDiff(diff1, diff2, prjctName, prjctPath):
     return (times)
 
 
-def get_svn_artefacts(path, kicadPCB):
+def get_artefacts(path, kicadPCB):
     '''Returns list of SVN resvisions from a directory containing a
     *.kicad_pcb file.'''
 
@@ -120,3 +120,7 @@ def get_svn_artefacts(path, kicadPCB):
     sArtifacts = list(filter(None, sArtifacts))
 
     return sArtifacts
+
+
+def get_kicad_project_path(prjctPath):
+    return "./"

@@ -627,11 +627,11 @@ if __name__ == "__main__":
         prjctName = os.path.basename(os.path.realpath(args.kicad_pcb))
 
     if scm == 'fossil':
-        kicad_project_path = "./"
+        kicad_project_path = fossil.get_kicad_project_path(settings.escape_string(prjctPath))
     elif scm == 'git':
-        prjctPath, kicad_project_path = git.get_git_kicad_project_path(settings.escape_string(prjctPath))
+        prjctPath, kicad_project_path = git.get_kicad_project_path(settings.escape_string(prjctPath))
     elif scm == 'svn':
-        kicad_project_path = "./"
+        kicad_project_path = svn.get_kicad_project_path(settings.escape_string(prjctPath))
     elif scm == '':
         print(
             "This project is either not under version control"
@@ -645,12 +645,11 @@ if __name__ == "__main__":
         print("   Board Name:", prjctName)
 
     if scm == 'fossil':
-        artifacts = fossil.get_fossil_artefacts(settings.escape_string(prjctPath), prjctName)
+        artifacts = fossil.get_artefacts(settings.escape_string(prjctPath), prjctName)
     elif scm == 'git':
-        artifacts = git.get_git_artefacts(settings.escape_string(prjctPath), prjctName, kicad_project_path)
-        # artifacts = get_git_artefacts(settings.escape_string(prjctPath), prjctName)
+        artifacts = git.get_artefacts(settings.escape_string(prjctPath), prjctName, kicad_project_path)
     elif scm == 'svn':
-        artifacts = svn.get_svn_artefacts(settings.escape_string(prjctPath), prjctName)
+        artifacts = svn.get_artefacts(settings.escape_string(prjctPath), prjctName)
 
     if args.commit1 is None and args.commit2 is None:
         d1, d2 = tkUI.runGUI(artifacts, prjctName, kicad_project_path, prjctPath, scm)
@@ -674,11 +673,11 @@ if __name__ == "__main__":
         print(" Commit 2 (b):", d2.split(' ')[0])
 
     if scm == 'fossil':
-        times = fossil.getFossilDiff(d1, d2, prjctName, prjctPath)
+        times = fossil.get_boards(d1, d2, prjctName, prjctPath)
     elif scm == 'git':
-        times = git.get_git_files(d1, d2, prjctName, kicad_project_path, prjctPath)
+        times = git.get_boards(d1, d2, prjctName, kicad_project_path, prjctPath)
     elif scm == 'svn':
-        times = svn.getSVNDiff(d1, d2, prjctName, prjctPath)
+        times = svn.get_boards(d1, d2, prjctName, prjctPath)
 
     svgDir1, svgDir2, boardDims1, boardDims2 = makeSVG(d1, d2, prjctName, kicad_project_path, prjctPath)
 

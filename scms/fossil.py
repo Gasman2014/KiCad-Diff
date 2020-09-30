@@ -8,7 +8,7 @@ from subprocess import PIPE, STDOUT, Popen
 import settings
 
 
-def getFossilDiff(diff1, diff2, prjctName, prjctPath):
+def get_boards(diff1, diff2, prjctName, prjctPath):
     '''Given two Fossil artifacts, write out two kicad_pcb files to their respective
     directories (named after the artifacts). Returns the date and time of both commits'''
 
@@ -107,7 +107,7 @@ def getFossilDiff(diff1, diff2, prjctName, prjctPath):
     return dateTime
 
 
-def get_fossil_artefacts(path, kicadPCB):
+def get_artefacts(path, kicadPCB):
     '''Returns list of Fossil artifacts from a directory containing a
     *.kiartefacts file.'''
 
@@ -140,3 +140,7 @@ def get_fossil_artefacts(path, kicadPCB):
     d = a[1:]
 
     return d
+
+
+def get_kicad_project_path(prjctPath):
+    return "./"
