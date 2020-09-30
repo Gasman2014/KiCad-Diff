@@ -3,12 +3,36 @@
 # Wrapper for the plotPCB.py script
 # It should work on Linux, Mac and possibly on Windows
 
-SCRIPT=$(readlink -f $0)
-SCRIPTPATH=$(dirname $SCRIPT)
+readlink_osx()
+{
+	TARGET=$1
+
+	cd $(dirname "$TARGET")
+	TARGET=$(basename "$TARGET")
+
+	# Iterate down a (possible) chain of symlinks
+	while [ -L "$TARGET" ]
+	do
+	    TARGET=$(readlink "$TARGET")
+	    cd $(dirname "$TARGET")
+	    TARGET=$(basename "$TARGET")
+	done
+
+	# Compute the canonicalized name by finding the physical path 
+	# for the directory we're in and appending the target file.
+	DIR=$(pwd -P)
+	RESULT="$DIR/$TARGET"
+
+	echo $RESULT
+}
 
 if [[ "$OSTYPE" == "darwin" ]]
 then
+	SCRIPT=$(readlink_osx -f $0)
+	SCRIPTPATH=$(dirname $SCRIPT)
 	/Applications/Kicad/kicad.app/Contents/Frameworks/Python.framework/Versions/Current/bin/python ${SCRIPTPATH}/plotPCB.py $*
 else
+	SCRIPT=$(readlink -f $0)
+	SCRIPTPATH=$(dirname $SCRIPT)
 	/usr/bin/env python3 ${SCRIPTPATH}/plotPCB.py $*
 fi
