@@ -71,20 +71,22 @@ layerCols = {
 Handler = http.server.SimpleHTTPRequestHandler
 
 
-def getProject(display, SCMS):
+def getProject(display, scm):
     '''File select dialogue. Opens Tk File browser and
     selector set for .kicad_pcb files. Returns path and file name
     '''
-    gui = tk.Tk(display, SCMS)
+    gui = tk.Tk(display, scm)
     gui.withdraw()
     gui.update()
-    select = Select(gui)
-    select.destroy()
+
+    # select = Select(gui)
+    # select.destroy()
 
     selected = tk.filedialog.askopenfile(
         initialdir="~/",
-        title="Select the .kicad_pcb file under version control",
+        title="Select the .kicad_pcb file in your " + scm.upper() + " repository",
         filetypes=(("KiCad PCB files", "*.kicad_pcb"), ("all files", "*.*")))
+
     if selected:
         path, prjct = os.path.split(selected.name)
 
@@ -624,7 +626,8 @@ if __name__ == "__main__":
     if args.scm:
         scm = args.scm.lower()
     else:
-        scm = scmAvailable()
+        # scm = scmAvailable()
+        scm = select_scm_gui()
         if (scm == ""):
             print("At least one SCM (git, fossil, svn) needs to be on PATH")
             exit(1)
@@ -659,15 +662,12 @@ if __name__ == "__main__":
     elif scm == 'svn':
         artifacts = svn.get_artefacts(settings.escape_string(prjctPath), prjctName, kicad_project_path)
 
-    # TEST, FORCING GIT FOR NOW
-    # IT NEEDS A GUII WITH A DROPDOWN MENU SO USER CAN SELECT IT
-    else:
-        artifacts = git.get_artefacts(settings.escape_string(prjctPath), prjctName, kicad_project_path)
-
     if args.commit1 is None and args.commit2 is None:
+
         d1, d2 = tkUI.runGUI(artifacts, prjctName, kicad_project_path, prjctPath, scm)
+
         if not d1 or not d2:
-            print("\nERROR: You must select 2 commits!")
+            print("\nERROR: You must select both commits.")
             exit(1)
     else:
         if args.commit1 is None:

@@ -39,6 +39,49 @@ def CurSelect(event):
         commitBottom = picked
 
 
+def select_scm_gui():
+
+    global root
+
+    root = tk.Tk()
+
+    root.title("SCM")
+    # root.geometry('200x100')
+
+    v = tk.IntVar()
+    v.set(-1)
+
+    scms = [
+        ("Fossil"),
+        ("Git"),
+        ("SVN"),
+    ]
+
+    def ShowChoice():
+        root.destroy()
+
+    tk.Label(root, text="""Select the project's SCM""", justify=tk.CENTER, padx=20).pack()
+
+    for val, language in enumerate(scms):
+         tk.Radiobutton(
+            root, 
+            text=language,
+            indicatoron=0,
+            width=20,
+            padx=20, 
+            variable=v, 
+            command=ShowChoice,
+            value=val).pack(anchor=tk.W)
+
+    root.mainloop()
+
+    try:
+        scm = v.get()
+    except:
+        scm = v
+    return scms[scm].lower()
+
+
 def runGUI(checkouts_top, prjctName, kicad_project_path, prjctPath, scm):
 
     global root
