@@ -1,0 +1,100 @@
+EESchema Schematic File Version 4
+EELAYER 30 0
+EELAYER END
+$Descr A4 11693 8268
+encoding utf-8
+Sheet 1 1
+Title ""
+Date ""
+Rev ""
+Comp ""
+Comment1 ""
+Comment2 ""
+Comment3 ""
+Comment4 ""
+$EndDescr
+$Comp
+L Device:R R?
+U 1 1 5F74C8F4
+P 5200 3525
+F 0 "R?" H 5270 3571 50  0000 L CNN
+F 1 "10K" H 5270 3480 50  0000 L CNN
+F 2 "Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P5.08mm_Horizontal" V 5130 3525 50  0001 C CNN
+F 3 "~" H 5200 3525 50  0001 C CNN
+	1    5200 3525
+	1    0    0    -1  
+$EndComp
+$Comp
+L Device:C C?
+U 1 1 5F74CB2B
+P 5200 3975
+F 0 "C?" H 5315 4021 50  0000 L CNN
+F 1 "10u" H 5315 3930 50  0000 L CNN
+F 2 "Capacitor_THT:CP_Radial_D4.0mm_P1.50mm" H 5238 3825 50  0001 C CNN
+F 3 "~" H 5200 3975 50  0001 C CNN
+	1    5200 3975
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	5200 3675 5200 3750
+Wire Wire Line
+	5200 3375 5200 3325
+$Comp
+L power:VCC #PWR?
+U 1 1 5F74D15A
+P 5200 3300
+F 0 "#PWR?" H 5200 3150 50  0001 C CNN
+F 1 "VCC" H 5215 3473 50  0000 C CNN
+F 2 "" H 5200 3300 50  0001 C CNN
+F 3 "" H 5200 3300 50  0001 C CNN
+	1    5200 3300
+	1    0    0    -1  
+$EndComp
+$Comp
+L power:GND #PWR?
+U 1 1 5F74DA16
+P 5200 4300
+F 0 "#PWR?" H 5200 4050 50  0001 C CNN
+F 1 "GND" H 5205 4127 50  0000 C CNN
+F 2 "" H 5200 4300 50  0001 C CNN
+F 3 "" H 5200 4300 50  0001 C CNN
+	1    5200 4300
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	5200 4125 5200 4200
+$Comp
+L Connector:Conn_01x03_Female J?
+U 1 1 5F74EB49
+P 4325 3750
+F 0 "J?" H 4450 3700 50  0000 C CNN
+F 1 "Header" H 4525 3775 50  0000 C CNN
+F 2 "Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Vertical" H 4325 3750 50  0001 C CNN
+F 3 "~" H 4325 3750 50  0001 C CNN
+	1    4325 3750
+	-1   0    0    1   
+$EndComp
+Wire Wire Line
+	4525 3850 4775 3850
+Wire Wire Line
+	4775 3850 4775 4200
+Wire Wire Line
+	4775 4200 5200 4200
+Connection ~ 5200 4200
+Wire Wire Line
+	5200 4200 5200 4300
+Wire Wire Line
+	4525 3650 4775 3650
+Wire Wire Line
+	4775 3650 4775 3325
+Wire Wire Line
+	4775 3325 5200 3325
+Connection ~ 5200 3325
+Wire Wire Line
+	5200 3325 5200 3300
+Wire Wire Line
+	4525 3750 5200 3750
+Connection ~ 5200 3750
+Wire Wire Line
+	5200 3750 5200 3825
+$EndSCHEMATC

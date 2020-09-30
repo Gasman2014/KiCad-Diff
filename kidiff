@@ -71,16 +71,13 @@ layerCols = {
 Handler = http.server.SimpleHTTPRequestHandler
 
 
-def getProject(display, scm):
+def select_project_gui(display, scm_name):
     '''File select dialogue. Opens Tk File browser and
     selector set for .kicad_pcb files. Returns path and file name
     '''
-    gui = tk.Tk(display, scm)
+    gui = tk.Tk(display, scm_name)
     gui.withdraw()
     gui.update()
-
-    # select = Select(gui)
-    # select.destroy()
 
     try:
         # call a dummy dialog with an impossible option to initialize the file
@@ -94,18 +91,21 @@ def getProject(display, scm):
     except:
         pass
 
-
     selected = tk.filedialog.askopenfile(
         initialdir=os.getcwd(),
-        title="Select the .kicad_pcb file in your " + scm.upper() + " repository",
+        title="Select the .kicad_pcb file in your " + scm_name + " repository",
         filetypes=(("KiCad PCB files", "*.kicad_pcb"), ("all files", "*.*")))
 
     if selected:
         path, prjct = os.path.split(selected.name)
+    else:
+        gui.destroy()
+        exit()
 
     gui.destroy()
 
-    kicad_project_path = "./"
+    kicad_project_path = "./" # hardwcoded but needs to have the path to the kicad folder inside the repo
+
     return (path, kicad_project_path, prjct)
 
 
@@ -563,18 +563,6 @@ def popup_showinfo(progress):
     p.pack()
 
 
-def scmAvailable():
-    scms = ''
-    if (settings.fossilProg != ''):
-        scms = scms + "Fossil" + "\n"
-    if (settings.gitProg != ''):
-        scms = scms + "Git" + "\n"
-    if (settings.svnProg != ''):
-        scms = scms + "SVN"
-
-    return (scms)
-
-
 class Handler(http.server.SimpleHTTPRequestHandler):
 
     def __init__(self, *args, **kwargs):
@@ -639,14 +627,14 @@ if __name__ == "__main__":
     if args.scm:
         scm = args.scm.lower()
     else:
-        # scm = scmAvailable()
-        scm = select_scm_gui()
-        if (scm == ""):
+        scm_name = select_scm_gui()
+        if (scm_name == ""):
             print("At least one SCM (git, fossil, svn) needs to be on PATH")
             exit(1)
 
     if args.kicad_pcb is None:
-        prjctPath, kicad_project_path, prjctName = getProject(args.display, scm)
+        prjctPath, kicad_project_path, prjctName = select_project_gui(args.display, scm_name)
+        scm = scm_name.lower()
     else:
         prjctPath = os.path.dirname(os.path.realpath(args.kicad_pcb))
         prjctName = os.path.basename(os.path.realpath(args.kicad_pcb))
