@@ -43,9 +43,10 @@ def select_scm_gui():
     global root
 
     root = tk.Tk()
-
     root.title("SCM")
-    # root.geometry('200x100')
+
+    root.bind("<Escape>", quit)
+    root.protocol('WM_DELETE_WINDOW', cancel)
 
     v = tk.IntVar()
     v.set(-1)
@@ -78,7 +79,7 @@ def select_scm_gui():
         scm = v.get()
     except:
         scm = v
-    return scms[scm].lower()
+    return scms[scm]
 
 
 def runGUI(checkouts_top, prjctName, kicad_project_path, prjctPath, scm):
