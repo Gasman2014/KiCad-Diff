@@ -7,15 +7,21 @@ from tkinter import filedialog, ttk, messagebox
 
 global root, commitTop, commitBottom
 
-
 import sys
 
+
 def runProgram():
-    # Just break out of mainloop to return current variables
     root.destroy()
+
 
 def quit(self):
     root.destroy()
+    exit(0)
+
+
+def cancel():
+    root.destroy()
+    exit(0)
 
 
 def CurSelect(event):
@@ -32,7 +38,7 @@ def CurSelect(event):
         commitBottom = picked
 
 
-def runGUI(checkouts_top, prjctName, prjctPath, scm):
+def runGUI(checkouts_top, prjctName, kicad_project_path, prjctPath, scm):
 
     global root
     global commitTop
@@ -66,7 +72,7 @@ def runGUI(checkouts_top, prjctName, prjctPath, scm):
     root.grid_rowconfigure(3, minsize=50,  weight=1)
 
     tk.Label(frame1, text=prjctPath, bg='#ececec').pack(side=LEFT, padx=10)
-    tk.Label(frame1, text=prjctName, bg='#ececec').pack(side=LEFT, padx=10)
+    tk.Label(frame1, text=kicad_project_path + "/" + prjctName, bg='#ececec').pack(side=LEFT, padx=10)
 
     commitTop = Variable()
     listTop = Listbox(
@@ -107,7 +113,7 @@ def runGUI(checkouts_top, prjctName, prjctPath, scm):
     buttonOK = ttk.Button(frame4, text="OK", command=runProgram, default='active')
     buttonOK.grid(column=2, row=0, sticky='w', pady=10)
 
-    buttonCancel = ttk.Button(frame4, text="Cancel", command=quit)
+    buttonCancel = ttk.Button(frame4, text="Cancel", command=cancel)
     buttonCancel.grid(column=1, row=0, sticky='e', pady=10)
 
     frame4.grid_columnconfigure(0, weight=0)
@@ -135,5 +141,15 @@ def runGUI(checkouts_top, prjctName, prjctPath, scm):
     root.update()
     root.mainloop()
 
-    return(commitTop, commitBottom)
+    try: 
+        commitTop_str = commitTop.get()
+    except:
+        commitTop_str = commitTop
+
+    try:
+        commitBottom_str = commitBottom.get()
+    except:
+        commitBottom_str = commitBottom
+
+    return(commitTop_str, commitBottom_str)
     root.destroy()
