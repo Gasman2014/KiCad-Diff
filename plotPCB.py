@@ -5,7 +5,6 @@ Plot layers of Kicad PCB board into .svg files
 '''
 
 import argparse
-
 import sys
 
 import platform
@@ -15,7 +14,9 @@ if platform.system() == 'Darwin':
 import pcbnew
 from pcbnew import *
 
-def processBoard(boardName, plotDir):  # Load board and initialize plot controller
+
+def processBoard(boardName, plotDir, quiet):
+    '''Load board and initialize plot controller'''
 
     board = pcbnew.LoadBoard(boardName)
     boardbox = board.ComputeBoundingBox()
@@ -23,7 +24,9 @@ def processBoard(boardName, plotDir):  # Load board and initialize plot controll
     boardyl = boardbox.GetY()
     boardwidth = boardbox.GetWidth()
     boardheight = boardbox.GetHeight()
-    print(boardxl, boardyl, boardwidth, boardheight)
+
+    if not quiet:
+        print(boardxl, boardyl, boardwidth, boardheight)
 
     pctl = pcbnew.PLOT_CONTROLLER(board)
     pctl.SetColorMode(True)
@@ -39,12 +42,37 @@ def processBoard(boardName, plotDir):  # Load board and initialize plot controll
     popt.SetExcludeEdgeLayer(False)
     popt.SetUseAuxOrigin(True)
 
+    # layers = [
+    #     ("F_Cu", pcbnew.F_Cu, "Top layer"),
+    #     ("B_Cu", pcbnew.B_Cu, "Bottom layer"),
+    #     ("B_Paste", pcbnew.B_Paste, "Paste bottom"),
+    #     ("F_Paste", pcbnew.F_Paste, "Paste top"),
+    #     ("F_SilkS", pcbnew.F_SilkS, "Silk top"),
+    #     ("B_SilkS", pcbnew.B_SilkS, "Silk top"),
+    #     ("B_Mask", pcbnew.B_Mask, "Mask bottom"),
+    #     ("F_Mask", pcbnew.F_Mask, "Mask top"),
+    #     ("Edge_Cuts", pcbnew.Edge_Cuts, "Edges"),
+    #     ("Margin", pcbnew.Margin, "Margin"),
+    #     ("In1_Cu", pcbnew.In1_Cu, "Inner1"),
+    #     ("In2_Cu", pcbnew.In2_Cu, "Inner2"),
+    #     ("Dwgs_User", pcbnew.Dwgs_User, "Dwgs_User"),
+    #     ("Cmts_User", pcbnew.Cmts_User, "Comments_User"),
+    #     ("Eco1_User", pcbnew.Eco1_User, "ECO1"),
+    #     ("Eco2_User", pcbnew.Eco2_User, "ECO2"),
+    #     ("B_Fab", pcbnew.B_Fab, "Fab bottom"),
+    #     ("F_Fab", pcbnew.F_Fab, "Fab top"),
+    #     ("B_Adhes", pcbnew.B_Adhes, "Adhesive bottom"),
+    #     ("F_Adhes", pcbnew.F_Adhes, "Adhesive top"),
+    #     ("B_CrtYd", pcbnew.B_CrtYd, "Courtyard bottom"),
+    #     ("F_CrtYd", pcbnew.F_CrtYd, "Courtyard top"),
+    # ]
+
     layers = [
         ("F_Cu",      pcbnew.F_Cu,      "Top copper"),
         ("In1_Cu",    pcbnew.In1_Cu,    "Inner1 copper"),
         ("In2_Cu",    pcbnew.In2_Cu,    "Inner2 copper"),
-        ("In3_Cu",    pcbnew.In2_Cu,    "Inner3 copper"),
-        ("In4_Cu",    pcbnew.In2_Cu,    "Inner4 copper"),
+        ("In3_Cu",    pcbnew.In3_Cu,    "Inner3 copper"),
+        ("In4_Cu",    pcbnew.In4_Cu,    "Inner4 copper"),
         ("B_Cu",      pcbnew.B_Cu,      "Bottom copper"),
         ("F_Adhes",   pcbnew.F_Adhes,   "Adhesive top"),
         ("B_Adhes",   pcbnew.B_Adhes,   "Adhesive bottom"),
@@ -63,7 +91,7 @@ def processBoard(boardName, plotDir):  # Load board and initialize plot controll
         ("F_CrtYd",   pcbnew.F_CrtYd,   "Courtyard top"),
         ("B_CrtYd",   pcbnew.B_CrtYd,   "Courtyard bottom"),
         ("F_Fab",     pcbnew.F_Fab,     "Fab top"),
-        ("B_Fab",     pcbnew.B_Fab,     "Fab bottom"),
+        ("B_Fab",     pcbnew.B_Fab,     "Fab bottom")
     ]
 
     for layer_info in layers:
@@ -77,19 +105,19 @@ def processBoard(boardName, plotDir):  # Load board and initialize plot controll
 def parse_cli_args():
     parser = argparse.ArgumentParser(description='Plot PCB Layers')
     parser.add_argument('-o', "--output_folder", type=str, help="Output folder")
+    parser.add_argument('-q', "--quiet", action='store_true', help="Disable output")
     parser.add_argument("kicad_pcb", nargs=1, help="Kicad PCB")
     args = parser.parse_args()
     return args
+
 
 if __name__ == "__main__":
 
     args = parse_cli_args()
 
-    boardName = args.kicad_pcb
+    boardName = args.kicad_pcb[0]
 
     if args.output_folder:
         plotDir = args.output_folder
-    else:
-        plotDir = "./"
 
-    processBoard(boardName, plotDir)
+    processBoard(boardName, plotDir, args.quiet)
