@@ -101,7 +101,7 @@ def get_boards(diff1, diff2, prjctName, prjctPath):
     return (times)
 
 
-def get_artefacts(path, kicadPCB):
+def get_artefacts(path, kicadPCB, kicad_project_path):
     '''Returns list of SVN resvisions from a directory containing a
     *.kicad_pcb file.'''
 
@@ -123,4 +123,5 @@ def get_artefacts(path, kicadPCB):
 
 
 def get_kicad_project_path(prjctPath):
-    return "./"
+    print("SVN")
+    return prjctPath, "./" 
