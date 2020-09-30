@@ -4,92 +4,87 @@
 # held in a suitable version control repository and produce a graphical diff
 # of generated svg files in a web browser.
 
-# TODO [ ] Place all template text/css text in external files.
-# TODO [ ] Improve display of artifacts in diff choice window.
-# TODO [ ] Consider changing GUI elements to wxPython.
-# TODO [*] Manage any missing SCM paths - reflect available SCM progs in splash screen.
-# TODO [ ] Adjust <div> for three pane output to have white outer border & pan-zoom control, not filter colour.
-# TODO [ ] Improve three pane output layout, perhaps with diff tree on LHS and not underneath.
-
-# DEBUG Tk window not being destroyed when closed.
-# DEBUG Minor error with parsing FP_Text diff.
-
+import argparse
 import os
 import time
+
+import signal
+import sys
+
 import subprocess
-import tkinter as tk
-import webbrowser
 from subprocess import PIPE, STDOUT, Popen
+
+import tkinter as tk
 from tkinter import *
 from tkinter import filedialog, ttk
 from tkinter.messagebox import showinfo
 import tkUI
 from tkUI import *
+
+import webbrowser
 import http.server
 import socketserver
 socketserver.TCPServer.allow_reuse_address = True
 
-import argparse
 
 if sys.version_info[0] >= 3:
     unicode = str
 
 executablePath = os.path.dirname(os.path.realpath(__file__))
 
-def _escape_string( val ):
-    # Make unicode
-    val = unicode( val )
-    # Escape stuff
+def _escape_string(val):
+    val = unicode(val)
     val = val.replace( u'\\', u'\\\\' )
     val = val.replace( u' ', u'\\ ' )
     return ''.join(val.splitlines())
 
-# -------------------------------------------------------------------------
 
-# Tools should be on the PATH
-# Much more flexible approach
-# To add plotPCB.py, kidiff_linux.py and kidiff_gui.py to the path use the following example
-# Example: source ./env.sh
+#
+# All needed tools should be on the PATH
+#
+
 gitProg = 'git'
 fossilProg = 'fossil'
 svnProg = 'svn'
+
 diffProg = 'diff'
 grepProg = 'grep'
-plotProg = executablePath + '/plotpcb'
 
-plotDir = '/plots'
-webDir = '/web'
+plotProg = 'plotpcb'
 
-# -------------------------------------------------------------------------
-# NOTE Please adjust these colours to suit your requirements.
+plotDir = 'kidiff'
+webDir = 'web'
+
+# Adjust these colours to suit your requirements.
 
 layerCols = {
-    'F_Cu': "#952927",
-    'B_Cu': "#359632",
-    'B_Paste': "#3DC9C9",
-    'F_Paste': "#969696",
-    'F_SilkS': "#339697",
-    'B_SilkS': "#481649",
-    'B_Mask': "#943197",
-    'F_Mask': "#943197",
-    'Edge_Cuts': "#C9C83B",
-    'Margin': "#D357D2",
-    'In1_Cu': "#C2C200",
-    'In2_Cu': "#C200C2",
-    'Dwgs_User': "#0364D3",
-    'Cmts_User': "#7AC0F4",
-    'Eco1_User': "#008500",
-    'Eco2_User': "#C2C200",
-    'B_Fab': "#858585",
-    'F_Fab': "#C2C200",
-    'B_Adhes': "#3545A8",
-    'F_Adhes': "#A74AA8",
-    'B_CrtYd': "#D3D04B",
-    'F_CrtYd': "#A7A7A7",
+    'F_Cu'      : "#952927",
+    'B_Cu'      : "#359632",
+    'B_Paste'   : "#3DC9C9",
+    'F_Paste'   : "#969696",
+    'F_SilkS'   : "#339697",
+    'B_SilkS'   : "#481649",
+    'B_Mask'    : "#943197",
+    'F_Mask'    : "#943197",
+    'Edge_Cuts' : "#C9C83B",
+    'Margin'    : "#D357D2",
+    'In1_Cu'    : "#C2C200",
+    'In2_Cu'    : "#C200C2",
+    'In3_Cu'    : "#C20000",
+    'In4_Cu'    : "#0000C2",
+    'Dwgs_User' : "#0364D3",
+    'Cmts_User' : "#7AC0F4",
+    'Eco1_User' : "#008500",
+    'Eco2_User' : "#C2C200",
+    'B_Fab'     : "#858585",
+    'F_Fab'     : "#C2C200",
+    'B_Adhes'   : "#3545A8",
+    'F_Adhes'   : "#A74AA8",
+    'B_CrtYd'   : "#D3D04B",
+    'F_CrtYd'   : "#A7A7A7",
 }
 
 Handler = http.server.SimpleHTTPRequestHandler
-
 
 # ------------------------------------------HTML Template Blocks-------------------------------------------
 #
@@ -104,7 +99,7 @@ tail = '''
 indexHead = '''
 <!DOCTYPE HTML>
 <html lang="en">
-<meta charset="utf-8" /> 
+<meta charset="utf-8" />
 <head>
     <link rel="stylesheet" type="text/css" href="style.css" media="screen" />
 </head>
@@ -215,17 +210,17 @@ outfile = '''
 <div class="responsive">
   <div class="gallery">
     <a target="_blank" href=../{diff1}/{layername}>
-    <a href=./tryptych/{prj}-{layer}.html> <img class="{layer}" src=../{diff1}/{layername} height="200"> </a>
+    <a href=./triptych/{prj}-{layer}.html> <img class="{layer}" src=../{diff1}/{layername} height="200"> </a>
     </a>
     <div class="desc">{layer}</div>
   </div>
 </div>
 '''
 
-tryptychHTML = '''
+triptychHTML = '''
 <!DOCTYPE HTML>
 <html lang="en">
-<meta charset="utf-8" /> 
+<meta charset="utf-8" />
 <head>
 <link rel="stylesheet" type="text/css" href="../style.css" media="screen" />
 <style>
@@ -348,9 +343,9 @@ table {
     border-collapse: collapse;
     border-spacing: 0;
     border-color: #e2e3e3;
-    width: 100%; 
+    width: 100%;
     height: 2px;
-    border: 2px 
+    border: 2px
 }
 
 html {
@@ -574,100 +569,39 @@ a:hover {
     padding-bottom: 5px;
 }
 
-.F_Cu {
-    filter: invert(28%) sepia(50%) saturate(2065%) hue-rotate(334deg) brightness(73%) contrast(97%);
-}
-
-.B_Cu {
-    filter: invert(44%) sepia(14%) saturate(2359%) hue-rotate(70deg) brightness(103%) contrast(82%);
-}
-
-.B_Paste {
-    filter: invert(91%) sepia(47%) saturate(4033%) hue-rotate(139deg) brightness(82%) contrast(91%);
-}
-
-.F_Paste {
-    filter: invert(57%) sepia(60%) saturate(6%) hue-rotate(314deg) brightness(92%) contrast(99%);
-}
-
-.F_SilkS {
-    filter: invert(46%) sepia(44%) saturate(587%) hue-rotate(132deg) brightness(101%) contrast(85%);
-}
-
-.B_SilkS {
-    filter: invert(14%) sepia(27%) saturate(2741%) hue-rotate(264deg) brightness(95%) contrast(102%);
-}
-
-.B_Mask {
-    filter: invert(22%) sepia(56%) saturate(2652%) hue-rotate(277deg) brightness(94%) contrast(87%);
-}
-
-.F_Mask {
-    filter: invert(27%) sepia(51%) saturate(1920%) hue-rotate(269deg) brightness(89%) contrast(96%);
-}
-
-.Edge_Cuts {
-    filter: invert(79%) sepia(79%) saturate(401%) hue-rotate(6deg) brightness(88%) contrast(88%);
-}
-
-.Margin {
-    filter: invert(74%) sepia(71%) saturate(5700%) hue-rotate(268deg) brightness(89%) contrast(84%);
-}
-
-.In1_Cu {
-    filter: invert(69%) sepia(39%) saturate(1246%) hue-rotate(17deg) brightness(97%) contrast(104%);
-}
-
-.In2_Cu {
-    filter: invert(14%) sepia(79%) saturate(5231%) hue-rotate(293deg) brightness(91%) contrast(119%);
-}
-
-.Dwgs_User {
-    filter: invert(40%) sepia(68%) saturate(7431%) hue-rotate(203deg) brightness(89%) contrast(98%);
-}
-
-.Cmts_User {
-    filter: invert(73%) sepia(10%) saturate(1901%) hue-rotate(171deg) brightness(95%) contrast(102%);
-}
-
-.Eco1_User {
-    filter: invert(25%) sepia(98%) saturate(2882%) hue-rotate(109deg) brightness(90%) contrast(104%);
-}
-
-.Eco2_User {
-    filter: invert(85%) sepia(21%) saturate(5099%) hue-rotate(12deg) brightness(91%) contrast(102%);
-}
-
-.B_Fab {
-    filter: invert(60%) sepia(0%) saturate(0%) hue-rotate(253deg) brightness(87%) contrast(90%);
-}
-
-.F_Fab {
-    filter: invert(71%) sepia(21%) saturate(4662%) hue-rotate(21deg) brightness(103%) contrast(100%);
-}
-
-.B_Adhes {
-    filter: invert(24%) sepia(48%) saturate(2586%) hue-rotate(218deg) brightness(88%) contrast(92%);
-}
-
-.F_Adhes {
-    filter: invert(38%) sepia(49%) saturate(1009%) hue-rotate(254deg) brightness(88%) contrast(86%);
-}
-
-.B_CrtYd {
-    filter: invert(79%) sepia(92%) saturate(322%) hue-rotate(3deg) brightness(89%) contrast(92%);
-}
-
-.F_CrtYd {
-    filter: invert(73%) sepia(1%) saturate(0%) hue-rotate(116deg) brightness(92%) contrast(91%);
-}
+.F_Cu      { filter: invert(28%) sepia(50%) saturate(2065%) hue-rotate(334deg) brightness(73%)  contrast(97%);  }
+.B_Cu      { filter: invert(44%) sepia(14%) saturate(2359%) hue-rotate(70deg)  brightness(103%) contrast(82%);  }
+.B_Paste   { filter: invert(91%) sepia(47%) saturate(4033%) hue-rotate(139deg) brightness(82%)  contrast(91%);  }
+.F_Paste   { filter: invert(57%) sepia(60%) saturate(6%)    hue-rotate(314deg) brightness(92%)  contrast(99%);  }
+.F_SilkS   { filter: invert(46%) sepia(44%) saturate(587%)  hue-rotate(132deg) brightness(101%) contrast(85%);  }
+.B_SilkS   { filter: invert(14%) sepia(27%) saturate(2741%) hue-rotate(264deg) brightness(95%)  contrast(102%); }
+.B_Mask    { filter: invert(22%) sepia(56%) saturate(2652%) hue-rotate(277deg) brightness(94%)  contrast(87%);  }
+.F_Mask    { filter: invert(27%) sepia(51%) saturate(1920%) hue-rotate(269deg) brightness(89%)  contrast(96%);  }
+.Edge_Cuts { filter: invert(79%) sepia(79%) saturate(401%)  hue-rotate(6deg)   brightness(88%)  contrast(88%);  }
+.Margin    { filter: invert(74%) sepia(71%) saturate(5700%) hue-rotate(268deg) brightness(89%)  contrast(84%);  }
+.In1_Cu    { filter: invert(69%) sepia(39%) saturate(1246%) hue-rotate(17deg)  brightness(97%)  contrast(104%); }
+.In2_Cu    { filter: invert(14%) sepia(79%) saturate(5231%) hue-rotate(293deg) brightness(91%)  contrast(119%); }
+.In3_Cu    { filter: invert(14%) sepia(79%) saturate(5231%) hue-rotate(293deg) brightness(91%)  contrast(119%); }
+.In4_Cu    { filter: invert(14%) sepia(79%) saturate(5231%) hue-rotate(293deg) brightness(91%)  contrast(119%); }
+.Dwgs_User { filter: invert(40%) sepia(68%) saturate(7431%) hue-rotate(203deg) brightness(89%)  contrast(98%);  }
+.Cmts_User { filter: invert(73%) sepia(10%) saturate(1901%) hue-rotate(171deg) brightness(95%)  contrast(102%); }
+.Eco1_User { filter: invert(25%) sepia(98%) saturate(2882%) hue-rotate(109deg) brightness(90%)  contrast(104%); }
+.Eco2_User { filter: invert(85%) sepia(21%) saturate(5099%) hue-rotate(12deg)  brightness(91%)  contrast(102%); }
+.B_Fab     { filter: invert(60%) sepia(0%)  saturate(0%)    hue-rotate(253deg) brightness(87%)  contrast(90%);  }
+.F_Fab     { filter: invert(71%) sepia(21%) saturate(4662%) hue-rotate(21deg)  brightness(103%) contrast(100%); }
+.B_Adhes   { filter: invert(24%) sepia(48%) saturate(2586%) hue-rotate(218deg) brightness(88%)  contrast(92%);  }
+.F_Adhes   { filter: invert(38%) sepia(49%) saturate(1009%) hue-rotate(254deg) brightness(88%)  contrast(86%);  }
+.B_CrtYd   { filter: invert(79%) sepia(92%) saturate(322%)  hue-rotate(3deg)   brightness(89%)  contrast(92%);  }
+.F_CrtYd   { filter: invert(73%) sepia(1%)  saturate(0%)    hue-rotate(116deg) brightness(92%)  contrast(91%);  }
 '''
 
+
+#
 # ----------------------Main Functions begin here---------------------------------------
-# 
+#
 
 def getGitPath(prjctName, prjctPath):
-    gitRootCmd = 'cd ' + prjctPath + ' && ' + gitProg + ' rev-parse --show-toplevel'
+    gitRootCmd = 'cd ' + _escape_string(prjctPath) + ' && ' + gitProg + ' rev-parse --show-toplevel'
 
     gitRootProcess = Popen(
         gitRootCmd,
@@ -695,15 +629,18 @@ def getGitPath(prjctName, prjctPath):
 
     return _escape_string(stdout.decode('utf-8'))
 
-def getGitDiff(diff1, diff2, prjctName, prjctPath):
+def get_git_files(diff1, diff2, prjctName, kicad_project_path, prjctPath):
     '''Given two git artifacts, write out two kicad_pcb files to their respective
     directories (named after the artifact). Returns the date and time of both commits'''
 
     artifact1 = diff1[:6]
     artifact2 = diff2[:6]
 
-    findDiff = 'cd ' + _escape_string(prjctPath) + ' && ' + gitProg + ' diff --name-only ' + \
-        artifact1 + ' ' + artifact2 + ' . | ' + grepProg + ' .kicad_pcb'
+    findDiff = \
+        'cd ' + _escape_string(prjctPath) + ' && ' + \
+        gitProg + ' diff --name-only ' + artifact1 + ' ' + artifact2 + ' . | ' + \
+        grepProg + " " + kicad_project_path  + ' | ' + \
+        grepProg + ' .kicad_pcb'
 
     changes = Popen(
         findDiff,
@@ -720,8 +657,8 @@ def getGitDiff(diff1, diff2, prjctName, prjctPath):
         print("No .kicad_pcb files differ between these commits")
         sys.exit()
 
-    outputDir1 = prjctPath + plotDir + '/' + artifact1
-    outputDir2 = prjctPath + plotDir + '/' + artifact2
+    outputDir1 = prjctPath + '/' + plotDir + '/' + kicad_project_path + '/' + artifact1
+    outputDir2 = prjctPath + '/' + plotDir + '/' + kicad_project_path + '/' + artifact2
 
     if not os.path.exists(outputDir1):
         os.makedirs(outputDir1)
@@ -729,13 +666,14 @@ def getGitDiff(diff1, diff2, prjctName, prjctPath):
     if not os.path.exists(outputDir2):
         os.makedirs(outputDir2)
 
-    gitPath = getGitPath(prjctName, _escape_string(prjctPath))
+    gitPath = getGitPath(_escape_string(kicad_project_path) + "/" + prjctName, _escape_string(prjctPath))
 
-    gitArtifact1 = 'cd ' + _escape_string(prjctPath) + ' && ' + gitProg + ' show ' + artifact1 + \
-        ':' + gitPath + ' > ' + _escape_string(outputDir1) + '/' + prjctName
+    gitArtifact1 = 'cd ' + _escape_string(prjctPath) + ' && ' + \
+        gitProg + ' show ' + artifact1 + ':' + gitPath + ' > ' + \
+        _escape_string(outputDir1) + '/' + prjctName
 
-    gitArtifact2 = 'cd ' + _escape_string(prjctPath) + ' && ' + gitProg + ' show ' + artifact2 + \
-        ':' + gitPath + ' > ' + _escape_string(outputDir2) + '/' + prjctName
+    gitArtifact2 = 'cd ' + _escape_string(prjctPath) + ' && ' + \
+        gitProg + ' show ' + artifact2 + ':' + gitPath + ' > ' + _escape_string(outputDir2) + '/' + prjctName
 
     ver1 = Popen(
         gitArtifact1,
@@ -755,12 +693,11 @@ def getGitDiff(diff1, diff2, prjctName, prjctPath):
         close_fds=True)
     stdout, stderr = ver2.communicate()
 
-    ver1.wait(); ver2.wait()
+    ver1.wait()
+    ver2.wait()
 
     gitDateTime1 = 'cd ' + _escape_string(prjctPath) + ' && ' + gitProg + ' show -s --format="%ci" ' + artifact1
     gitDateTime2 = 'cd ' + _escape_string(prjctPath) + ' && ' + gitProg + ' show -s --format="%ci" ' + artifact2
-
-    print(gitDateTime1,gitDateTime2)
 
     dt1 = Popen(
         gitDateTime1,
@@ -771,7 +708,6 @@ def getGitDiff(diff1, diff2, prjctName, prjctPath):
         close_fds=True)
     stdout, stderr = dt1.communicate()
     dt1.wait()
-
 
     dateTime1 = stdout.decode('utf-8')
     date1, time1, UTC = dateTime1.split(' ')
@@ -789,9 +725,10 @@ def getGitDiff(diff1, diff2, prjctName, prjctPath):
     dateTime2 = stdout.decode('utf-8')
     date2, time2, UTC = dateTime2.split(' ')
 
-    times = date1 + " " + time1 + " " + date2 + " " + time2
-    print(times)
-    return (times)
+    time1 = date1 + " " + time1
+    time2 = date2 + " " + time2
+
+    return time1 + " " + time2
 
 
 def getSVNDiff(diff1, diff2, prjctName, prjctPath):
@@ -883,7 +820,7 @@ def getSVNDiff(diff1, diff2, prjctName, prjctPath):
 
     times = SVNdate1 + " " + SVNtime1 + " " + SVNdate2 + " " + SVNtime2
 
-    print(times)
+    # print(times)
 
     return (times)
 
@@ -909,7 +846,7 @@ def getFossilDiff(diff1, diff2, prjctName, prjctPath):
     changes.wait()
 
     changed = (stdout.decode('utf-8'))
-    print(changed)
+    # print(changed)
     if changed == '':
         print("No .kicad_pcb files differ between these commits")
         sys.exit()
@@ -983,13 +920,13 @@ def getFossilDiff(diff1, diff2, prjctName, prjctPath):
 
     dateTime = dateDiff1 + " " + timeDiff1 + " " + dateDiff2 + " " + timeDiff2
 
-    print(dateTime)
+    # print(dateTime)
 
     return dateTime
 
 
 def getProject(display, SCMS):
-    '''File select dialogue. Opens Tk File browser and 
+    '''File select dialogue. Opens Tk File browser and
     selector set for .kicad_pcb files. Returns path and file name
     '''
     gui = tk.Tk(display, SCMS)
@@ -1067,11 +1004,11 @@ def getSCM(prjctPath):
     return scm
 
 
-def fossilDiff(path, kicadPCB):
+def get_fossil_artefacts(path, kicadPCB):
     '''Returns list of Fossil artifacts from a directory containing a
-    *.kicad_pcb file.'''
+    *.kiartefacts file.'''
 
-    # NOTE Assemble a list of artefacts. Unfortunatly, Fossil doesn't give any easily configurable length.
+    # NOTE Assemble a get_svn_artefacts of artefacts. Unfortunatly, Fossil doesn't give any easily configurable length.
     # NOTE Using the -W option results in multiline diffs
     # NOTE 'fossil -finfo' looks like this
     # 2017-05-19 [21d331ea6b] Preliminary work on CvPCB association and component values (user: johnpateman, artifact: [1100d6e077], branch: Ver_3V3)
@@ -1095,14 +1032,37 @@ def fossilDiff(path, kicadPCB):
     line = (stdout.decode('utf-8').splitlines())
     # fArtifacts = [a.replace(' ', '       ', 4) for a in line]
     fArtifacts = [a.replace(' ', '\t', 4) for a in line]
-    return fArtifacts
+
+    a, *tail = fArtifacts.split(' |')
+    d = a[1:]
+
+    return d
 
 
-def gitDiff(path, kicadPCB):
+def get_kicad_project_path(prjctPath):
+
+    gitRootCmd = 'cd ' + _escape_string(prjctPath) + ' && ' + gitProg + ' rev-parse --show-toplevel'
+    gitRootProcess = Popen(
+        gitRootCmd,
+        shell=True,
+        stdin=PIPE,
+        stdout=PIPE,
+        stderr=PIPE,
+        close_fds=True)
+    stdout, stderr = gitRootProcess.communicate()
+    gitRoot = stdout.decode('utf-8').strip()
+
+    kicad_project_path = os.path.relpath(prjctPath, gitRoot)
+
+    return gitRoot, kicad_project_path
+
+
+def get_git_artefacts(path, kicadPCB):
     '''Returns list of Git artifacts from a directory containing a
     *.kicad_pcb file.'''
 
-    gitCmd = 'cd ' + path + ' && ' + gitProg + ' log --pretty=format:"%h \t %s"'
+    gitCmd = 'cd ' + path + ' && ' + gitProg + ' log --pretty=format:"%h | %s"'
+
     git = Popen(
         gitCmd,
         shell=True,
@@ -1116,7 +1076,7 @@ def gitDiff(path, kicadPCB):
     return gArtifacts
 
 
-def svnDiff(path, kicadPCB):
+def get_svn_artefacts(path, kicadPCB):
     '''Returns list of SVN resvisions from a directory containing a
     *.kicad_pcb file.'''
     svnCmd = 'cd ' + path + ' && ' + svnProg + ' log -r HEAD:0 | perl -l40pe "s/^-+/\n/"'
@@ -1135,29 +1095,31 @@ def svnDiff(path, kicadPCB):
     return sArtifacts
 
 
-def makeSVG(d1, d2, prjctName, prjctPath):
+def makeSVG(d1, d2, prjctName, kicad_project_path, prjctPath):
     '''Hands off required .kicad_pcb files to "plotPCB2.py"
     and generate .svg files. Routine is
     v quick so all layers are plotted to svg.'''
 
-    print("Generating .svg files")
+    print("")
+    print("Generating images")
 
     d1 = d1[:6]
     d2 = d2[:6]
 
-    Diff1 = prjctPath + plotDir + '/' + d1 + '/' + prjctName
-    Diff2 = prjctPath + plotDir + '/' + d2 + '/' + prjctName
+    Diff1 = prjctPath + '/' + kicad_project_path + "/" + prjctName
+    Diff2 = prjctPath + '/' + kicad_project_path + "/" + prjctName
 
-    d1SVG = prjctPath + plotDir + '/' + d1
-    d2SVG = prjctPath + plotDir + '/' + d2
+    d1SVG = prjctPath + '/' + plotDir + '/' + kicad_project_path + "/" + d1
+    d2SVG = prjctPath + '/' + plotDir + '/' + kicad_project_path + "/" + d2
 
     if not os.path.exists(d1SVG):
         os.makedirs(d1SVG)
+
     if not os.path.exists(d2SVG):
         os.makedirs(d2SVG)
 
-    plot1Cmd = plotProg + ' ' + _escape_string(Diff1) + ' -o ' + _escape_string(d1SVG)
-    plot2Cmd = plotProg + ' ' + _escape_string(Diff2) + ' -o ' + _escape_string(d2SVG)
+    plot1Cmd = plotProg + ' ' + _escape_string(Diff1) + ' -q -o ' + _escape_string(d1SVG)
+    plot2Cmd = plotProg + ' ' + _escape_string(Diff2) + ' -q -o ' + _escape_string(d2SVG)
 
     plot1=Popen(
         plot1Cmd,
@@ -1166,11 +1128,15 @@ def makeSVG(d1, d2, prjctName, prjctPath):
         stdout=PIPE,
         stderr=PIPE,
         close_fds=True)
+
     stdout, stderr = plot1.communicate()
     plotDims1 = (stdout.decode('utf-8').splitlines())
     errors = stderr.decode('utf-8')
+
     if errors != "":
+        print(stdout.decode('utf-8'))
         print("Plot1 error: " + errors)
+        exit(1)
 
     plot2=Popen(
         plot2Cmd,
@@ -1179,31 +1145,34 @@ def makeSVG(d1, d2, prjctName, prjctPath):
         stdout=PIPE,
         stderr=PIPE,
         close_fds=True)
+
     stdout, stderr = plot2.communicate()
     plotDims2 = (stdout.decode('utf-8').splitlines())
     errors = stderr.decode('utf-8')
+
     if errors != "":
+        print(stdout.decode('utf-8'))
         print("Plot2 error: " + errors)
+        exit(1)
 
-    plot1.wait(); plot2.wait()
-
-    print(plotDims1, plotDims2)
+    plot1.wait()
+    plot2.wait()
 
     return (d1, d2, plotDims1[0], plotDims2[0])
 
 
-def makeSupportFiles(prjctName, prjctPath):
+def makeSupportFiles(prjctName, kicad_project_path, prjctPath):
     '''
     Setup web directories for output
     '''
 
-    webd = prjctPath + plotDir + webDir
+    webd = prjctPath + "/" + plotDir + "/" + kicad_project_path + "/" + webDir
     webIndex = webd + '/index.html'
     webStyle = webd + '/style.css'
 
     if not os.path.exists(webd):
         os.makedirs(webd)
-        os.makedirs(webd + '/tryptych')
+        os.makedirs(webd + '/triptych')
 
     makeCSS = open(webStyle, 'w')
     makeCSS.write(css)
@@ -1246,19 +1215,18 @@ def getBoardData(board):
                         for i in range(1,len(words)):
                             complete += words[i].strip("\t ()").replace("\"","") + " "
                         prms[key] = complete
-    print(prms)
     return(prms)
 
-def makeOutput(diffDir1, diffDir2, prjctName, prjctPath, times, dim1, dim2):
+def makeOutput(diffDir1, diffDir2, prjctName, kicad_project_path, prjctPath, times, dim1, dim2):
     '''Write out HTML using template. Iterate through files in diff directories, generating
-    thumbnails and three way view (tryptych) page.
+    thumbnails and three way view (triptych) page.
     '''
-    webd = prjctPath + plotDir + webDir
 
-    board1 = prjctPath + plotDir + "/" + diffDir1 + "/" + prjctName
-    board2 = prjctPath + plotDir + "/" + diffDir2 + "/" + prjctName
-
+    webd = prjctPath + "/" + plotDir + "/" + kicad_project_path + "/" + webDir
     webIndex = webd + '/index.html'
+
+    board1 = prjctPath + "/" + plotDir + "/" + kicad_project_path + "/" + diffDir1 + "/" + prjctName
+    board2 = prjctPath + "/" + plotDir + "/" + kicad_project_path + "/" + diffDir2 + "/" + prjctName
 
     webOut = open(webIndex, 'w')
 
@@ -1284,7 +1252,6 @@ def makeOutput(diffDir1, diffDir2, prjctName, prjctPath, times, dim1, dim2):
     ZONES2 = board_2_Info.get('zones')
     MODULES2 = board_2_Info.get('modules')
     NETS2 = board_2_Info.get('nets')
-
 
     index=indexHead.format(
     TITLE=TITLE,
@@ -1314,26 +1281,25 @@ def makeOutput(diffDir1, diffDir2, prjctName, prjctPath, times, dim1, dim2):
 
     diffCmnd1 = ()
 
-    source = prjctPath + plotDir + "/" + diffDir1 + "/"
+    source = prjctPath + "/" + plotDir + "/" + kicad_project_path + "/" + diffDir1 + "/"
+    triptychDir = prjctPath + "/" + plotDir + "/" + kicad_project_path + "/" + "web" + "/" + 'triptych'
 
-    tryptychDir = prjctPath + plotDir + webDir + '/tryptych'
-
-    if not os.path.exists(tryptychDir):
-        os.makedirs(tryptychDir)
+    if not os.path.exists(triptychDir):
+        os.makedirs(triptychDir)
 
     # diffs = os.fsencode(source)
 
     for f in os.listdir(source):
         filename = os.fsdecode(f)
+
         if filename.endswith(".svg"):
-            print(filename)
+            # print(filename)
             file, file_extension = os.path.splitext(filename)
-            tryptych = tryptychDir + '/' + file + '.html'
+            triptych = triptychDir + '/' + file + '.html'
             *project, layer = filename.split('-')
             layer, ext = layer.split('.')
             prjct, ext = filename.split('.')
-            # Accounts for project names containing hyphens
-            splitted = prjct.split('-')
+            splitted = prjct.split('-') # Accounts for project names containing hyphens
             prj = "-".join(splitted[0:-1])
             layer = splitted[-1]
             out=outfile.format(
@@ -1347,9 +1313,9 @@ def makeOutput(diffDir1, diffDir2, prjctName, prjctPath, times, dim1, dim2):
 
             webOut.write(out)
 
-            tryptychOut = open(tryptych, 'w')
+            triptychOut = open(triptych, 'w')
 
-            t_out = tryptychHTML.format(
+            t_out = triptychHTML.format(
                 layername=filename,
                 diff1=diffDir1,
                 diff2=diffDir2,
@@ -1359,17 +1325,17 @@ def makeOutput(diffDir1, diffDir2, prjctName, prjctPath, times, dim1, dim2):
                 layer=layer,
                 prj=prj)
 
-            tryptychOut.write(t_out)
+            triptychOut.write(t_out)
 
-            diffbase=diffProg+'{prjctPath}{plotDir}/{diff2}/*.kicad_pcb {prjctPath}{plotDir}/{diff1}/*.kicad_pcb >> {prjctPath}{plotDir}/diff.txt'
+            diffbase = diffProg + " " + '{prjctPath}/{plotDir}/{kicad_project_path}/{diff2}/*.kicad_pcb {prjctPath}/{plotDir}/{kicad_project_path}/{diff1}/*.kicad_pcb >> {prjctPath}/{plotDir}/{kicad_project_path}/diff.txt'
 
             if not diffCmnd1:
                 diffCmnd1 = diffbase.format(
                     plotDir=plotDir,
                     diff1=diffDir1,
                     diff2=diffDir2,
-                    prjctPath=_escape_string(prjctPath))
-                # print(diffCmnd1)
+                    prjctPath=_escape_string(prjctPath),
+                    kicad_project_path=kicad_project_path)
 
                 diff1Txt = Popen(
                     diffCmnd1,
@@ -1380,19 +1346,19 @@ def makeOutput(diffDir1, diffDir2, prjctName, prjctPath, times, dim1, dim2):
                     close_fds=True)
                 stdout, stderr = diff1Txt.communicate()
                 diff1Txt.wait()
-            #sed -e 's/(layer {mod}*)//g' |
-            mod = layer.replace("_",".")
-            #            diffCmnd2 = diffProg + ''' --suppress-common-lines {prjctPath}{plotDir}/{diff2}/*.kicad_pcb {prjctPath}{plotDir}/{diff1}/*.kicad_pcb | grep {mod} | sed 's/>  /<\/div><div class="differences added">/g' | sed 's/<   /<\/div><div class="differences removed">/g' | sed 's/\/n/<\/div>/g' | sed 's/(status [1-9][0-9])//g' '''.format(
-            diffCmnd2 = diffProg + ''' --suppress-common-lines {prjctPath}{plotDir}/{diff2}/*.kicad_pcb {prjctPath}{plotDir}/{diff1}/*.kicad_pcb | {grepProg} {mod} | sed 's/(status [1-9][0-9])//g' '''.format(
+
+            mod = layer.replace("_", ".")
+
+            diffCmnd2 = diffProg + " " + "--suppress-common-lines {prjctPath}/{plotDir}/{kicad_project_path}/{diff2}/*.kicad_pcb {prjctPath}/{plotDir}/{kicad_project_path}/{diff1}/*.kicad_pcb | {grepProg} {mod} | sed \'s/(status [1-9][0-9])//g\'".format(
                 layername=filename,
                 plotDir=plotDir,
                 diff1=diffDir1,
                 diff2=diffDir2,
+                kicad_project_path=kicad_project_path,
                 prjctPath=_escape_string(prjctPath),
                 mod=mod,
                 grepProg=grepProg,
                 webDir=webDir)
-
 
             diff2Txt = Popen(
                     diffCmnd2,
@@ -1406,10 +1372,12 @@ def makeOutput(diffDir1, diffDir2, prjctName, prjctPath, times, dim1, dim2):
             out = stdout.decode('utf8')
 
             processed = processDiff(out, mod)
-            processed+=twopane
+            processed += twopane
 
-            tryptychOut.write(processed)
+            triptychOut.write(processed)
+
     webOut.write(tail)
+
 
 def processDiff(diffText, mod):
 
@@ -1474,7 +1442,6 @@ def processDiff(diffText, mod):
                 </div>'''
 
 
-
     for indx,layerInfo in enumerate(keywords):
         combined = tbL = tbR = ""
         for indx2,parameter in enumerate(layerInfo[2]):
@@ -1514,21 +1481,23 @@ def popup_showinfo(progress):
     p = Label(gui, Text=display)
     p.pack()
 
+
 def scmAvailable():
-    SCMS = ''
+    scms = ''
     if (fossilProg != ''):
-        SCMS = SCMS + "Fossil \n"
+        scms = scms + "Fossil" + "\n"
     if (gitProg != ''):
-        SCMS = SCMS + "Git \n"
+        scms = scms + "Git" + "\n"
     if (svnProg != ''):
-        SCMS = SCMS + "SVN "
-    
-    return (SCMS)
+        scms = scms + "SVN"
+
+    return (scms)
 
 
 class Handler(http.server.SimpleHTTPRequestHandler):
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, directory=os.path.realpath(prjctPath + plotDir), **kwargs)
+        super().__init__(*args, directory=os.path.realpath(prjctPath + "/" + plotDir), **kwargs)
+
 
 class Select(tk.Toplevel):
     def __init__(self, parent):
@@ -1538,99 +1507,119 @@ class Select(tk.Toplevel):
         action = messagebox.askokcancel(
             self,
             message="Select the board file (*.kicad_pcb) file under version control",
-            detail="Available: \n\n" + SCMS)
+            detail="Available: \n\n" + scm)
         self.update()
         if action == "cancel":
             self.quit()
 
 
-def startWebServer(port):
+def startWebServer(port, kicad_project_path):
     with socketserver.TCPServer(("", port), Handler) as httpd:
-        print("serving at port", port)
-        webbrowser.open('http://127.0.0.1:' + str(port) + '/web/index.html')
+        print("Serving at port", port)
+        webbrowser.open('http://127.0.0.1:' + str(port) + "/" + kicad_project_path + '/web/index.html')
         httpd.serve_forever()
 
 
 def parse_cli_args():
     parser = argparse.ArgumentParser(description='Kicad PCB visual diffs.')
-    parser.add_argument('-a', "--commit1", type=str, help="Commit1")
-    parser.add_argument('-b', "--commit2", type=str, help="Commit2")
+    parser.add_argument('-a', "--commit1", type=str, help="Commit 1")
+    parser.add_argument('-b', "--commit2", type=str, help="Commit 2")
     parser.add_argument('-d', "--display", type=str, help="Set DISPLAY value, default :1.0", default=':1.0')
     parser.add_argument('-p', "--port", type=int, help="Set webserver port", default=9092)
-    parser.add_argument('-s', "--scm", type=str,  help="Select SCM (Git, SVN, Fossil)")
+    parser.add_argument('-s', "--scm", type=str,  help="Select SCM (git, svn, fossil)")
+    parser.add_argument('-g', "--gui", action='store_true', help="Use gui")
     parser.add_argument('-w', "--webserver-disable", action='store_true', help="Does not execute webserver (just generate images)")
-    parser.add_argument("kicad_pcb", nargs='?', help="Kicad PCB")
+    parser.add_argument('-v', '--verbose', action='count', default=0)
+    parser.add_argument("kicad_pcb", metavar='PCB_PATH', nargs='?', help="Kicad PCB path")
     args = parser.parse_args()
-    print(args)
+
+    if args.verbose == 3:
+        print(args)
+
     return args
 
 
+def signal_handler(sig, frame):
+    sys.exit(0)
+
 if __name__ == "__main__":
+
+    signal.signal(signal.SIGINT, signal_handler)
 
     args = parse_cli_args()
 
-    SCMS = scmAvailable()
-
-    if (SCMS == ""):
-        print("You need to have at least one SCM program path identified in lines 32 - 40")
-        exit()
+    if args.scm:
+        scm = args.scm.lower()
+    else:
+        scm = scmAvailable()
+        if (scm == ""):
+            print("You need to set the SCM (git, fossil, svn) used")
+            exit(1)
 
     if args.kicad_pcb is None:
-        prjctPath, prjctName = getProject(args.display, SCMS)
+        prjctPath, prjctName = getProject(args.display, scm)
     else:
         prjctPath = os.path.dirname(os.path.realpath(args.kicad_pcb))
         prjctName = os.path.basename(os.path.realpath(args.kicad_pcb))
 
-    print("prjctPath", prjctPath)
-    print("prjctName", prjctName)
+    if scm == 'fossil':
+        kicad_project_path = "./"
+    elif scm == 'git':
+        prjctPath, kicad_project_path = get_kicad_project_path(_escape_string(prjctPath))
+    elif scm == 'svn':
+        kicad_project_path = "./"
+    elif scm == '':
+        print(
+            "This project is either not under version control"
+            "or no SCM tool was was found in the PATH")
+        sys.exit(1)
 
-    if args.scm:
-        scm = args.scm
-    else:
-        scm = getSCM(_escape_string(prjctPath))
+    if args.verbose == 1:
+        print("")
+        print(" Project PATH:", prjctPath)
+        print("Kicad Project:", kicad_project_path)
+        print("   Board Name:", prjctName)
 
-
-    if scm == 'Git':
-        artifacts = gitDiff(_escape_string(prjctPath), prjctName)
-    if scm == 'Fossil':
-        artifacts = fossilDiff(_escape_string(prjctPath), prjctName)
-    if scm == 'SVN':
-        artifacts = svnDiff(_escape_string(prjctPath), prjctName)
-    if scm == '':
-        print("This project is either not under version control or you have not set the path to the approriate SCM program in lines 32-40")
-        sys.exit(0)
+    if scm == 'fossil':
+        artifacts = get_fossil_artefacts(_escape_string(prjctPath), prjctName)
+    elif scm == 'git':
+        artifacts = get_git_artefacts(_escape_string(prjctPath), prjctName)
+    elif scm == 'svn':
+        artifacts = get_svn_artefacts(_escape_string(prjctPath), prjctName)
 
     if args.commit1 is None and args.commit2 is None:
-        d1, d2 = tkUI.runGUI(artifacts, prjctName, prjctPath, scm)
-
+        d1, d2 = tkUI.runGUI(artifacts, prjctName, kicad_project_path, prjctPath, scm)
+        if not d1 or not d2:
+            print("\nERROR: You must select 2 commits!")
+            exit(1)
     else:
-        d1 = args.commit1
-        d2 = args.commit2
         if args.commit1 is None:
             d1 = artifacts[0]
+        else:
+            d1 = args.commit1
+
         if args.commit2 is None:
             d2 = artifacts[0]
+        else:
+            d2 = args.commit2
 
-    print("Commit1", d1)
-    print("Commit2", d2)
+    if args.verbose == 1:
+        print("")
+        print(" Commit 1 (a):", d1.split(' ')[0])
+        print(" Commit 2 (b):", d2.split(' ')[0])
 
-    if scm == 'Git':
-        times = getGitDiff(d1, d2, prjctName, prjctPath)
-    if scm == 'Fossil':
+    if scm == 'fossil':
         times = getFossilDiff(d1, d2, prjctName, prjctPath)
-    if scm == 'SVN':
-        a1, *tail = d1.split(' |')
-        d1 = a1[1:]
-        a2, *tail = d2.split(' |')
-        d2 = a2[1:]
+    elif scm == 'git':
+        times = get_git_files(d1, d2, prjctName, kicad_project_path, prjctPath)
+    elif scm == 'svn':
         times = getSVNDiff(d1, d2, prjctName, prjctPath)
 
-    svgDir1, svgDir2, boardDims1, boardDims2 = makeSVG(d1, d2, prjctName, prjctPath)
+    svgDir1, svgDir2, boardDims1, boardDims2 = makeSVG(d1, d2, prjctName, kicad_project_path, prjctPath)
 
-    makeSupportFiles(prjctName, prjctPath)
+    makeSupportFiles(prjctName, kicad_project_path, prjctPath)
 
-    makeOutput(svgDir1, svgDir2, prjctName, prjctPath, times, boardDims1, boardDims2)
+    makeOutput(svgDir1, svgDir2, prjctName, kicad_project_path, prjctPath, times, boardDims1, boardDims2)
 
     if not args.webserver_disable:
-        startWebServer(args.port)
-        webbrowser.open('http://127.0.0.1:' + str(args.port) + '/web/index.html')
+        startWebServer(args.port, kicad_project_path)
