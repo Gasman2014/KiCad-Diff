@@ -82,6 +82,19 @@ def getProject(display, scm):
     # select = Select(gui)
     # select.destroy()
 
+    try:
+        # call a dummy dialog with an impossible option to initialize the file
+        # dialog without really getting a dialog window; this will throw a
+        # TclError, so we need a try...except :
+        try:
+            gui.call('tk_getOpenFile', '-foobarbaz')
+        except TclError:
+            pass
+        gui.call('set', '::tk::dialog::file::showHiddenVar', '0')
+    except:
+        pass
+
+
     selected = tk.filedialog.askopenfile(
         initialdir=os.getcwd(),
         title="Select the .kicad_pcb file in your " + scm.upper() + " repository",
