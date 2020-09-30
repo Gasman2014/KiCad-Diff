@@ -7,35 +7,28 @@ from subprocess import PIPE, STDOUT, Popen
 
 import settings
 
-def get_board_path(prjctName, prjctPath):
 
-    # cmd = 'cd ' + settings.escape_string(prjctPath) + ' && fossil rev-parse --show-toplevel'
-    cmd = "todo"
-
-    stdout, stderr = settings.run_cmd(cmd)
-    scm_root = stdout
-
-    # cmd = 'cd ' + settings.escape_string(scm_root) + ' && fossil ls-tree -r --name-only HEAD | grep -m 1 ' + prjctName
-    cmd = "todo"
-
-    stdout, stderr = settings.run_cmd(cmd)
-
-    return settings.escape_string(stdout)
-
-
-def get_boards(diff1, diff2, prjctName, kicad_project_path, prjctPath):
-
+def getFossilDiff(diff1, diff2, prjctName, prjctPath):
     '''Given two Fossil artifacts, write out two kicad_pcb files to their respective
     directories (named after the artifacts). Returns the date and time of both commits'''
 
     artifact1 = diff1[:6]
     artifact2 = diff2[:6]
 
-    cmd = 'cd ' + settings.escape_string(prjctPath) + ' && fossil diff --brief -r ' + \
-        artifact1 + ' --to ' + artifact2 + ' | grep .kicad_pcb'
+    findDiff = 'cd ' + _escape_string(prjctPath) + ' && fossil diff --brief -r ' + \
+        artifact1 + ' --to ' + artifact2 + ' | ' + settings.grepProg + ' .kicad_pcb'
 
-    stdout, stderr = settings.run_cmd(cmd)
-    changed = stdout
+    changes = Popen(
+        findDiff,
+        shell=True,
+        stdin=PIPE,
+        stdout=PIPE,
+        stderr=PIPE,
+        close_fds=True)
+    stdout, stderr = changes.communicate()
+    changes.wait()
+
+    changed = (stdout.decode('utf-8'))
 
     if changed == '':
         print("\nThere is no difference in .kicad_pcb file in selected commits")
@@ -50,51 +43,100 @@ def get_boards(diff1, diff2, prjctName, kicad_project_path, prjctPath):
     if not os.path.exists(outputDir2):
         os.makedirs(outputDir2)
 
-    fossilArtifact1 = 'cd ' + settings.escape_string(prjctPath) + ' && fossil cat ' + settings.escape_string(prjctPath) + '/' + prjctName + \
+    fossilArtifact1 = 'cd ' + _escape_string(prjctPath) + ' && fossil cat ' + _escape_string(prjctPath) + '/' + prjctName + \
         ' -r ' + artifact1 + ' > ' + outputDir1 + '/' + prjctName
 
-    fossilArtifact2 = 'cd ' + settings.escape_string(prjctPath) + ' && fossil cat ' + settings.escape_string(prjctPath) + '/' + prjctName + \
+    fossilArtifact2 = 'cd ' + _escape_string(prjctPath) + ' && fossil cat ' + _escape_string(prjctPath) + '/' + prjctName + \
         ' -r ' + artifact2 + ' > ' + outputDir2 + '/' + prjctName
 
-    fossilInfo1 = 'cd ' + settings.escape_string(prjctPath) + ' && fossil info ' + artifact1
-    fossilInfo2 = 'cd ' + settings.escape_string(prjctPath) + ' && fossil info ' + artifact2
+    fossilInfo1 = 'cd ' + _escape_string(prjctPath) + ' && fossil info ' + artifact1
+    fossilInfo2 = 'cd ' + _escape_string(prjctPath) + ' && fossil info ' + artifact2
 
-    stdout, stderr = settings.run_cmd(fossilArtifact1)
-    dateTime, _ = settings.run_cmd(fossilInfo1)
-    uuid, _, _, _, _, _, _, _, _, artifactRef, dateDiff1, timeDiff1, *junk1 = dateTime.split(" ")
+    ver1 = Popen(
+        fossilArtifact1,
+        shell=True,
+        stdin=PIPE,
+        stdout=PIPE,
+        stderr=PIPE,
+        close_fds=True)
+    stdout, stderr = ver1.communicate()
+    ver1.wait()
 
-    stdout, stderr = settings.run_cmd(fossilArtifact2)
-    dateTime, _ = settings.run_cmd(fossilInfo2)
-    uuid, _, _, _, _, _, _, _, _, artifactRef, dateDiff2, timeDiff2, *junk1 = dateTime.split(" ")
+    info1 = Popen(
+        fossilInfo1,
+        shell=True,
+        stdin=PIPE,
+        stdout=PIPE,
+        stderr=PIPE,
+        close_fds=True)
+    stdout, stderr = info1.communicate()
+    info1.wait()
+
+    dateTime = stdout.decode('utf-8')
+    dateTime = dateTime.strip()
+    uuid, _, _, _, _, _, _, _, _, artifactRef, dateDiff1, timeDiff1, *junk1 = dateTime.split(
+        " ")
+
+    ver2 = Popen(
+        fossilArtifact2,
+        shell=True,
+        stdin=PIPE,
+        stdout=PIPE,
+        stderr=PIPE,
+        close_fds=True)
+    stdout, stderr = ver2.communicate()
+    ver2.wait()
+
+    info2 = Popen(
+        fossilInfo2,
+        shell=True,
+        stdin=PIPE,
+        stdout=PIPE,
+        stderr=PIPE,
+        close_fds=True)
+    stdout, stderr = info2.communicate()
+    info2.wait()
+
+    dateTime = stdout.decode('utf-8')
+    dateTime = dateTime.strip()
+    uuid, _, _, _, _, _, _, _, _, artifactRef, dateDiff2, timeDiff2, *junk1 = dateTime.split(
+        " ")
 
     dateTime = dateDiff1 + " " + timeDiff1 + " " + dateDiff2 + " " + timeDiff2
 
     return dateTime
 
 
-def get_artefacts(prjctPath, board_file):
-    '''Returns list of artifacts from a directory'''
+def get_fossil_artefacts(path, kicadPCB):
+    '''Returns list of Fossil artifacts from a directory containing a
+    *.kiartefacts file.'''
 
-    cmd = 'cd {prjctPath} && fossil finfo -b {board_file}'.format(prjctPath=prjctPath, board_file=board_file)
+    # NOTE Assemble a get_svn_artefacts of artefacts. Unfortunatly, Fossil doesn't give any easily configurable length.
+    # NOTE Using the -W option results in multiline diffs
+    # NOTE 'fossil -finfo' looks like this
+    # 2017-05-19 [21d331ea6b] Preliminary work on CvPCB association and component values (user: johnpateman, artifact: [1100d6e077], branch: Ver_3V3)
+    # 2017-05-07 [2d1e20f431] Initial commit (user: johnpateman, artifact: [24336219cc], branch: trunk)
+    # NOTE 'fossil -finfo -b' looks like this
+    # 21d331ea6b 2017-05-19 johnpate Ver_3V3 Preliminary work on CvPCB association a
+    # 2d1e20f431 2017-05-07 johnpate trunk Initial commit
+    # TODO Consider parsing the output of fossil finfo and split off date, artifactID, mesage, user and branch
 
-    print("")
-    print(cmd)
+    fossilCmd = 'cd ' + path + ' && ' + settings.fossilProg + ' finfo -b ' + kicadPCB
 
-    stdout, stderr = settings.run_cmd(cmd)
-    artifacts = [a.replace(' ', '\t', 4) for a in stdout.splitlines()]
+    fossil = Popen(
+        fossilCmd,
+        shell=True,
+        stdin=PIPE,
+        stdout=PIPE,
+        stderr=PIPE,
+        close_fds=True)
+    stdout, _ = fossil.communicate()
+    fossil.wait()
+    line = (stdout.decode('utf-8').splitlines())
+    # fArtifacts = [a.replace(' ', '       ', 4) for a in line]
+    fArtifacts = [a.replace(' ', '\t', 4) for a in line]
 
-    return artifacts
+    a, *tail = fArtifacts.split(' |')
+    d = a[1:]
 
-
-def get_kicad_project_path(prjctPath):
-    '''Returns the root folder of the repository'''
-
-    cmd = "cd {prjctPath} && fossil status ".format(
-        prjctPath=settings.escape_string(prjctPath))
-
-    stdout, _ = settings.run_cmd(cmd)
-    repo_root_path = stdout.split()[3]
-
-    kicad_project_path = os.path.relpath(prjctPath, repo_root_path)
-
-    return repo_root_path, kicad_project_path
+    return d

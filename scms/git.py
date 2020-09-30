@@ -8,43 +8,58 @@ from subprocess import PIPE, STDOUT, Popen
 import settings
 
 
-def get_board_path(prjctName, prjctPath):
+def getGitPath(prjctName, prjctPath):
 
-    cmd = 'cd ' + settings.escape_string(prjctPath) + ' && git rev-parse --show-toplevel'
+    gitRootCmd = 'cd ' + settings.escape_string(prjctPath) + ' && ' + settings.gitProg + ' rev-parse --show-toplevel'
 
-    stdout, _ = settings.run_cmd(cmd)
-    scm_root = stdout
+    gitRootProcess = Popen(
+        gitRootCmd,
+        shell=True,
+        stdin=PIPE,
+        stdout=PIPE,
+        stderr=PIPE,
+        close_fds=True)
+    stdout, stderr = gitRootProcess.communicate()
 
-    cmd = 'cd {scm_root} && git ls-tree -r --name-only HEAD | grep -m 1 {prjctName}'.format(
-        scm_root=settings.escape_string(scm_root), prjctName=prjctName)
+    gitRoot = stdout.decode('utf-8')
 
-    stdout, _ = settings.run_cmd(cmd)
+    gitPathCmd = 'cd ' + settings.escape_string(gitRoot) + ' && ' + settings.gitProg + ' ls-tree -r --name-only HEAD | ' + settings.grepProg + ' -m 1 ' + prjctName
 
-    return settings.escape_string(stdout)
+    gitPathProcess = Popen(
+        gitPathCmd,
+        shell=True,
+        stdin=PIPE,
+        stdout=PIPE,
+        stderr=PIPE,
+        close_fds=True)
+    stdout, stderr = gitPathProcess.communicate()
 
+    gitPathProcess.wait()
 
-def get_boards(diff1, diff2, prjctName, kicad_project_path, prjctPath):
+    return settings.escape_string(stdout.decode('utf-8'))
+
+def get_git_files(diff1, diff2, prjctName, kicad_project_path, prjctPath):
     '''Given two git artifacts, write out two kicad_pcb files to their respective
     directories (named after the artifact). Returns the date and time of both commits'''
 
     artifact1 = diff1[:6]
     artifact2 = diff2[:6]
 
-    # Using this to fix the path when there is no subproject
-    prj_path = kicad_project_path + '/'
-    if kicad_project_path == '.':
-        prj_path == ''
-
-    cmd = \
+    findDiff = \
         'cd ' + settings.escape_string(prjctPath) + ' && ' + \
-        'git diff --name-only ' + artifact1 + ' ' + artifact2 + ' . | ' + \
-        "grep '^" + prj_path + prjctName + "'"
+        settings.gitProg + ' diff --name-only ' + artifact1 + ' ' + artifact2 + ' . | ' + \
+        settings.grepProg + " '^" + kicad_project_path + "/" + prjctName + "'"
 
-    print("")
-    print(cmd)
-
-    stdout, stderr = settings.run_cmd(cmd)
-    changed = stdout
+    changes = Popen(
+        findDiff,
+        shell=True,
+        stdin=PIPE,
+        stdout=PIPE,
+        stderr=PIPE,
+        close_fds=True)
+    stdout, stderr = changes.communicate()
+    changes.wait()
+    changed = (stdout.decode('utf-8'))
 
     if changed == '':
         print("\nThere is no difference in .kicad_pcb file in selected commits")
@@ -59,27 +74,63 @@ def get_boards(diff1, diff2, prjctName, kicad_project_path, prjctPath):
     if not os.path.exists(outputDir2):
         os.makedirs(outputDir2)
 
-    gitPath = get_board_path(settings.escape_string(kicad_project_path) + "/" + prjctName, settings.escape_string(prjctPath))
+    gitPath = getGitPath(settings.escape_string(kicad_project_path) + "/" + prjctName, settings.escape_string(prjctPath))
 
     gitArtifact1 = 'cd ' + settings.escape_string(prjctPath) + ' && ' + \
-        'git show ' + artifact1 + ':' + gitPath + ' > ' + \
+        settings.gitProg + ' show ' + artifact1 + ':' + gitPath + ' > ' + \
         settings.escape_string(outputDir1) + '/' + prjctName
 
     gitArtifact2 = 'cd ' + settings.escape_string(prjctPath) + ' && ' + \
-        'git show ' + artifact2 + ':' + gitPath + ' > ' + settings.escape_string(outputDir2) + '/' + prjctName
+        settings.gitProg + ' show ' + artifact2 + ':' + gitPath + ' > ' + settings.escape_string(outputDir2) + '/' + prjctName
 
-    stdout, stderr = settings.run_cmd(gitArtifact1)
-    stdout, stderr = settings.run_cmd(gitArtifact2)
+    ver1 = Popen(
+        gitArtifact1,
+        shell=True,
+        stdin=PIPE,
+        stdout=PIPE,
+        stderr=PIPE,
+        close_fds=True)
+    stdout, stderr = ver1.communicate()
 
-    gitDateTime1 = 'cd ' + settings.escape_string(prjctPath) + ' && git show -s --format="%ci" ' + artifact1
-    gitDateTime2 = 'cd ' + settings.escape_string(prjctPath) + ' && git show -s --format="%ci" ' + artifact2
+    ver2 = Popen(
+        gitArtifact2,
+        shell=True,
+        stdin=PIPE,
+        stdout=PIPE,
+        stderr=PIPE,
+        close_fds=True)
+    stdout, stderr = ver2.communicate()
 
-    stdout, stderr = settings.run_cmd(gitDateTime1)
-    dateTime1 = stdout
+    ver1.wait()
+    ver2.wait()
+
+    gitDateTime1 = 'cd ' + settings.escape_string(prjctPath) + ' && ' + settings.gitProg + ' show -s --format="%ci" ' + artifact1
+    gitDateTime2 = 'cd ' + settings.escape_string(prjctPath) + ' && ' + settings.gitProg + ' show -s --format="%ci" ' + artifact2
+
+    dt1 = Popen(
+        gitDateTime1,
+        shell=True,
+        stdin=PIPE,
+        stdout=PIPE,
+        stderr=PIPE,
+        close_fds=True)
+    stdout, stderr = dt1.communicate()
+    dt1.wait()
+
+    dateTime1 = stdout.decode('utf-8')
     date1, time1, UTC = dateTime1.split(' ')
 
-    stdout, stderr = settings.run_cmd(gitDateTime2)
-    dateTime2 = stdout
+    dt2 = Popen(
+        gitDateTime2,
+        shell=True,
+        stdin=PIPE,
+        stdout=PIPE,
+        stderr=PIPE,
+        close_fds=True)
+    stdout, stderr = dt2.communicate()
+    dt2.wait()
+
+    dateTime2 = stdout.decode('utf-8')
     date2, time2, UTC = dateTime2.split(' ')
 
     time1 = date1 + " " + time1
@@ -87,27 +138,37 @@ def get_boards(diff1, diff2, prjctName, kicad_project_path, prjctPath):
 
     return time1 + " " + time2
 
+def get_git_artefacts(path, kicadPCB, kicad_project_path):
+    '''Returns list of Git artifacts from a directory containing a
+    *.kicad_pcb file.'''
 
-def get_artefacts(prjctPath, board_file):
-    '''Returns list of artifacts from a directory'''
+    gitCmd = 'cd ' + path + ' && ' + settings.gitProg + ' log --pretty=format:"%h | %s"'
 
-    cmd = 'cd {prjctPath} && git log --pretty=format:"%h | %s"'.format(prjctPath=prjctPath)
+    git = Popen(
+        gitCmd,
+        shell=True,
+        stdin=PIPE,
+        stdout=PIPE,
+        stderr=PIPE,
+        close_fds=True)
+    stdout, _ = git.communicate()
+    git.wait()
+    gArtifacts = (stdout.decode('utf-8').splitlines())
+    return gArtifacts
 
-    stdout, _ = settings.run_cmd(cmd)
-    artifacts = stdout.splitlines()
+def get_git_kicad_project_path(prjctPath):
 
-    return artifacts
+    gitRootCmd = 'cd ' + settings.escape_string(prjctPath) + ' && ' + settings.gitProg + ' rev-parse --show-toplevel'
+    gitRootProcess = Popen(
+        gitRootCmd,
+        shell=True,
+        stdin=PIPE,
+        stdout=PIPE,
+        stderr=PIPE,
+        close_fds=True)
+    stdout, stderr = gitRootProcess.communicate()
+    gitRoot = stdout.decode('utf-8').strip()
 
+    kicad_project_path = os.path.relpath(prjctPath, gitRoot)
 
-def get_kicad_project_path(prjctPath):
-    '''Returns the root folder of the repository'''
-
-    cmd = "cd {prjctPath} && git rev-parse --show-toplevel".format(
-        prjctPath=settings.escape_string(prjctPath))
-
-    stdout, _ = settings.run_cmd(cmd)
-    repo_root_path = stdout.strip()
-
-    kicad_project_path = os.path.relpath(prjctPath, repo_root_path)
-
-    return repo_root_path, kicad_project_path
+    return gitRoot, kicad_project_path
