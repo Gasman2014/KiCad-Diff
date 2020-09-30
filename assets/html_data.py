@@ -1,4 +1,7 @@
 
+# HTML Data
+# Intermediate approach before something better
+
 tail = '''
 <div class="clearfix"></div>
 <div style="padding:6px;"></div>
@@ -236,3 +239,4 @@ twopane='''
 </body>
 
 </html>
+''' 
