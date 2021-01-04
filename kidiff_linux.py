@@ -14,7 +14,9 @@
 # DEBUG Tk window not being destroyed when closed.
 # DEBUG Minor error with parsing FP_Text diff.
 
+import sys
 import os
+import tempfile
 import time
 import subprocess
 import tkinter as tk
@@ -26,9 +28,6 @@ from tkinter.messagebox import showinfo
 import tkUI
 from tkUI import *
 import http.server
-import socketserver
-socketserver.TCPServer.allow_reuse_address = True
-
 import argparse
 
 if sys.version_info[0] >= 3:
@@ -55,8 +54,13 @@ fossilProg = 'fossil'
 svnProg = 'svn'
 diffProg = 'diff'
 grepProg = 'grep'
-plotProg = executablePath + '/plotPCB.py'
-
+plotProg = executablePath
+if sys.platform == 'darwin':
+    # macOS
+    plotProg += '/plotPCB_macOS.py'
+else:
+    # linux
+    plotProg += '/plotPCB.py'
 plotDir = '/plots'
 webDir = '/web'
 
@@ -88,8 +92,6 @@ layerCols = {
     'F_CrtYd': "#A7A7A7",
 }
 
-Handler = http.server.SimpleHTTPRequestHandler
-
 
 # ------------------------------------------HTML Template Blocks-------------------------------------------
 #
@@ -104,7 +106,7 @@ tail = '''
 indexHead = '''
 <!DOCTYPE HTML>
 <html lang="en">
-<meta charset="utf-8" /> 
+<meta charset="utf-8" />
 <head>
     <link rel="stylesheet" type="text/css" href="style.css" media="screen" />
 </head>
@@ -225,7 +227,7 @@ outfile = '''
 tryptychHTML = '''
 <!DOCTYPE HTML>
 <html lang="en">
-<meta charset="utf-8" /> 
+<meta charset="utf-8" />
 <head>
 <link rel="stylesheet" type="text/css" href="../style.css" media="screen" />
 <style>
@@ -348,9 +350,9 @@ table {
     border-collapse: collapse;
     border-spacing: 0;
     border-color: #e2e3e3;
-    width: 100%; 
+    width: 100%;
     height: 2px;
-    border: 2px 
+    border: 2px
 }
 
 html {
@@ -664,7 +666,7 @@ a:hover {
 '''
 
 # ----------------------Main Functions begin here---------------------------------------
-# 
+#
 
 def getGitPath(prjctName, prjctPath):
     gitRootCmd = 'cd ' + prjctPath + ' && ' + gitProg + ' rev-parse --show-toplevel'
@@ -695,9 +697,12 @@ def getGitPath(prjctName, prjctPath):
 
     return _escape_string(stdout.decode('utf-8'))
 
-def getGitDiff(diff1, diff2, prjctName, prjctPath):
+def getGitDiff(diff1, diff2, prjctName, prjctPath, outputPath=None):
     '''Given two git artifacts, write out two kicad_pcb files to their respective
     directories (named after the artifact). Returns the date and time of both commits'''
+
+    if outputPath is None:
+        outputPath = prjctPath
 
     artifact1 = diff1[:6]
     artifact2 = diff2[:6]
@@ -720,8 +725,8 @@ def getGitDiff(diff1, diff2, prjctName, prjctPath):
         print("No .kicad_pcb files differ between these commits")
         sys.exit()
 
-    outputDir1 = prjctPath + plotDir + '/' + artifact1
-    outputDir2 = prjctPath + plotDir + '/' + artifact2
+    outputDir1 = outputPath + plotDir + '/' + artifact1
+    outputDir2 = outputPath + plotDir + '/' + artifact2
 
     if not os.path.exists(outputDir1):
         os.makedirs(outputDir1)
@@ -760,7 +765,7 @@ def getGitDiff(diff1, diff2, prjctName, prjctPath):
     gitDateTime1 = 'cd ' + _escape_string(prjctPath) + ' && ' + gitProg + ' show -s --format="%ci" ' + artifact1
     gitDateTime2 = 'cd ' + _escape_string(prjctPath) + ' && ' + gitProg + ' show -s --format="%ci" ' + artifact2
 
-    print(gitDateTime1,gitDateTime2)
+    print(gitDateTime1, gitDateTime2)
 
     dt1 = Popen(
         gitDateTime1,
@@ -794,9 +799,12 @@ def getGitDiff(diff1, diff2, prjctName, prjctPath):
     return (times)
 
 
-def getSVNDiff(diff1, diff2, prjctName, prjctPath):
+def getSVNDiff(diff1, diff2, prjctName, prjctPath, outputPath=None):
     '''Given two SVN revisions, write out two kicad_pcb files to their respective
     directories (named after the revision number). Returns the date and time of both commits'''
+
+    if outputPath is None:
+        outputPath = prjctPath
 
     svnChanged = 'cd ' + prjctPath + ' && svn diff --summarize -r ' + \
         diff1 + ':' + diff2 + ' ' + prjctName
@@ -817,8 +825,8 @@ def getSVNDiff(diff1, diff2, prjctName, prjctPath):
         print("No .kicad_pcb files differ between these commits")
         sys.exit()
 
-    outputDir1 = prjctPath + plotDir + '/' + diff1
-    outputDir2 = prjctPath + plotDir + '/' + diff2
+    outputDir1 = outputPath + plotDir + '/' + diff1
+    outputDir2 = outputPath + plotDir + '/' + diff2
 
     if not os.path.exists(outputDir1):
         os.makedirs(outputDir1)
@@ -888,9 +896,12 @@ def getSVNDiff(diff1, diff2, prjctName, prjctPath):
     return (times)
 
 
-def getFossilDiff(diff1, diff2, prjctName, prjctPath):
+def getFossilDiff(diff1, diff2, prjctName, prjctPath, outputPath=None):
     '''Given two Fossil artifacts, write out two kicad_pcb files to their respective
     directories (named after the artifacts). Returns the date and time of both commits'''
+
+    if outputPath is None:
+        outputPath = prjctPath
 
     artifact1 = diff1[:6]
     artifact2 = diff2[:6]
@@ -914,8 +925,8 @@ def getFossilDiff(diff1, diff2, prjctName, prjctPath):
         print("No .kicad_pcb files differ between these commits")
         sys.exit()
 
-    outputDir1 = prjctPath + plotDir + '/' + artifact1
-    outputDir2 = prjctPath + plotDir + '/' + artifact2
+    outputDir1 = outputPath + plotDir + '/' + artifact1
+    outputDir2 = outputPath + plotDir + '/' + artifact2
 
     if not os.path.exists(outputDir1):
         os.makedirs(outputDir1)
@@ -988,11 +999,11 @@ def getFossilDiff(diff1, diff2, prjctName, prjctPath):
     return dateTime
 
 
-def getProject(display, SCMS):
-    '''File select dialogue. Opens Tk File browser and 
+def getProject(display, scms):
+    '''File select dialogue. Opens Tk File browser and
     selector set for .kicad_pcb files. Returns path and file name
     '''
-    gui = tk.Tk(display, SCMS)
+    gui = tk.Tk(display, scms)
     gui.withdraw()
     gui.update()
     select = Select(gui)
@@ -1094,8 +1105,8 @@ def fossilDiff(path, kicadPCB):
     fossil.wait()
     line = (stdout.decode('utf-8').splitlines())
     # fArtifacts = [a.replace(' ', '       ', 4) for a in line]
-    fArtifacts = [a.replace(' ', '\t', 4) for a in line]
-    return fArtifacts
+    artifacts = [a.replace(' ', '\t', 4) for a in line]
+    return artifacts
 
 
 def gitDiff(path, kicadPCB):
@@ -1112,8 +1123,8 @@ def gitDiff(path, kicadPCB):
         close_fds=True)
     stdout, _ = git.communicate()
     git.wait()
-    gArtifacts = (stdout.decode('utf-8').splitlines())
-    return gArtifacts
+    artifacts = (stdout.decode('utf-8').splitlines())
+    return artifacts
 
 
 def svnDiff(path, kicadPCB):
@@ -1130,73 +1141,63 @@ def svnDiff(path, kicadPCB):
         close_fds=True)
     stdout, stderr = svn.communicate()
     svn.wait()
-    sArtifacts = (stdout.decode('utf-8').splitlines())
-    sArtifacts = list(filter(None, sArtifacts))
-    return sArtifacts
+    artifacts = (stdout.decode('utf-8').splitlines())
+    artifacts = list(filter(None, artifacts))
+    return artifacts
 
 
-def makeSVG(d1, d2, prjctName, prjctPath):
-    '''Hands off required .kicad_pcb files to "plotPCB2.py"
+def makeSVG(d1, d2, prjctName, prjctPath, outputPath=None):
+    '''Hands off required .kicad_pcb files to "plotPCB.py"
     and generate .svg files. Routine is
     v quick so all layers are plotted to svg.'''
 
     print("Generating .svg files")
 
-    d1 = d1[:6]
-    d2 = d2[:6]
+    commit = [d1[:6], d2[:6]]
 
-    Diff1 = prjctPath + plotDir + '/' + d1 + '/' + prjctName
-    Diff2 = prjctPath + plotDir + '/' + d2 + '/' + prjctName
+    if outputPath is None:
+        outputPath = prjctPath
 
-    d1SVG = prjctPath + plotDir + '/' + d1
-    d2SVG = prjctPath + plotDir + '/' + d2
+    diff = [outputPath + plotDir + '/' + cmt + '/' + prjctName for cmt in commit]
 
-    if not os.path.exists(d1SVG):
-        os.makedirs(d1SVG)
-    if not os.path.exists(d2SVG):
-        os.makedirs(d2SVG)
+    dSVG = [outputPath + plotDir + '/' + cmt for cmt in commit]
+    for svg in dSVG:
+        if not os.path.exists(svg):
+            os.makedirs(svg)
 
-    plot1Cmd = plotProg + ' ' + _escape_string(Diff1) + ' ' + _escape_string(d1SVG)
-    plot2Cmd = plotProg + ' ' + _escape_string(Diff2) + ' ' + _escape_string(d2SVG)
+    plotCmd = ['\"' + plotProg + '\"' + ' ' + _escape_string(d) + ' ' + _escape_string(svg) for d, svg in zip(diff, dSVG)]
+    print(plotCmd)
+    # time.sleep(3600)
+    plot = [
+        Popen(
+            cmd,
+            shell=True,
+            stdin=PIPE,
+            stdout=PIPE,
+            stderr=PIPE,
+            close_fds=True
+        ) for cmd in plotCmd
+    ]
+    plotDims = []
+    for plt, idx in zip(plot, range(len(plot))):
+        stdout, stderr = plt.communicate()
+        plotDims.append((stdout.decode('utf-8').splitlines()))
+        errors = stderr.decode('utf-8')
+        if errors != "":
+            print(f"Plot{idx} error: {errors}")
+        plt.wait()
 
-    plot1=Popen(
-        plot1Cmd,
-        shell=True,
-        stdin=PIPE,
-        stdout=PIPE,
-        stderr=PIPE,
-        close_fds=True)
-    stdout, stderr = plot1.communicate()
-    plotDims1 = (stdout.decode('utf-8').splitlines())
-    errors = stderr.decode('utf-8')
-    if errors != "":
-        print("Plot1 error: " + errors)
+    return (commit[0], commit[1], plotDims[0][0], plotDims[1][0])
 
-    plot2=Popen(
-        plot2Cmd,
-        shell=True,
-        stdin=PIPE,
-        stdout=PIPE,
-        stderr=PIPE,
-        close_fds=True)
-    stdout, stderr = plot2.communicate()
-    plotDims2 = (stdout.decode('utf-8').splitlines())
-    errors = stderr.decode('utf-8')
-    if errors != "":
-        print("Plot2 error: " + errors)
-
-    plot1.wait(); plot2.wait()
-
-
-    return (d1, d2, plotDims1[0], plotDims2[0])
-
-
-def makeSupportFiles(prjctName, prjctPath):
+def makeSupportFiles(prjctName, prjctPath, outputPath=None):
     '''
     Setup web directories for output
     '''
 
-    webd = prjctPath + plotDir + webDir
+    if outputPath is None:
+        outputPath = prjctPath
+
+    webd = outputPath + plotDir + webDir
     webIndex = webd + '/index.html'
     webStyle = webd + '/style.css'
 
@@ -1248,14 +1249,18 @@ def getBoardData(board):
     print(prms)
     return(prms)
 
-def makeOutput(diffDir1, diffDir2, prjctName, prjctPath, times, dim1, dim2):
+def makeOutput(diffDir1, diffDir2, prjctName, prjctPath, times, dim1, dim2, outputPath=None):
     '''Write out HTML using template. Iterate through files in diff directories, generating
     thumbnails and three way view (tryptych) page.
     '''
-    webd = prjctPath + plotDir + webDir
 
-    board1 = prjctPath + plotDir + "/" + diffDir1 + "/" + prjctName
-    board2 = prjctPath + plotDir + "/" + diffDir2 + "/" + prjctName
+    if outputPath is None:
+        outputPath = prjctPath
+
+    webd = outputPath + plotDir + webDir
+
+    board1 = outputPath + plotDir + "/" + diffDir1 + "/" + prjctName
+    board2 = outputPath + plotDir + "/" + diffDir2 + "/" + prjctName
 
     webIndex = webd + '/index.html'
 
@@ -1313,9 +1318,9 @@ def makeOutput(diffDir1, diffDir2, prjctName, prjctPath, times, dim1, dim2):
 
     diffCmnd1 = ()
 
-    source = prjctPath + plotDir + "/" + diffDir1 + "/"
+    source = outputPath + plotDir + "/" + diffDir1 + "/"
 
-    tryptychDir = prjctPath + plotDir + webDir + '/tryptych'
+    tryptychDir = outputPath + plotDir + webDir + '/tryptych'
 
     if not os.path.exists(tryptychDir):
         os.makedirs(tryptychDir)
@@ -1360,7 +1365,7 @@ def makeOutput(diffDir1, diffDir2, prjctName, prjctPath, times, dim1, dim2):
 
             tryptychOut.write(t_out)
 
-            diffbase=diffProg+'{prjctPath}{plotDir}/{diff2}/*.kicad_pcb {prjctPath}{plotDir}/{diff1}/*.kicad_pcb >> {prjctPath}{plotDir}/diff.txt'
+            diffbase = diffProg+'{prjctPath}{plotDir}/{diff2}/*.kicad_pcb {prjctPath}{plotDir}/{diff1}/*.kicad_pcb >> {prjctPath}{plotDir}/diff.txt'
 
             if not diffCmnd1:
                 diffCmnd1 = diffbase.format(
@@ -1459,7 +1464,6 @@ def processDiff(diffText, mod):
     tbR = ""
     checked = "checked"
 
-
     top1='''<input name='tabbed' id='tabbed{tabn}' type='radio' {checked}><section><h1><label for='tabbed{tabn}'>{label}</label></h1><div>{content}</div></section>'''
     tsl='''<div class='responsive'>
                 <div class = 'tbl'>
@@ -1471,8 +1475,6 @@ def processDiff(diffText, mod):
                 </div>
                 <div style='padding:6px;'>
                 </div>'''
-
-
 
     for indx,layerInfo in enumerate(keywords):
         combined = tbL = tbR = ""
@@ -1514,20 +1516,30 @@ def popup_showinfo(progress):
     p.pack()
 
 def scmAvailable():
-    SCMS = ''
-    if (fossilProg != ''):
-        SCMS = SCMS + "Fossil \n"
-    if (gitProg != ''):
-        SCMS = SCMS + "Git \n"
-    if (svnProg != ''):
-        SCMS = SCMS + "SVN "
-    
-    return (SCMS)
+    scms = ''
+    if fossilProg != '':
+        scms = scms + "Fossil \n"
+    if gitProg != '':
+        scms = scms + "Git \n"
+    if svnProg != '':
+        scms = scms + "SVN "
+
+    return (scms)
 
 
-class Handler(http.server.SimpleHTTPRequestHandler):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, directory=os.path.realpath(prjctPath + plotDir), **kwargs)
+class HTTPHandler(http.server.SimpleHTTPRequestHandler):
+    def translate_path(self, path):
+        path = http.server.SimpleHTTPRequestHandler.translate_path(self, path)
+        relpath = os.path.relpath(path, os.getcwd())
+        fullpath = os.path.join(self.server.base_path, relpath)
+        return fullpath
+
+
+class HTTPServer(http.server.HTTPServer):
+    def __init__(self, base_path, server_address, RequestHandlerClass=HTTPHandler):
+        self.base_path = base_path
+        http.server.HTTPServer.__init__(self, server_address, RequestHandlerClass)
+
 
 class Select(tk.Toplevel):
     def __init__(self, parent):
@@ -1537,17 +1549,20 @@ class Select(tk.Toplevel):
         action = messagebox.askokcancel(
             self,
             message="Select a *.kicad_pcb file under version control",
-            detail="Available: \n\n" + SCMS)
+            detail="Available: \n\n" + scms)
         self.update()
         if action == "cancel":
             self.quit()
 
-def startWebServer(port):
-    with socketserver.TCPServer(("", port), Handler) as httpd:
+
+def startWebServer(port, assetPath):
+    with HTTPServer(assetPath, ("", port)) as httpd:
         print("serving at port", port)
         webbrowser.open('http://127.0.0.1:' + str(port) + '/web/index.html')
-        httpd.serve_forever()
-
+        try:
+            httpd.serve_forever()
+        except KeyboardInterrupt:
+            pass
 
 def parse_cli_args():
     parser = argparse.ArgumentParser(description='Kicad PCB visual diffs.')
@@ -1562,19 +1577,17 @@ def parse_cli_args():
     print(args)
     return args
 
-
 if __name__ == "__main__":
 
     args = parse_cli_args()
 
-    SCMS = scmAvailable()
-
-    if (SCMS == ""):
+    scms = scmAvailable()
+    if scms == "":
         print("You need to have at least one SCM program path identified in lines 32 - 40")
         exit()
 
     if args.kicad_pcb is None:
-        prjctPath, prjctName = getProject(args.display, SCMS)
+        prjctPath, prjctName = getProject(args.display, scms)
     else:
         prjctPath = os.path.dirname(os.path.realpath(args.kicad_pcb))
         prjctName = os.path.basename(os.path.realpath(args.kicad_pcb))
@@ -1583,52 +1596,66 @@ if __name__ == "__main__":
     print("prjctName", prjctName)
 
     if args.scm:
-        scm = args.scm
+        scm = args.scm.lower()
     else:
-        scm = getSCM(_escape_string(prjctPath))
+        scm = getSCM(_escape_string(prjctPath)).lower()
 
-
-    if scm == 'Git':
-        artifacts = gitDiff(_escape_string(prjctPath), prjctName)
-    if scm == 'Fossil':
-        artifacts = fossilDiff(_escape_string(prjctPath), prjctName)
-    if scm == 'SVN':
-        artifacts = svnDiff(_escape_string(prjctPath), prjctName)
-    if scm == '':
+    if scm == 'git':
+        scmDiff = gitDiff
+    elif scm == 'fossil':
+        scmDiff = fossilDiff
+    elif scm == 'svn':
+        scmDiff = svnDiff
+    else:
         print("This project is either not under version control or you have not set the path to the approriate SCM program in lines 32-40")
         sys.exit(0)
 
-    if args.commit1 is None and args.commit2 is None:
-        d1, d2 = tkUI.runGUI(artifacts, prjctName, prjctPath, scm)
+    with tempfile.TemporaryDirectory() as tmpDir:
+        artifacts = scmDiff(_escape_string(prjctPath), prjctName)
 
-    else:
-        d1 = args.commit1
-        d2 = args.commit2
-        if args.commit1 is None:
-            d1 = artifacts[0]
-        if args.commit2 is None:
-            d2 = artifacts[0]
+        if args.commit1 is None and args.commit2 is None:
+            d1, d2 = tkUI.runGUI(artifacts, prjctName, prjctPath, scm)
+        else:
+            d1 = args.commit1
+            d2 = args.commit2
+            if args.commit1 is None:
+                d1 = artifacts[0]
+            if args.commit2 is None:
+                d2 = artifacts[0]
 
-    print("Commit1", d1)
-    print("Commit2", d2)
+        print("Commit1", d1)
+        print("Commit2", d2)
 
-    if scm == 'Git':
-        times = getGitDiff(d1, d2, prjctName, prjctPath)
-    if scm == 'Fossil':
-        times = getFossilDiff(d1, d2, prjctName, prjctPath)
-    if scm == 'SVN':
-        a1, *tail = d1.split(' |')
-        d1 = a1[1:]
-        a2, *tail = d2.split(' |')
-        d2 = a2[1:]
-        times = getSVNDiff(d1, d2, prjctName, prjctPath)
+        if scm == 'git':
+            getDiff = getGitDiff
+        elif scm == 'fossil':
+            getDiff = getFossilDiff
+        elif scm == 'svn':
+            a1, *tail = d1.split(' |')
+            d1 = a1[1:]
+            a2, *tail = d2.split(' |')
+            d2 = a2[1:]
+            getDiff = getSVNDiff
+        times = getDiff(d1, d2, prjctName, prjctPath, outputPath=tmpDir)
 
-    svgDir1, svgDir2, boardDims1, boardDims2 = makeSVG(d1, d2, prjctName, prjctPath)
+        svgDir1, svgDir2, boardDims1, boardDims2 = makeSVG(
+            d1, d2,
+            prjctName, prjctPath,
+            outputPath=tmpDir
+            )
 
-    makeSupportFiles(prjctName, prjctPath)
+        makeSupportFiles(
+            prjctName, prjctPath,
+            outputPath=tmpDir
+            )
 
-    makeOutput(svgDir1, svgDir2, prjctName, prjctPath, times, boardDims1, boardDims2)
+        makeOutput(
+            svgDir1, svgDir2,
+            prjctName, prjctPath,
+            times,
+            boardDims1, boardDims2,
+            outputPath=tmpDir
+            )
 
-    if not args.webserver_disable:
-        startWebServer(args.port)
-        webbrowser.open('http://127.0.0.1:' + str(args.port) + '/web/index.html')
+        if not args.webserver_disable:
+            startWebServer(args.port, os.path.realpath(tmpDir + plotDir))
