@@ -1,25 +1,37 @@
-#!/usr/bin/env python3
+#!/usr/bin/env sh
+# -*- mode: Python -*-
 
-'''
-Kicad plot pcb file.
-Plot variety of svg files in plot directory
-'''
+""":"
+if [[ "$OSTYPE" == "darwin"* ]]; then
+    PYBIN="/Applications/Kicad/kicad.app/Contents/Frameworks/Python.framework/Versions/Current/bin/python"
+else
+    PYBIN="/usr/bin/env python3"
+fi
+exec ${PYBIN} "$0" "$@"
+":"""
 
 import sys
+if sys.platform == 'darwin':
+    sys.path.insert(
+        0,
+        "/Applications/Kicad/kicad.app/Contents/Frameworks/python/site-packages/"
+    )
 import pcbnew
 from pcbnew import *
 
 
-
-def processBoard(boardName, plotDir):  # Load board and initialize plot controller
-
+def processBoard(boardName, plotDir):
+    """Convert layers of KiCad PCB to SVGs"""
+    print(boardName)
+    print(plotDir)
+    # Load board and initialize plot controller
     board = pcbnew.LoadBoard(boardName)
-    boardbox = board.ComputeBoundingBox()
-    boardxl = boardbox.GetX()
-    boardyl = boardbox.GetY()
-    boardwidth = boardbox.GetWidth()
-    boardheight = boardbox.GetHeight()
-    print(boardxl, boardyl, boardwidth, boardheight)
+    boardBox = board.ComputeBoundingBox()
+    boardXl = boardBox.GetX()
+    boardYl = boardBox.GetY()
+    boardWidth = boardBox.GetWidth()
+    boardHeight = boardBox.GetHeight()
+    print(boardXl, boardYl, boardWidth, boardHeight)
 
     pctl = pcbnew.PLOT_CONTROLLER(board)
     pctl.SetColorMode(True)
@@ -65,10 +77,11 @@ def processBoard(boardName, plotDir):  # Load board and initialize plot controll
         pctl.OpenPlotfile(layer_info[0], pcbnew.PLOT_FORMAT_SVG, layer_info[2])
         pctl.PlotLayer()
 
-    return (boardxl, boardyl, boardwidth, boardheight)
+    return (boardXl, boardYl, boardWidth, boardHeight)
 
 
 if __name__ == "__main__":
+
     boardName = sys.argv[1]
     plotDir = sys.argv[2]
     processBoard(boardName, plotDir)
