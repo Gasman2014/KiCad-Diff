@@ -101,7 +101,8 @@ def getGitPath(prjctName, prjctPath):
     stdout, stderr = gitRootProcess.communicate()
     gitRoot = stdout.decode('utf-8')
 
-    gitPathCmd = f"cd {_escape_string(gitRoot)} && {gitProg} ls-tree -r --name-only HEAD | {grepProg} -m 1 {prjctName}"
+    gitPathCmd = f"cd {_escape_string(gitRoot)} && {gitProg} ls-tree -r --name-only HEAD | {grepProg} -m 1 {_escape_string(prjctName)}"
+    print(gitPathCmd)
     gitPathProcess = Popen(
         gitPathCmd,
         shell=True,
@@ -150,7 +151,9 @@ def getGitDiff(diff1, diff2, prjctName, prjctPath, outputPath=None):
 
     gitPath = getGitPath(prjctName, _escape_string(prjctPath))
 
-    gitArtifact = [f"cd {_escape_string(prjctPath)} && {gitProg} show {art}:{gitPath} > {os.path.join(_escape_string(outd), prjctName)}" for art, outd in zip(artifact, outputDir)]
+    gitArtifact = [f"cd {_escape_string(prjctPath)} && {gitProg} show {art}:{gitPath} > {os.path.join(_escape_string(outd), _escape_string(prjctName))}" for art, outd in zip(artifact, outputDir)]
+
+    print(gitArtifact)
 
     ver = [Popen(
         gart,
@@ -324,10 +327,10 @@ def getFossilDiff(diff1, diff2, prjctName, prjctPath, outputPath=None):
     if not os.path.exists(outputDir2):
         os.makedirs(outputDir2)
 
-    fossilArtifact1 = 'cd ' + _escape_string(prjctPath) + ' && fossil cat ' + _escape_string(prjctPath) + '/' + prjctName + \
-        ' -r ' + artifact1 + ' > ' + outputDir1 + '/' + prjctName
-    fossilArtifact2 = 'cd ' + _escape_string(prjctPath) + ' && fossil cat ' + _escape_string(prjctPath) + '/' + prjctName + \
-        ' -r ' + artifact2 + ' > ' + outputDir2 + '/' + prjctName
+    fossilArtifact1 = 'cd ' + _escape_string(prjctPath) + ' && fossil cat ' + _escape_string(prjctPath) + '/' + _escape_string(prjctName) + \
+        ' -r ' + artifact1 + ' > ' + outputDir1 + '/' + _escape_string(prjctName)
+    fossilArtifact2 = 'cd ' + _escape_string(prjctPath) + ' && fossil cat ' + _escape_string(prjctPath) + '/' + _escape_string(prjctName) + \
+        ' -r ' + artifact2 + ' > ' + outputDir2 + '/' + _escape_string(prjctName)
 
     fossilInfo1 = 'cd ' + _escape_string(prjctPath) + ' && fossil info ' + artifact1
     fossilInfo2 = 'cd ' + _escape_string(prjctPath) + ' && fossil info ' + artifact2
@@ -1014,6 +1017,8 @@ if __name__ == "__main__":
 
         print(f"Commit1 {d1}")
         print(f"Commit2 {d2}")
+        print(f"prjctName {prjctName}")
+        print(f"prjctPath {prjctPath}")
 
         if scm == 'git':
             getDiff = getGitDiff

@@ -121,8 +121,8 @@ indexHead = '''
 outfile = '''
 <div class="responsive">
   <div class="gallery">
-    <a target="_blank" href=../{diff1}/{layername}>
-    <a href=./tryptych/{prj}-{layer}.html> <img class="{layer}" src=../{diff1}/{layername} height="200"> </a>
+    <a target="_blank" href="../{diff1}/{layername}">
+    <a href="./tryptych/{prj}-{layer}.html"> <img class="{layer}" src="../{diff1}/{layername}" height="200"> </a>
     </a>
     <div class="desc">{layer}</div>
   </div>
