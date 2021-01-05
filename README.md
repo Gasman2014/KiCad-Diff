@@ -12,6 +12,28 @@ There is an additional 'Text Diff' which is helpful for identifying specific are
 
 This was originally written as a bash script, this newer GUI version has been rewritten in Python3 and supports Git, SVN and Fossil as SCM tools. I have also removed many of the dependencies.
 
+## Mac Installation
+
+Installing tkinter on MacOS can be challening. Here is how it can be done on Big Sur (11.1)
+
+With homebrew and pyenv installed, run:
+
+```
+brew install tcl-tk
+export PATH="/usr/local/opt/tcl-tk/bin:$PATH"
+export LDFLAGS="-L/usr/local/opt/tcl-tk/lib"
+export CPPFLAGS="-I/usr/local/opt/tcl-tk/include"
+export PKG_CONFIG_PATH="/usr/local/opt/tcl-tk/lib/pkgconfig"
+export PYTHON_CONFIGURE_OPTS="--with-tcltk-includes='-I/usr/local/opt/tcl-tk/include' --with-tcltk-libs='-L/usr/local/opt/tcl-tk/lib -ltcl8.6 -ltk8.6'"
+LDFLAGS="-L$(xcrun --show-sdk-path)/usr/lib" pyenv install 3.8.6
+```
+
+Then before running the scripts, active this python version with:
+
+```
+pyenv shell 3.8.6
+```
+
 ## Instructions
 
 ### General
