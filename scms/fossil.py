@@ -143,5 +143,4 @@ def get_artefacts(path, kicadPCB, kicad_project_path):
 
 
 def get_kicad_project_path(prjctPath):
-    print("FOSSIL")
     return prjctPath, "./" 

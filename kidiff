@@ -563,6 +563,27 @@ def popup_showinfo(progress):
     p.pack()
 
 
+def tool_is_available(name):
+    from shutil import which
+    return 1 if which(name) is not None else 0
+
+
+def scmAvailable():
+
+    scms = []
+
+    if tool_is_available("fossil"):
+        scms.append("fossil")
+
+    if tool_is_available("git"):
+        scms.append("git")
+
+    if tool_is_available("svn"):
+        scms.append("svn")
+
+    return scms
+
+
 class Handler(http.server.SimpleHTTPRequestHandler):
 
     def __init__(self, *args, **kwargs):
@@ -626,11 +647,6 @@ if __name__ == "__main__":
 
     if args.scm:
         scm = args.scm.lower()
-    else:
-        scm_name = select_scm_gui()
-        if (scm_name == ""):
-            print("At least one SCM (git, fossil, svn) needs to be on PATH")
-            exit(1)
 
     if args.kicad_pcb is None:
         prjctPath, kicad_project_path, prjctName = select_project_gui(args.display, scm_name)
@@ -639,29 +655,44 @@ if __name__ == "__main__":
         prjctPath = os.path.dirname(os.path.realpath(args.kicad_pcb))
         prjctName = os.path.basename(os.path.realpath(args.kicad_pcb))
 
-        if scm == 'fossil':
+        try:
+            print("Trying", scm)
             prjctPath, kicad_project_path = fossil.get_kicad_project_path(settings.escape_string(prjctPath))
-        elif scm == 'git':
-            prjctPath, kicad_project_path = git.get_kicad_project_path(settings.escape_string(prjctPath))
-        elif scm == 'svn':
-            prjctPath, kicad_project_path = svn.get_kicad_project_path(settings.escape_string(prjctPath))
-        elif scm == '':
-            print(
-                "This project is either not under version control"
-                "or no SCM tool was was found in the PATH")
-            sys.exit(1)
+        except:
+            print("Not a fossil project")
+
+            try:
+                print("Trying", scm)
+                prjctPath, kicad_project_path = svn.get_kicad_project_path(settings.escape_string(prjctPath))
+            except:
+                print("Not a svn project")
+
+                try:
+                    print("Trying", scm)
+                    prjctPath, kicad_project_path = git.get_kicad_project_path(settings.escape_string(prjctPath))
+                except:
+                    print("Not a git project")
+                    print(
+                        "This project is either not under version control"
+                        "or no SCM tool was was found in the PATH")
+                    sys.exit(1)
+
 
     print("")
     print(" Project PATH:", prjctPath)
     print("Kicad Project:", kicad_project_path)
     print("   Board Name:", prjctName)
 
-    if scm == 'fossil':
+    try:
         artifacts = fossil.get_artefacts(settings.escape_string(prjctPath), prjctName, kicad_project_path)
-    elif scm == 'git':
-        artifacts = git.get_artefacts(settings.escape_string(prjctPath), prjctName, kicad_project_path)
-    elif scm == 'svn':
-        artifacts = svn.get_artefacts(settings.escape_string(prjctPath), prjctName, kicad_project_path)
+    except:
+        try:
+            artifacts = svn.get_artefacts(settings.escape_string(prjctPath), prjctName, kicad_project_path)
+        except:
+            try:
+                artifacts = git.get_artefacts(settings.escape_string(prjctPath), prjctName, kicad_project_path)
+            except:
+                pass
 
     if args.commit1 is None and args.commit2 is None:
 
