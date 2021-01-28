@@ -64,12 +64,12 @@ def select_scm_gui():
 
     for val, language in enumerate(scms):
          tk.Radiobutton(
-            root, 
+            root,
             text=language,
             indicatoron=0,
             width=20,
-            padx=20, 
-            variable=v, 
+            padx=20,
+            variable=v,
             command=ShowChoice,
             value=val).pack(anchor=tk.W)
 
@@ -92,7 +92,7 @@ def runGUI(checkouts_top, prjctName, kicad_project_path, prjctPath, scm):
 
     root = Tk()
     root.bind("<Escape>", quit)
-    
+
     root.configure(background='#ececec')
 
     root.title("Kicad Visual Layout Diff")
@@ -115,8 +115,14 @@ def runGUI(checkouts_top, prjctName, kicad_project_path, prjctPath, scm):
     root.grid_rowconfigure(2, minsize=200, weight=4)
     root.grid_rowconfigure(3, minsize=10,  weight=1)
 
-    tk.Label(frame1, text=prjctPath, bg='#ececec').pack(side=LEFT, padx=10)
-    tk.Label(frame1, text=kicad_project_path + "/" + prjctName, bg='#ececec').pack(side=LEFT, padx=10)
+    if kicad_project_path == '.':
+        pcb_path = prjctPath + "/" + prjctName
+    else:
+        pcb_path = prjctPath + "/" + kicad_project_path + "/" + prjctName
+
+    pcb_path = pcb_path.replace("//", "/")
+
+    tk.Label(frame1, text=pcb_path, bg='#ececec').pack(side=LEFT, padx=10)
 
     commitTop = Variable()
     listTop = Listbox(
@@ -185,7 +191,7 @@ def runGUI(checkouts_top, prjctName, kicad_project_path, prjctPath, scm):
     root.update()
     root.mainloop()
 
-    try: 
+    try:
         commitTop_str = commitTop.get()
     except:
         commitTop_str = commitTop
