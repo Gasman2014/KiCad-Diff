@@ -71,11 +71,11 @@ layerCols = {
 Handler = http.server.SimpleHTTPRequestHandler
 
 
-def select_project_gui(display, scm_name):
+def select_project_gui(display):
     '''File select dialogue. Opens Tk File browser and
     selector set for .kicad_pcb files. Returns path and file name
     '''
-    gui = tk.Tk(display, scm_name)
+    gui = tk.Tk(display)
     gui.withdraw()
     gui.update()
 
@@ -93,81 +93,49 @@ def select_project_gui(display, scm_name):
 
     selected = tk.filedialog.askopenfile(
         initialdir=os.getcwd(),
-        title="Select the .kicad_pcb file in your " + scm_name + " repository",
+        title="Select the Kicad board",
         filetypes=(("KiCad PCB files", "*.kicad_pcb"), ("all files", "*.*")))
 
     if selected:
-        path, prjct = os.path.split(selected.name)
+        repo_path, kicad_pcb = os.path.split(selected.name)
     else:
         gui.destroy()
         exit()
 
     gui.destroy()
 
-    kicad_project_path = "./" # hardwcoded but needs to have the path to the kicad folder inside the repo
-
-    return (path, kicad_project_path, prjct)
+    return (repo_path, kicad_pcb)
 
 
-def getSCM(prjctPath):
-    '''Determines which SCM methodology is in place when passed the enclosing
-    directory. NB there is no facility to deal with directories with multiple VCS in place
-    and current order of priority is Git > Fossil > SVN.
-    Easy to add additional SCMs but also would need to write handling code
+def check_project_scms(prjctPath):
+    '''Determines which SCM is being used by the project.
+    Current order of priority: Git > Fossil > SVN
     '''
 
-    scm = ''
+    scms = []
 
-    # check if SVN program installed and then check if *.kicad_pcb is in a SVN checkout
-    if (settings.svnProg != ''):
-        svnCmd = 'cd ' + prjctPath + ' && ' + settings.svnProg + ' log | perl -l4svn log0pe "s/^-+/\n/"'
-        svn = Popen(
-            svnCmd,
-            shell=True,
-            stdin=PIPE,
-            stdout=PIPE,
-            stderr=PIPE,
-            close_fds=True)
-        stdout, stderr = svn.communicate()
-        svn.wait()
-        if ((stdout.decode('utf-8') != '') & (stderr.decode('utf-8') == '')):
-            scm = 'SVN'
+    if is_tool_available("git"):
+        cmd = 'cd {prjctPath} && git status'.format(prjctPath=prjctPath)
+        stdout, stderr = settings.run_cmd(cmd)
+        if ((stdout != '') & (stderr == '')):
+            scms.append('git')
 
-    # check if Fossil program installed and then check if *.kicad_pcb is in a Fossil checkout
-    if (settings.fossilProg != ''):
-        fossilCmd = 'cd ' + prjctPath + ' && ' + settings.fossilProg + ' status'
-        fossil = Popen(
-            fossilCmd,
-            shell=True,
-            stdin=PIPE,
-            stdout=PIPE,
-            stderr=PIPE,
-            close_fds=True)
-        stdout, stderr = fossil.communicate()
-        fossil.wait()
-        # print(stdout.decode('utf-8'),"stdERROR=", stderr.decode('utf-8'))
-        if (stdout.decode('utf-8') != ''):
-            scm = 'Fossil'
+    if is_tool_available("fossil"):
+        cmd = 'cd {prjctPath} && fossil status'.format(prjctPath=prjctPath)
+        stdout, stderr = settings.run_cmd(cmd)
+        if (stdout != ''):
+            scms.append('fossil')
 
-    # Check if Git program installed and then check if *.kicad_pcb is in a Git checkout
-    if (settings.gitProg != ''):
-        gitCmd = 'cd ' + prjctPath + ' && ' + settings.gitProg + ' status'
-        git = Popen(
-            gitCmd,
-            shell=True,
-            stdin=PIPE,
-            stdout=PIPE,
-            stderr=PIPE,
-            close_fds=True)
-        stdout, stderr = git.communicate()
-        git.wait()
-        if ((stdout.decode('utf-8') != '') & (stderr.decode('utf-8') == '')):
-            scm = 'Git'
+    if is_tool_available("svn"):
+        cmd = 'cd {prjctPath} && && svn log | perl -l4svn log0pe "s/^-+/\n/"'.format(prjctPath=prjctPath)
+        stdout, stderr = settings.run_cmd(cmd)
+        if ((stdout != '') & (stderr == '')):
+            scms.append('svn')
 
-    return scm
+    return scms
 
 
-def makeSVG(d1, d2, prjctName, kicad_project_path, prjctPath):
+def makeSVG(d1, d2, board_file, kicad_project_path, prjctPath):
     '''Hands off required .kicad_pcb files to "plotPCB2.py"
     and generate .svg files. Routine is
     v quick so all layers are plotted to svg.'''
@@ -178,14 +146,14 @@ def makeSVG(d1, d2, prjctName, kicad_project_path, prjctPath):
     d1 = d1[:6]
     d2 = d2[:6]
 
-    # Diff1 = prjctPath + '/' + settings.plotDir + '/' + kicad_project_path + "/" + prjctName
-    # Diff2 = prjctPath + '/' + settings.plotDir + '/' + kicad_project_path + "/" + prjctName
+    # Diff1 = prjctPath + '/' + settings.plotDir + '/' + kicad_project_path + "/" + board_file
+    # Diff2 = prjctPath + '/' + settings.plotDir + '/' + kicad_project_path + "/" + board_file
 
     d1SVG = prjctPath + '/' + settings.plotDir + '/' + kicad_project_path + "/" + d1
     d2SVG = prjctPath + '/' + settings.plotDir + '/' + kicad_project_path + "/" + d2
 
-    Diff1 = d1SVG + "/" + prjctName
-    Diff2 = d2SVG + "/" + prjctName
+    Diff1 = d1SVG + "/" + board_file
+    Diff2 = d2SVG + "/" + board_file
 
     if not os.path.exists(d1SVG):
         os.makedirs(d1SVG)
@@ -240,7 +208,7 @@ def makeSVG(d1, d2, prjctName, kicad_project_path, prjctPath):
     return (d1, d2, plotDims1[0], plotDims2[0])
 
 
-def makeSupportFiles(prjctName, kicad_project_path, prjctPath):
+def makeSupportFiles(board_file, kicad_project_path, prjctPath):
     '''
     Setup web directories for output
     '''
@@ -298,7 +266,7 @@ def getBoardData(board):
     return(prms)
 
 
-def makeOutput(diffDir1, diffDir2, prjctName, kicad_project_path, prjctPath, times, dim1, dim2):
+def makeOutput(diffDir1, diffDir2, board_file, kicad_project_path, prjctPath, times, dim1, dim2):
     '''Write out HTML using template. Iterate through files in diff directories, generating
     thumbnails and three way view (triptych) page.
     '''
@@ -306,8 +274,8 @@ def makeOutput(diffDir1, diffDir2, prjctName, kicad_project_path, prjctPath, tim
     webd = prjctPath + "/" + settings.plotDir + "/" + kicad_project_path + "/" + settings.webDir
     webIndex = webd + '/index.html'
 
-    board1 = prjctPath + "/" + settings.plotDir + "/" + kicad_project_path + "/" + diffDir1 + "/" + prjctName
-    board2 = prjctPath + "/" + settings.plotDir + "/" + kicad_project_path + "/" + diffDir2 + "/" + prjctName
+    board1 = prjctPath + "/" + settings.plotDir + "/" + kicad_project_path + "/" + diffDir1 + "/" + board_file
+    board2 = prjctPath + "/" + settings.plotDir + "/" + kicad_project_path + "/" + diffDir2 + "/" + board_file
 
     webOut = open(webIndex, 'w')
 
@@ -563,25 +531,9 @@ def popup_showinfo(progress):
     p.pack()
 
 
-def tool_is_available(name):
+def is_tool_available(name):
     from shutil import which
     return 1 if which(name) is not None else 0
-
-
-def scmAvailable():
-
-    scms = []
-
-    if tool_is_available("fossil"):
-        scms.append("fossil")
-
-    if tool_is_available("git"):
-        scms.append("git")
-
-    if tool_is_available("svn"):
-        scms.append("svn")
-
-    return scms
 
 
 class Handler(http.server.SimpleHTTPRequestHandler):
@@ -616,14 +568,18 @@ def startWebServer(port, kicad_project_path):
         httpd.serve_forever()
 
 
+def signal_handler(sig, frame):
+    sys.exit(0)
+
+
 def parse_cli_args():
     parser = argparse.ArgumentParser(description='Kicad PCB visual diffs.')
     parser.add_argument('-a', "--commit1", type=str, help="Commit 1")
     parser.add_argument('-b', "--commit2", type=str, help="Commit 2")
+    parser.add_argument('-g', "--gui", action='store_true', help="Use gui")
+    parser.add_argument('-s', "--scm", type=str,  help="Select SCM (git, svn, fossil)")
     parser.add_argument('-d', "--display", type=str, help="Set DISPLAY value, default :1.0", default=':1.0')
     parser.add_argument('-p', "--port", type=int, help="Set webserver port", default=9092)
-    parser.add_argument('-s', "--scm", type=str,  help="Select SCM (git, svn, fossil)")
-    parser.add_argument('-g', "--gui", action='store_true', help="Use gui")
     parser.add_argument('-w', "--webserver-disable", action='store_true', help="Does not execute webserver (just generate images)")
     parser.add_argument('-v', '--verbose', action='count', default=0)
     parser.add_argument("kicad_pcb", metavar='PCB_PATH', nargs='?', help="Kicad PCB path")
@@ -635,68 +591,57 @@ def parse_cli_args():
     return args
 
 
-def signal_handler(sig, frame):
-    sys.exit(0)
-
-
 if __name__ == "__main__":
 
     signal.signal(signal.SIGINT, signal_handler)
 
     args = parse_cli_args()
 
+    if args.kicad_pcb is None:
+        kicad_project_path, board_file = select_project_gui(args.display)
+    else:
+        kicad_project_path = os.path.dirname(os.path.realpath(args.kicad_pcb))
+        board_file = os.path.basename(os.path.realpath(args.kicad_pcb))
+
+    project_scms = check_project_scms(kicad_project_path)
+
     if args.scm:
         scm = args.scm.lower()
-
-    if args.kicad_pcb is None:
-        prjctPath, kicad_project_path, prjctName = select_project_gui(args.display, scm_name)
-        scm = scm_name.lower()
     else:
-        prjctPath = os.path.dirname(os.path.realpath(args.kicad_pcb))
-        prjctName = os.path.basename(os.path.realpath(args.kicad_pcb))
+        scm = project_scms[0]
 
-        try:
-            print("Trying", scm)
-            prjctPath, kicad_project_path = fossil.get_kicad_project_path(settings.escape_string(prjctPath))
-        except:
-            print("Not a fossil project")
-
-            try:
-                print("Trying", scm)
-                prjctPath, kicad_project_path = svn.get_kicad_project_path(settings.escape_string(prjctPath))
-            except:
-                print("Not a svn project")
-
-                try:
-                    print("Trying", scm)
-                    prjctPath, kicad_project_path = git.get_kicad_project_path(settings.escape_string(prjctPath))
-                except:
-                    print("Not a git project")
-                    print(
-                        "This project is either not under version control"
-                        "or no SCM tool was was found in the PATH")
-                    sys.exit(1)
+    if scm == "fossil":
+        prjctPath, kicad_project = fossil.get_kicad_project_path(settings.escape_string(kicad_project_path))
+    elif scm == "svn":
+        prjctPath, kicad_project = svn.get_kicad_project_path(settings.escape_string(kicad_project_path))
+    elif scm == "git":
+        prjctPath, kicad_project = git.get_kicad_project_path(settings.escape_string(kicad_project_path))
+    else:
+        print(
+        "This project is either not under version control"
+        "or no SCM tool was was found in the PATH")
+        sys.exit(1)
 
 
+    avaialble_scms = "" if len(project_scms) <= 1 else '(available: {})'.format(', '.join(map(str, project_scms)))
     print("")
-    print(" Project PATH:", prjctPath)
-    print("Kicad Project:", kicad_project_path)
-    print("   Board Name:", prjctName)
+    print("  SCM Selected:", scm, avaialble_scms)
+    print("  Project PATH:", prjctPath)
+    print(" Kicad Project:", kicad_project)
+    print("    Board Name:", board_file)
+    print("")
 
-    try:
-        artifacts = fossil.get_artefacts(settings.escape_string(prjctPath), prjctName, kicad_project_path)
-    except:
-        try:
-            artifacts = svn.get_artefacts(settings.escape_string(prjctPath), prjctName, kicad_project_path)
-        except:
-            try:
-                artifacts = git.get_artefacts(settings.escape_string(prjctPath), prjctName, kicad_project_path)
-            except:
-                pass
+    if scm == "fossil":
+        artifacts = fossil.get_artefacts(settings.escape_string(prjctPath), board_file)
+    elif scm == "svn":
+        artifacts = svn.get_artefacts(settings.escape_string(prjctPath))
+    elif scm == "git":
+        artifacts = git.get_artefacts(settings.escape_string(prjctPath))
+
 
     if args.commit1 is None and args.commit2 is None:
 
-        d1, d2 = tkUI.runGUI(artifacts, prjctName, kicad_project_path, prjctPath, scm)
+        d1, d2 = tkUI.runGUI(artifacts, board_file, kicad_project, prjctPath, scm)
 
         if not d1 or not d2:
             print("\nERROR: You must select both commits.")
@@ -717,17 +662,17 @@ if __name__ == "__main__":
     print(" Commit 2 (b):", d2.split(' ')[0])
 
     if scm == 'fossil':
-        times = fossil.get_boards(d1, d2, prjctName, prjctPath)
+        times = fossil.get_boards(d1, d2, board_file, prjctPath)
     elif scm == 'git':
-        times = git.get_boards(d1, d2, prjctName, kicad_project_path, prjctPath)
+        times = git.get_boards(d1, d2, board_file, kicad_project, prjctPath)
     elif scm == 'svn':
-        times = svn.get_boards(d1, d2, prjctName, prjctPath)
+        times = svn.get_boards(d1, d2, board_file, prjctPath)
 
-    svgDir1, svgDir2, boardDims1, boardDims2 = makeSVG(d1, d2, prjctName, kicad_project_path, prjctPath)
+    svgDir1, svgDir2, boardDims1, boardDims2 = makeSVG(d1, d2, board_file, kicad_project, prjctPath)
 
-    makeSupportFiles(prjctName, kicad_project_path, prjctPath)
+    makeSupportFiles(board_file, kicad_project, prjctPath)
 
-    makeOutput(svgDir1, svgDir2, prjctName, kicad_project_path, prjctPath, times, boardDims1, boardDims2)
+    makeOutput(svgDir1, svgDir2, board_file, kicad_project, prjctPath, times, boardDims1, boardDims2)
 
     if not args.webserver_disable:
-        startWebServer(args.port, kicad_project_path)
+        startWebServer(args.port, kicad_project)
