@@ -656,26 +656,26 @@ if __name__ == "__main__":
         prjctName = os.path.basename(os.path.realpath(args.kicad_pcb))
 
         try:
-            scm = "fossil"
+            print("Trying", scm)
             prjctPath, kicad_project_path = fossil.get_kicad_project_path(settings.escape_string(prjctPath))
         except:
             print("Not a fossil project")
 
-        try:
-            scm = "svn"
-            prjctPath, kicad_project_path = svn.get_kicad_project_path(settings.escape_string(prjctPath))
-        except:
-            print("Not a svn project")
+            try:
+                print("Trying", scm)
+                prjctPath, kicad_project_path = svn.get_kicad_project_path(settings.escape_string(prjctPath))
+            except:
+                print("Not a svn project")
 
-        try:
-            scm = "git"
-            prjctPath, kicad_project_path = git.get_kicad_project_path(settings.escape_string(prjctPath))
-        except:
-            print("Not a git project")
-            print(
-                "This project is either not under version control"
-                "or no SCM tool was was found in the PATH")
-            sys.exit(1)
+                try:
+                    print("Trying", scm)
+                    prjctPath, kicad_project_path = git.get_kicad_project_path(settings.escape_string(prjctPath))
+                except:
+                    print("Not a git project")
+                    print(
+                        "This project is either not under version control"
+                        "or no SCM tool was was found in the PATH")
+                    sys.exit(1)
 
 
     print("")
@@ -686,17 +686,13 @@ if __name__ == "__main__":
     try:
         artifacts = fossil.get_artefacts(settings.escape_string(prjctPath), prjctName, kicad_project_path)
     except:
-        pass
-
-    try:
-        artifacts = svn.get_artefacts(settings.escape_string(prjctPath), prjctName, kicad_project_path)
-    except:
-        pass
-
-    try:
-        artifacts = git.get_artefacts(settings.escape_string(prjctPath), prjctName, kicad_project_path)
-    except:
-        pass
+        try:
+            artifacts = svn.get_artefacts(settings.escape_string(prjctPath), prjctName, kicad_project_path)
+        except:
+            try:
+                artifacts = git.get_artefacts(settings.escape_string(prjctPath), prjctName, kicad_project_path)
+            except:
+                pass
 
     if args.commit1 is None and args.commit2 is None:
 
