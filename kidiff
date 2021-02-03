@@ -127,7 +127,7 @@ def check_project_scms(prjctPath):
             scms.append('fossil')
 
     if is_tool_available("svn"):
-        cmd = 'cd {prjctPath} && && svn log | perl -l4svn log0pe "s/^-+/\n/"'.format(prjctPath=prjctPath)
+        cmd = 'cd {prjctPath} && svn log | perl -l4svn log0pe "s/^-+/\n/"'.format(prjctPath=prjctPath)
         stdout, stderr = settings.run_cmd(cmd)
         if ((stdout != '') & (stderr == '')):
             scms.append('svn')
