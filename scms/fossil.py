@@ -59,11 +59,11 @@ def get_boards(diff1, diff2, prjctName, prjctPath):
     fossilInfo2 = 'cd ' + settings.escape_string(prjctPath) + ' && fossil info ' + artifact2
 
     stdout, stderr = settings.run_cmd(fossilArtifact1)
-    dateTime, _ = settings.run_cmd(fossilInfo1).strip()
+    dateTime, _ = settings.run_cmd(fossilInfo1)
     uuid, _, _, _, _, _, _, _, _, artifactRef, dateDiff1, timeDiff1, *junk1 = dateTime.split(" ")
 
     stdout, stderr = settings.run_cmd(fossilArtifact2)
-    dateTime, _ = settings.run_cmd(fossilInfo2).strip()
+    dateTime, _ = settings.run_cmd(fossilInfo2)
     uuid, _, _, _, _, _, _, _, _, artifactRef, dateDiff2, timeDiff2, *junk1 = dateTime.split(" ")
 
     dateTime = dateDiff1 + " " + timeDiff1 + " " + dateDiff2 + " " + timeDiff2
