@@ -96,7 +96,7 @@ def get_artefacts(prjctPath, board_file):
     print(cmd)
 
     stdout, stderr = settings.run_cmd(cmd)
-    artifacts = [a.replace(' ', '\t', 4) for a in stdout.splitlines()]
+    artifacts = [a.replace(' ', ' | ', 4) for a in stdout.splitlines()]
 
     return artifacts
 
