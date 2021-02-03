@@ -87,14 +87,14 @@ plotPCB.py board.kicad_pcb output_folder
 <img src="/docs/main2.png" width="600" alt="main2">
 
 ### Overlaped Diff
-<img src="/docs/diff.png" width="600" height="100" alt="fab layer diff">
+<img src="/docs/diff.png" width="600" alt="fab layer diff">
 
 ### Side-by-Side View
-<img src="/docs/pair.png" width="600" height="100" alt="fab layer side by side">
+<img src="/docs/pair.png" width="600" alt="fab layer side by side">
 
 ### F_Cu Layer
-<img src="/docs/cu.png" width="500" height="100" alt="Cu difference view">
-<img src="/docs/composite.png" width="500" height="100" alt="Cu layer - 3 pane view">
+<img src="/docs/cu.png" width="500" alt="Cu difference view">
+<img src="/docs/composite.png" width="500" alt="Cu layer - 3 pane view">
 
 ### Text Diff
-<img src="/docs/text.png" width="700" height="100" alt="Text Diff">
+<img src="/docs/text.png" width="700" alt="Text Diff">
