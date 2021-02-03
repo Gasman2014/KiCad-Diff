@@ -147,6 +147,10 @@ def makeSVG(d1, d2, board_file, kicad_project_path, prjctPath):
     # Diff1 = prjctPath + '/' + settings.plotDir + '/' + kicad_project_path + "/" + board_file
     # Diff2 = prjctPath + '/' + settings.plotDir + '/' + kicad_project_path + "/" + board_file
 
+    # Using this to fix the path when there is no subproject
+
+    print(d1, d2, board_file, kicad_project_path, prjctPath)
+
     d1SVG = prjctPath + '/' + settings.plotDir + '/' + kicad_project_path + "/" + d1
     d2SVG = prjctPath + '/' + settings.plotDir + '/' + kicad_project_path + "/" + d2
 
@@ -663,7 +667,7 @@ if __name__ == "__main__":
     print(" Commit 1 (a):", d1.split(' ')[0])
     print(" Commit 2 (b):", d2.split(' ')[0])
 
-    datetimes = scm.get_boards(d1, d2, board_file, kicad_project, prjctPath)
+    d1, d2, datetimes = scm.get_boards(d1, d2, board_file, kicad_project, prjctPath)
 
     svgDir1, svgDir2, boardDims1, boardDims2 = makeSVG(d1, d2, board_file, kicad_project, prjctPath)
 

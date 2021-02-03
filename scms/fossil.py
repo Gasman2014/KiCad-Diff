@@ -83,7 +83,7 @@ def get_boards(diff1, diff2, prjctName, kicad_project_path, prjctPath):
 
     dateTime = dateDiff1 + " " + timeDiff1 + " " + dateDiff2 + " " + timeDiff2
 
-    return dateTime
+    return artifact1, artifact2, dateTime
 
 
 def get_artefacts(prjctPath, board_file):

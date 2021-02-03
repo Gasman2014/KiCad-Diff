@@ -12,7 +12,6 @@ import sys
 
 def runProgram():
     root.destroy()
-    exit(0)
 
 
 def quit(self):

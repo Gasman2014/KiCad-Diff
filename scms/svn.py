@@ -37,6 +37,14 @@ def get_boards(diff1, diff2, prjctName, kicad_project_path, prjctPath):
     artifact1, *tail = diff1.split(' |')
     artifact2, *tail = diff2.split(' |')
 
+    artifact1 = artifact1.replace(" ", "")
+    artifact2 = artifact2.replace(" ", "")
+
+    # Using this to fix the path when there is no subproject
+    prj_path = kicad_project_path + '/'
+    if kicad_project_path == '.':
+        prj_path = ''
+
     cmd = 'cd ' + settings.escape_string(prjctPath) + ' && svn diff --summarize -r ' + \
         artifact1 + ':' + artifact2 + ' ' + prjctName
 
@@ -96,7 +104,7 @@ def get_boards(diff1, diff2, prjctName, kicad_project_path, prjctPath):
 
     times = SVNdate1 + " " + SVNtime1 + " " + SVNdate2 + " " + SVNtime2
 
-    return (times)
+    return artifact1, artifact2, times
 
 
 def get_artefacts(prjctPath, board_file):
