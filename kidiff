@@ -147,10 +147,6 @@ def makeSVG(d1, d2, board_file, kicad_project_path, prjctPath):
     # Diff1 = prjctPath + '/' + settings.plotDir + '/' + kicad_project_path + "/" + board_file
     # Diff2 = prjctPath + '/' + settings.plotDir + '/' + kicad_project_path + "/" + board_file
 
-    # Using this to fix the path when there is no subproject
-
-    print(d1, d2, board_file, kicad_project_path, prjctPath)
-
     d1SVG = prjctPath + '/' + settings.plotDir + '/' + kicad_project_path + "/" + d1
     d2SVG = prjctPath + '/' + settings.plotDir + '/' + kicad_project_path + "/" + d2
 
@@ -297,6 +293,12 @@ def makeOutput(diffDir1, diffDir2, board_file, kicad_project_path, prjctPath, ti
     MODULES1 = board_1_Info.get('modules')
     NETS1 = board_1_Info.get('nets')
 
+    # ======
+
+    TITLE2 = board_2_Info.get('title')
+    DATE2 = board_2_Info.get('date')
+    COMPANY2 = board_2_Info.get('company')
+
     THICK2 = board_2_Info.get('thickness')
     DRAWINGS2 = board_2_Info.get('drawings')
     TRACKS2 = board_2_Info.get('tracks')
@@ -305,27 +307,27 @@ def makeOutput(diffDir1, diffDir2, board_file, kicad_project_path, prjctPath, ti
     NETS2 = board_2_Info.get('nets')
 
     index=custom_page.indexHead.format(
-    TITLE=TITLE,
-    DATE=DATE,
-    COMPANY=COMPANY,
-    diffDir1=diffDir1,
-    diffDir2=diffDir2,
-    THICK1=THICK1,
-    THICK2=THICK2,
-    D1DATE=D1DATE,
-    D2DATE=D2DATE,
-    DRAWINGS1=DRAWINGS1,
-    DRAWINGS2=DRAWINGS2,
-    D1TIME=D1TIME,
-    D2TIME=D2TIME,
-    TRACKS1=TRACKS1,
-    TRACKS2=TRACKS2,
-    ZONES1=ZONES1,
-    ZONES2=ZONES2,
-    MODULES1=MODULES1,
-    MODULES2=MODULES2,
-    NETS1=NETS1,
-    NETS2=NETS2,
+        TITLE=TITLE,
+        DATE=DATE,
+        COMPANY=COMPANY,
+        diffDir1=diffDir1,
+        diffDir2=diffDir2,
+        THICK1=THICK1,
+        THICK2=THICK2,
+        D1DATE=D1DATE,
+        D2DATE=D2DATE,
+        DRAWINGS1=DRAWINGS1,
+        DRAWINGS2=DRAWINGS2,
+        D1TIME=D1TIME,
+        D2TIME=D2TIME,
+        TRACKS1=TRACKS1,
+        TRACKS2=TRACKS2,
+        ZONES1=ZONES1,
+        ZONES2=ZONES2,
+        MODULES1=MODULES1,
+        MODULES2=MODULES2,
+        NETS1=NETS1,
+        NETS2=NETS2,
     )
 
     webOut.write(index)
@@ -570,6 +572,7 @@ def startWebServer(port, kicad_project_path):
         url = 'http://127.0.0.1:' + str(port) + "/" + kicad_project_path + '/web/index.html'
         print("")
         print("Starting webserver at {}".format(url))
+        print("(Hit Ctrl+C to exit)")
         webbrowser.open('http://127.0.0.1:' + str(port) + "/" + kicad_project_path + '/web/index.html')
         httpd.serve_forever()
 
@@ -639,7 +642,6 @@ if __name__ == "__main__":
     print("  Project PATH:", prjctPath)
     print(" Kicad Project:", kicad_project)
     print("    Board Name:", board_file)
-    print("")
 
     artifacts = scm.get_artefacts(settings.escape_string(prjctPath), board_file)
 
@@ -647,7 +649,8 @@ if __name__ == "__main__":
         print("")
         print("Artifacts list")
         for artifact in artifacts:
-            print(artifact)
+            if artifact != " ":
+                print(artifact)
 
     if args.commit1 is None and args.commit2 is None:
 
