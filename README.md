@@ -79,31 +79,31 @@ plotPCB.py board.kicad_pcb output_folder
 # Screenshots
 
 ### GUI
-![GUI](/Documents/gui.png)
+![GUI](/docs/gui.png)
 
-![GUI](/Documents/gui2.png)
+![GUI](/docs/gui2.png)
 
 
 ### Overview
-![Overview](/Documents/Overview.png)
+![Overview](/docs/Overview.png)
 
 ### Main view
-![Main](/Documents/main1.png)
+![Main](/docs/main1.png)
 
-![Main](/Documents/main2.png)
+![Main](/docs/main2.png)
 
 
 ### Diff
-![Fab Layer Diff](/Documents/diff.png)
+![Fab Layer Diff](/docs/diff.png)
 
 
 ### Fab Layer
-![Fab layer side by side](/Documents/pair.png)
+![Fab layer side by side](/docs/pair.png)
 
 
 ### F_Cu Layer
-![Cu difference view](/Documents/cu.png)
-![Cu layer - 3 pane view](/Documents/composite.png)
+![Cu difference view](/docs/cu.png)
+![Cu layer - 3 pane view](/docs/composite.png)
 
 ### Text Diff
-![Text Diff](/Documents/text.png)
+![Text Diff](/docs/text.png)
