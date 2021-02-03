@@ -34,6 +34,10 @@ def get_boards(diff1, diff2, prjctName, kicad_project_path, prjctPath):
     cmd = 'cd ' + settings.escape_string(prjctPath) + ' && fossil diff --brief -r ' + \
         artifact1 + ' --to ' + artifact2 + ' | grep .kicad_pcb'
 
+    print("")
+    print("Getting Boards")
+    print(cmd)
+
     stdout, stderr = settings.run_cmd(cmd)
     changed = stdout
 
@@ -41,8 +45,8 @@ def get_boards(diff1, diff2, prjctName, kicad_project_path, prjctPath):
         print("\nThere is no difference in .kicad_pcb file in selected commits")
         sys.exit()
 
-    outputDir1 = prjctPath + settings.plotDir + '/' + artifact1
-    outputDir2 = prjctPath + settings.plotDir + '/' + artifact2
+    outputDir1 = prjctPath + '/' + settings.plotDir + '/' + kicad_project_path + '/' + artifact1
+    outputDir2 = prjctPath + '/' + settings.plotDir + '/' + kicad_project_path + '/' + artifact2
 
     if not os.path.exists(outputDir1):
         os.makedirs(outputDir1)
@@ -78,6 +82,7 @@ def get_artefacts(prjctPath, board_file):
     cmd = 'cd {prjctPath} && fossil finfo -b {board_file}'.format(prjctPath=prjctPath, board_file=board_file)
 
     print("")
+    print("Getting Artifacts")
     print(cmd)
 
     stdout, stderr = settings.run_cmd(cmd)
