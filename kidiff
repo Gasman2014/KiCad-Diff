@@ -538,11 +538,13 @@ def is_tool_available(name):
     return 1 if which(name) is not None else 0
 
 
-class Handler(http.server.SimpleHTTPRequestHandler):
+class WebServerHandler(http.server.SimpleHTTPRequestHandler):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, directory=os.path.realpath(prjctPath + "/" + settings.plotDir), **kwargs)
 
+    def log_message(self, format, *args):
+        return
 
 class Select(tk.Toplevel):
 
@@ -564,8 +566,10 @@ class Select(tk.Toplevel):
 
 
 def startWebServer(port, kicad_project_path):
-    with socketserver.TCPServer(("", port), Handler) as httpd:
-        print("Serving at port", port)
+    with socketserver.TCPServer(("", port), WebServerHandler) as httpd:
+        url = 'http://127.0.0.1:' + str(port) + "/" + kicad_project_path + '/web/index.html'
+        print("")
+        print("Starting webserver at {}".format(url))
         webbrowser.open('http://127.0.0.1:' + str(port) + "/" + kicad_project_path + '/web/index.html')
         httpd.serve_forever()
 
