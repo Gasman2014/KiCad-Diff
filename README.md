@@ -91,11 +91,11 @@ plotPCB.py board.kicad_pcb output_folder
 # Screenshots
 
 ### GUI
-<img src="/docs/gui.png" width="500" alt="gui">
+<img src="/docs/gui.png" width="550" alt="gui">
 
 ### Main View
-<img src="/docs/main1.png" width="600" alt="main1">
-<img src="/docs/main2.png" width="600" alt="main2">
+<img src="/docs/main1.png" width="700" alt="main1">
+<img src="/docs/main2.png" width="700" alt="main2">
 
 ### Overlaped Diff
 <img src="/docs/diff.png" width="400" alt="fab layer diff">
