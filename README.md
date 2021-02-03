@@ -79,9 +79,9 @@ plotPCB.py board.kicad_pcb output_folder
 # Screenshots
 
 ### GUI
-<img src="/docs/gui.png" width="100" height="100" alt="gui">
+<img src="/docs/gui.png" width="500" alt="gui">
 
-<img src="/docs/gui2.png" width="100" height="100" alt="gui2">
+<img src="/docs/gui2.png" width="500" alt="gui2">
 
 ### Overview
 <img src="/docs/Overview.png" width="100" height="100" alt="overview">
