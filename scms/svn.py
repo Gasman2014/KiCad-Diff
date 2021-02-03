@@ -10,12 +10,20 @@ import settings
 def get_board_path(prjctName, prjctPath):
 
     # svnRootCmd = 'cd ' + settings.escape_string(prjctPath) + ' && svn rev-parse --show-toplevel'
-    svnPathCmd = "echo [TODO]"
+    cmd = "echo [TODO]"
+
+    print("")
+    print("Getting SCM top level")
+    print(cmd)
 
     stdout, stderr = settings.run_cmd(cmd)
 
     # svnPathCmd = 'cd ' + settings.escape_string(svnRoot) + ' && svn ls-tree -r --name-only HEAD | grep -m 1 ' + prjctName
-    svnPathCmd = "echo [TODO]"
+    cmd = "echo [TODO]"
+
+    print("")
+    print("Getting board file")
+    print(cmd)
 
     stdout, stderr = settings.run_cmd(cmd)
 
@@ -28,9 +36,6 @@ def get_boards(diff1, diff2, prjctName, kicad_project_path, prjctPath):
 
     artifact1, *tail = diff1.split(' |')
     artifact2, *tail = diff2.split(' |')
-
-    artifact1 = artifact1[1:]
-    artifact2 = artifact2[1:]
 
     cmd = 'cd ' + settings.escape_string(prjctPath) + ' && svn diff --summarize -r ' + \
         artifact1 + ':' + artifact2 + ' ' + prjctName
@@ -46,8 +51,8 @@ def get_boards(diff1, diff2, prjctName, kicad_project_path, prjctPath):
         print("\nThere is no difference in .kicad_pcb file in selected commits")
         sys.exit()
 
-    outputDir1 = prjctPath + settings.plotDir + '/' + artifact1
-    outputDir2 = prjctPath + settings.plotDir + '/' + artifact2
+    outputDir1 = prjctPath + '/' + settings.plotDir + '/' + kicad_project_path + '/' + artifact1
+    outputDir2 = prjctPath + '/' + settings.plotDir + '/' + kicad_project_path + '/' + artifact2
 
     if not os.path.exists(outputDir1):
         os.makedirs(outputDir1)
@@ -55,30 +60,35 @@ def get_boards(diff1, diff2, prjctName, kicad_project_path, prjctPath):
     if not os.path.exists(outputDir2):
         os.makedirs(outputDir2)
 
-    SVNdiffCmd1 = 'cd ' + prjctPath + ' && svn cat -r ' + artifact1 + \
+    svnArtifact1 = 'cd ' + prjctPath + ' && svn cat -r ' + artifact1 + \
         " " + prjctName + ' > ' + outputDir1 + '/' + prjctName
 
-    SVNdiffCmd2 = 'cd ' + prjctPath + ' && svn cat -r ' + artifact2 + \
+    svnArtifact2 = 'cd ' + prjctPath + ' && svn cat -r ' + artifact2 + \
         " " + prjctName + ' > ' + outputDir2 + '/' + prjctName
 
-    stdout, stderr = settings.run_cmd(SVNdiffCmd1)
-    stdout, stderr = settings.run_cmd(SVNdiffCmd2)
+    print("")
+    print("Get Artifacts")
+    print(svnArtifact1)
+    print(svnArtifact2)
 
-    dateTime1 = 'cd ' + prjctPath + ' && svn log -r ' + artifact1
-    dateTime2 = 'cd ' + prjctPath + ' && svn log -r ' + artifact2
+    stdout, stderr = settings.run_cmd(svnArtifact1)
+    stdout, stderr = settings.run_cmd(svnArtifact2)
+
+    svnDateTime1 = 'cd ' + prjctPath + ' && svn log -r ' + artifact1
+    svnDateTime2 = 'cd ' + prjctPath + ' && svn log -r ' + artifact2
 
     print("")
     print("Check datetime")
-    print(dateTime1)
-    print(dateTime2)
+    print(svnDateTime1)
+    print(svnDateTime2)
 
-    stdout, stderr = settings.run_cmd(dateTime1)
+    stdout, stderr = settings.run_cmd(svnDateTime1)
     dateTime = stdout
 
     cmt = (dateTime.splitlines()[1]).split('|')
     _, SVNdate1, SVNtime1, SVNutc, *_ = cmt[2].split(' ')
 
-    stdout, stderr = settings.run_cmd(dateTime2)
+    stdout, stderr = settings.run_cmd(svnDateTime2)
     dateTime = stdout
 
     cmt = (dateTime.splitlines()[1]).split('|')

@@ -60,15 +60,25 @@ def get_boards(diff1, diff2, prjctName, kicad_project_path, prjctPath):
     fossilArtifact2 = 'cd ' + settings.escape_string(prjctPath) + ' && fossil cat ' + settings.escape_string(prjctPath) + '/' + prjctName + \
         ' -r ' + artifact2 + ' > ' + outputDir2 + '/' + prjctName
 
-    fossilInfo1 = 'cd ' + settings.escape_string(prjctPath) + ' && fossil info ' + artifact1
-    fossilInfo2 = 'cd ' + settings.escape_string(prjctPath) + ' && fossil info ' + artifact2
+    print("")
+    print("Get Artifacts")
+    print(fossilArtifact1)
+    print(fossilArtifact2)
+
+    fossilDateTime1 = 'cd ' + settings.escape_string(prjctPath) + ' && fossil info ' + artifact1
+    fossilDateTime2 = 'cd ' + settings.escape_string(prjctPath) + ' && fossil info ' + artifact2
+
+    print("")
+    print("Check datetime")
+    print(fossilDateTime1)
+    print(fossilDateTime2)
 
     stdout, stderr = settings.run_cmd(fossilArtifact1)
-    dateTime, _ = settings.run_cmd(fossilInfo1)
+    dateTime, _ = settings.run_cmd(fossilDateTime1)
     uuid, _, _, _, _, _, _, _, _, artifactRef, dateDiff1, timeDiff1, *junk1 = dateTime.split(" ")
 
     stdout, stderr = settings.run_cmd(fossilArtifact2)
-    dateTime, _ = settings.run_cmd(fossilInfo2)
+    dateTime, _ = settings.run_cmd(fossilDateTime2)
     uuid, _, _, _, _, _, _, _, _, artifactRef, dateDiff2, timeDiff2, *junk1 = dateTime.split(" ")
 
     dateTime = dateDiff1 + " " + timeDiff1 + " " + dateDiff2 + " " + timeDiff2

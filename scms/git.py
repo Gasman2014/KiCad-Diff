@@ -78,11 +78,21 @@ def get_boards(diff1, diff2, prjctName, kicad_project_path, prjctPath):
     gitArtifact2 = 'cd ' + settings.escape_string(prjctPath) + ' && ' + \
         'git show ' + artifact2 + ':' + gitPath + ' > ' + settings.escape_string(outputDir2) + '/' + prjctName
 
+    print("")
+    print("Get Artifacts")
+    print(gitArtifact1)
+    print(gitArtifact2)
+
     stdout, stderr = settings.run_cmd(gitArtifact1)
     stdout, stderr = settings.run_cmd(gitArtifact2)
 
     gitDateTime1 = 'cd ' + settings.escape_string(prjctPath) + ' && git show -s --format="%ci" ' + artifact1
     gitDateTime2 = 'cd ' + settings.escape_string(prjctPath) + ' && git show -s --format="%ci" ' + artifact2
+
+    print("")
+    print("Check datetime")
+    print(gitDateTime1)
+    print(gitDateTime2)
 
     stdout, stderr = settings.run_cmd(gitDateTime1)
     dateTime1 = stdout
