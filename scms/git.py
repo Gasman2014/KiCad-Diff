@@ -12,11 +12,19 @@ def get_board_path(prjctName, prjctPath):
 
     cmd = 'cd ' + settings.escape_string(prjctPath) + ' && git rev-parse --show-toplevel'
 
+    print("")
+    print("Getting SCM top level")
+    print(cmd)
+
     stdout, _ = settings.run_cmd(cmd)
     scm_root = stdout
 
     cmd = 'cd {scm_root} && git ls-tree -r --name-only HEAD | grep -m 1 {prjctName}'.format(
         scm_root=settings.escape_string(scm_root), prjctName=prjctName)
+
+    print("")
+    print("Getting board file")
+    print(cmd)
 
     stdout, _ = settings.run_cmd(cmd)
 
@@ -33,14 +41,15 @@ def get_boards(diff1, diff2, prjctName, kicad_project_path, prjctPath):
     # Using this to fix the path when there is no subproject
     prj_path = kicad_project_path + '/'
     if kicad_project_path == '.':
-        prj_path == ''
+        prj_path = ''
 
     cmd = \
         'cd ' + settings.escape_string(prjctPath) + ' && ' + \
         'git diff --name-only ' + artifact1 + ' ' + artifact2 + ' . | ' + \
-        "grep '^" + prj_path + prjctName + "'"
+        "grep " + prj_path + prjctName
 
     print("")
+    print("Getting Boards")
     print(cmd)
 
     stdout, stderr = settings.run_cmd(cmd)
@@ -59,7 +68,8 @@ def get_boards(diff1, diff2, prjctName, kicad_project_path, prjctPath):
     if not os.path.exists(outputDir2):
         os.makedirs(outputDir2)
 
-    gitPath = get_board_path(settings.escape_string(kicad_project_path) + "/" + prjctName, settings.escape_string(prjctPath))
+    # gitPath = get_board_path(settings.escape_string(kicad_project_path) + "/" + prjctName, settings.escape_string(prjctPath))
+    gitPath = get_board_path(settings.escape_string(prj_path + prjctName), settings.escape_string(prjctPath))
 
     gitArtifact1 = 'cd ' + settings.escape_string(prjctPath) + ' && ' + \
         'git show ' + artifact1 + ':' + gitPath + ' > ' + \
@@ -68,11 +78,21 @@ def get_boards(diff1, diff2, prjctName, kicad_project_path, prjctPath):
     gitArtifact2 = 'cd ' + settings.escape_string(prjctPath) + ' && ' + \
         'git show ' + artifact2 + ':' + gitPath + ' > ' + settings.escape_string(outputDir2) + '/' + prjctName
 
+    print("")
+    print("Get Artifacts")
+    print(gitArtifact1)
+    print(gitArtifact2)
+
     stdout, stderr = settings.run_cmd(gitArtifact1)
     stdout, stderr = settings.run_cmd(gitArtifact2)
 
     gitDateTime1 = 'cd ' + settings.escape_string(prjctPath) + ' && git show -s --format="%ci" ' + artifact1
     gitDateTime2 = 'cd ' + settings.escape_string(prjctPath) + ' && git show -s --format="%ci" ' + artifact2
+
+    print("")
+    print("Check datetime")
+    print(gitDateTime1)
+    print(gitDateTime2)
 
     stdout, stderr = settings.run_cmd(gitDateTime1)
     dateTime1 = stdout
@@ -85,7 +105,7 @@ def get_boards(diff1, diff2, prjctName, kicad_project_path, prjctPath):
     time1 = date1 + " " + time1
     time2 = date2 + " " + time2
 
-    return time1 + " " + time2
+    return artifact1, artifact2, time1 + " " + time2
 
 
 def get_artefacts(prjctPath, board_file):

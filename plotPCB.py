@@ -1,54 +1,20 @@
-#!/usr/bin/env sh
-# -*- mode: Python -*-
+#!/usr/bin/env python3
 
-<<<<<<< HEAD
-""":"
-if [[ "$OSTYPE" == "darwin"* ]]; then
-    PYBIN="/Applications/Kicad/kicad.app/Contents/Frameworks/Python.framework/Versions/Current/bin/python"
-else
-    PYBIN="/usr/bin/env python3"
-fi
-exec ${PYBIN} "$0" "$@"
-":"""
-=======
 '''
 Plot layers of Kicad PCB board into .svg files
 '''
->>>>>>> d6b49d097e62d9abfe45e97478c19f86e15cbeea
 
 import argparse
 import sys
-<<<<<<< HEAD
-if sys.platform == 'darwin':
-    sys.path.insert(
-        0,
-        "/Applications/Kicad/kicad.app/Contents/Frameworks/python/site-packages/"
-    )
-=======
 
 import platform
 if platform.system() == 'Darwin':
     sys.path.insert(0,"/Applications/Kicad/kicad.app/Contents/Frameworks/python/site-packages/")
 
->>>>>>> d6b49d097e62d9abfe45e97478c19f86e15cbeea
 import pcbnew
 from pcbnew import *
 
 
-<<<<<<< HEAD
-def processBoard(boardName, plotDir):
-    """Convert layers of KiCad PCB to SVGs"""
-    print(boardName)
-    print(plotDir)
-    # Load board and initialize plot controller
-    board = pcbnew.LoadBoard(boardName)
-    boardBox = board.ComputeBoundingBox()
-    boardXl = boardBox.GetX()
-    boardYl = boardBox.GetY()
-    boardWidth = boardBox.GetWidth()
-    boardHeight = boardBox.GetHeight()
-    print(boardXl, boardYl, boardWidth, boardHeight)
-=======
 def processBoard(boardName, plotDir, quiet):
     '''Load board and initialize plot controller'''
 
@@ -61,7 +27,6 @@ def processBoard(boardName, plotDir, quiet):
 
     if not quiet:
         print(boardxl, boardyl, boardwidth, boardheight)
->>>>>>> d6b49d097e62d9abfe45e97478c19f86e15cbeea
 
     pctl = pcbnew.PLOT_CONTROLLER(board)
     pctl.SetColorMode(True)
@@ -134,7 +99,7 @@ def processBoard(boardName, plotDir, quiet):
         pctl.OpenPlotfile(layer_info[0], pcbnew.PLOT_FORMAT_SVG, layer_info[2])
         pctl.PlotLayer()
 
-    return (boardXl, boardYl, boardWidth, boardHeight)
+    return (boardxl, boardyl, boardwidth, boardheight)
 
 
 def parse_cli_args():
@@ -148,11 +113,6 @@ def parse_cli_args():
 
 if __name__ == "__main__":
 
-<<<<<<< HEAD
-    boardName = sys.argv[1]
-    plotDir = sys.argv[2]
-    processBoard(boardName, plotDir)
-=======
     args = parse_cli_args()
 
     boardName = args.kicad_pcb[0]
@@ -161,4 +121,3 @@ if __name__ == "__main__":
         plotDir = args.output_folder
 
     processBoard(boardName, plotDir, args.quiet)
->>>>>>> d6b49d097e62d9abfe45e97478c19f86e15cbeea

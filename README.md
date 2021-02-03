@@ -19,10 +19,10 @@ This was originally written as a bash script, this newer GUI version has been re
 - The terminal should give you some useful information on progress. Please include a copy of this if you have any issues.
 - Hit `Ctrl+C` to terminate the webserver.
 
-### Linux and macOS
-- Run the main script `kidiff_cli.py`. Use `--help` option for usage.
-- [Optional] Temporarily add `kidiff_cli.py` to your PATH with `. env.sh`
-- [macOS only] KiCad on macOS uses a locally installed version of python and NOT the system python. This also assumes that KiCad is installed normally in the 'Applications' folder.
+### Linux and MacOS
+- Run the main script `kidiff_linux.py`. Use `--help` option for usage.
+- [Optional] Temporarily add `kidiff_linux.py` to your PATH with `. env.sh`
+- [MacOS only] KiCad on macOS uses a locally installed version of python and NOT the system python. For other *nix operating systems, the site-packages are installed under the system python so don't need any further adjustment. For macOS, use the 'plotPCB_macOS.py' file. This also assumes that KiCad is installed normally in the 'Applications' folder
 
 ### Windows
 - Run `kidiff_gui.py` script
@@ -32,11 +32,11 @@ This was originally written as a bash script, this newer GUI version has been re
 The script should build a series of svg files and display the diff in a webpage. If a web page doesn't open automatically, navigate to "http://127.0.0.1:9090/web/index.html" to view the output. You can adjust the port used (9090 by default) if this conflicts with your existing set-up.
 
 
-## Command Line Usage [Linux and macOS]
+## Command Line Usage [Linux and MacOS]
 
 ```
-➜ ./kidiff_cli.py -h
-usage: kidiff_cli.py [-h] [-d DISPLAY] [-a COMMIT1] [-b COMMIT2] [-s SCM] [-g] [-p PORT] [-w] kicad_pcb
+➜ ./kidiff_linux.py -h
+usage: kidiff_linux.py [-h] [-d DISPLAY] [-a COMMIT1] [-b COMMIT2] [-s SCM] [-g] [-p PORT] [-w] kicad_pcb
 
 Kicad PCB visual diffs.
 
@@ -79,31 +79,26 @@ plotPCB.py board.kicad_pcb output_folder
 # Screenshots
 
 ### GUI
-![GUI](/docs/gui.png)
+<img src="/docs/gui.png" width="500" alt="gui">
 
-![GUI](/docs/gui2.png)
-
+<img src="/docs/gui2.png" width="500" alt="gui2">
 
 ### Overview
-![Overview](/docs/Overview.png)
+<img src="/docs/Overview.png" width="100" height="100" alt="overview">
 
 ### Main view
-![Main](/docs/main1.png)
-
-![Main](/docs/main2.png)
-
+<img src="/docs/main1.png" width="100" height="100" alt="main1">
+<img src="/docs/main2.png" width="100" height="100" alt="main2">
 
 ### Diff
-![Fab Layer Diff](/docs/diff.png)
-
+<img src="/docs/diff.png" width="100" height="100" alt="fab layer diff">
 
 ### Fab Layer
-![Fab layer side by side](/docs/pair.png)
-
+<img src="/docs/pair.png" width="100" height="100" alt="fab layer side by side">
 
 ### F_Cu Layer
-![Cu difference view](/docs/cu.png)
-![Cu layer - 3 pane view](/docs/composite.png)
+<img src="/docs/cu.png" width="100" height="100" alt="Cu difference view">
+<img src="/docs/composite.png" width="100" height="100" alt="Cu layer - 3 pane view">
 
 ### Text Diff
-![Text Diff](/docs/text.png)
+<img src="/docs/text.png" width="100" height="100" alt="Text Diff">
