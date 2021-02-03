@@ -18,11 +18,11 @@ global plotProg
 global plotDir
 global webDir
 
-# gitProg = 'git'
-# fossilProg = 'fossil'
-# svnProg = 'svn'
-# diffProg = 'diff'
-# grepProg = 'grep'
+gitProg = 'git'
+fossilProg = 'fossil'
+svnProg = 'svn'
+diffProg = 'diff'
+grepProg = 'grep'
 
 plotProg = 'plotpcb'
 
