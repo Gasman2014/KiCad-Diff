@@ -79,31 +79,26 @@ plotPCB.py board.kicad_pcb output_folder
 # Screenshots
 
 ### GUI
-![GUI](/docs/gui.png)
+<img src="/docs/gui.png" width="100" height="100" alt="gui">
 
-![GUI](/docs/gui2.png)
-
+<img src="/docs/gui2.png" width="100" height="100" alt="gui2">
 
 ### Overview
-![Overview](/docs/Overview.png)
+<img src="/docs/Overview.png" width="100" height="100" alt="overview">
 
 ### Main view
-![Main](/docs/main1.png)
-
-![Main](/docs/main2.png)
-
+<img src="/docs/main1.png" width="100" height="100" alt="main1">
+<img src="/docs/main2.png" width="100" height="100" alt="main2">
 
 ### Diff
-![Fab Layer Diff](/docs/diff.png)
-
+<img src="/docs/diff.png" width="100" height="100" alt="fab layer diff">
 
 ### Fab Layer
-![Fab layer side by side](/docs/pair.png)
-
+<img src="/docs/pair.png" width="100" height="100" alt="fab layer side by side">
 
 ### F_Cu Layer
-![Cu difference view](/docs/cu.png)
-![Cu layer - 3 pane view](/docs/composite.png)
+<img src="/docs/cu.png" width="100" height="100" alt="Cu difference view">
+<img src="/docs/composite.png" width="100" height="100" alt="Cu layer - 3 pane view">
 
 ### Text Diff
-![Text Diff](/docs/text.png)
+<img src="/docs/text.png" width="100" height="100" alt="Text Diff">
