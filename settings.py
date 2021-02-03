@@ -5,11 +5,11 @@ import sys
 import subprocess
 from subprocess import PIPE, STDOUT, Popen
 
+args = ''
 
 global gitProg
 global fossilProg
 global svnProg
-
 global diffProg
 global grepProg
 
@@ -18,12 +18,11 @@ global plotProg
 global plotDir
 global webDir
 
-gitProg = 'git'
-fossilProg = 'fossil'
-svnProg = 'svn'
-
-diffProg = 'diff'
-grepProg = 'grep'
+# gitProg = 'git'
+# fossilProg = 'fossil'
+# svnProg = 'svn'
+# diffProg = 'diff'
+# grepProg = 'grep'
 
 plotProg = 'plotpcb'
 

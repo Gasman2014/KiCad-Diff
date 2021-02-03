@@ -22,7 +22,7 @@ def get_board_path(prjctName, prjctPath):
     return settings.escape_string(stdout)
 
 
-def get_boards(diff1, diff2, prjctName, prjctPath):
+def get_boards(diff1, diff2, prjctName, kicad_project_path, prjctPath):
     '''Given two SVN revisions, write out two kicad_pcb files to their respective
     directories (named after the revision number). Returns the date and time of both commits'''
 
@@ -74,10 +74,13 @@ def get_boards(diff1, diff2, prjctName, prjctPath):
     return (times)
 
 
-def get_artefacts(prjctPath):
+def get_artefacts(prjctPath, board_file):
     '''Returns list of revisions from a directory'''
 
-    cmd = 'cd {prjctPath} && svn log -r HEAD:0 | perl -l40pe "s/^-+/\n/"'.format(prjctPath=prjctPath)
+    cmd = 'cd {prjctPath} && svn log -r HEAD:0 | perl -l40pe "s/^-+/\\n/"'.format(prjctPath=prjctPath)
+
+    print("")
+    print(cmd)
 
     stdout, stderr = settings.run_cmd(cmd)
     artifacts = stdout.splitlines()

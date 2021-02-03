@@ -37,8 +37,11 @@ def get_boards(diff1, diff2, prjctName, kicad_project_path, prjctPath):
 
     cmd = \
         'cd ' + settings.escape_string(prjctPath) + ' && ' + \
-        settings.gitProg + ' diff --name-only ' + artifact1 + ' ' + artifact2 + ' . | ' + \
-        settings.grepProg + " '^" + prj_path + prjctName + "'"
+        'git diff --name-only ' + artifact1 + ' ' + artifact2 + ' . | ' + \
+        "grep '^" + prj_path + prjctName + "'"
+
+    print("")
+    print(cmd)
 
     stdout, stderr = settings.run_cmd(cmd)
     changed = stdout
@@ -59,11 +62,11 @@ def get_boards(diff1, diff2, prjctName, kicad_project_path, prjctPath):
     gitPath = get_board_path(settings.escape_string(kicad_project_path) + "/" + prjctName, settings.escape_string(prjctPath))
 
     gitArtifact1 = 'cd ' + settings.escape_string(prjctPath) + ' && ' + \
-        settings.gitProg + ' show ' + artifact1 + ':' + gitPath + ' > ' + \
+        'git show ' + artifact1 + ':' + gitPath + ' > ' + \
         settings.escape_string(outputDir1) + '/' + prjctName
 
     gitArtifact2 = 'cd ' + settings.escape_string(prjctPath) + ' && ' + \
-        settings.gitProg + ' show ' + artifact2 + ':' + gitPath + ' > ' + settings.escape_string(outputDir2) + '/' + prjctName
+        'git show ' + artifact2 + ':' + gitPath + ' > ' + settings.escape_string(outputDir2) + '/' + prjctName
 
     stdout, stderr = settings.run_cmd(gitArtifact1)
     stdout, stderr = settings.run_cmd(gitArtifact2)
@@ -85,7 +88,7 @@ def get_boards(diff1, diff2, prjctName, kicad_project_path, prjctPath):
     return time1 + " " + time2
 
 
-def get_artefacts(prjctPath):
+def get_artefacts(prjctPath, board_file):
     '''Returns list of artifacts from a directory'''
 
     cmd = 'cd {prjctPath} && git log --pretty=format:"%h | %s"'.format(prjctPath=prjctPath)
