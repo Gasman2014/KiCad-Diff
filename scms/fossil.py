@@ -23,7 +23,8 @@ def get_board_path(prjctName, prjctPath):
     return settings.escape_string(stdout)
 
 
-def get_boards(diff1, diff2, prjctName, prjctPath):
+def get_boards(diff1, diff2, prjctName, kicad_project_path, prjctPath):
+
     '''Given two Fossil artifacts, write out two kicad_pcb files to their respective
     directories (named after the artifacts). Returns the date and time of both commits'''
 
@@ -75,6 +76,9 @@ def get_artefacts(prjctPath, board_file):
     '''Returns list of artifacts from a directory'''
 
     cmd = 'cd {prjctPath} && fossil finfo -b {board_file}'.format(prjctPath=prjctPath, board_file=board_file)
+
+    print("")
+    print(cmd)
 
     stdout, stderr = settings.run_cmd(cmd)
     artifacts = [a.replace(' ', '\t', 4) for a in stdout.splitlines()]
