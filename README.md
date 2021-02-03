@@ -109,5 +109,5 @@ plotPCB.py board.kicad_pcb output_folder
 ### F_Cu Layer 3 Pane View
 <img src="/docs/composite.png" width="500" alt="Cu layer - 3 pane view">
 
-### Text Diff
+### Attributes Diff
 <img src="/docs/text.png" width="850" alt="Text Diff">
