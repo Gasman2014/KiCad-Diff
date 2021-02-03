@@ -100,8 +100,8 @@ def runGUI(checkouts_top, prjctName, kicad_project_path, prjctPath, scm):
     root.geometry('800x700')
 
     frame1 = tk.LabelFrame(root, text=scm.upper(), width=1000, height=25, bd=1, background='#ececec')
-    frame2 = tk.LabelFrame(root, text="Commit 1", width=1000, height=200, bd=1, background='#ececec')
-    frame3 = tk.LabelFrame(root, text="Commit 2", width=1000, height=200, bd=1, background='#ececec')
+    frame2 = tk.LabelFrame(root, text="Commit 1 (a)", width=1000, height=200, bd=1, background='#ececec')
+    frame3 = tk.LabelFrame(root, text="Commit 2 (b)", width=1000, height=200, bd=1, background='#ececec')
     frame4 = tk.LabelFrame(root, width=1000, height=10, bd=0, background='#ececec')
 
     frame1.grid(row=0, column=0, padx=25, sticky='N E W S')
