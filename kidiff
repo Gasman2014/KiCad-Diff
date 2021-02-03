@@ -584,7 +584,9 @@ def parse_cli_args():
 
     args = parser.parse_args()
 
-    if args.verbose == 3:
+    if args.verbose >= 3:
+        print("")
+        print("Command Line Arguments")
         print(args)
 
     return args
@@ -661,13 +663,13 @@ if __name__ == "__main__":
     print(" Commit 1 (a):", d1.split(' ')[0])
     print(" Commit 2 (b):", d2.split(' ')[0])
 
-    artifacts = scm.get_boards(d1, d2, board_file, kicad_project, prjctPath)
+    datetimes = scm.get_boards(d1, d2, board_file, kicad_project, prjctPath)
 
     svgDir1, svgDir2, boardDims1, boardDims2 = makeSVG(d1, d2, board_file, kicad_project, prjctPath)
 
     makeSupportFiles(board_file, kicad_project, prjctPath)
 
-    makeOutput(svgDir1, svgDir2, board_file, kicad_project, prjctPath, times, boardDims1, boardDims2)
+    makeOutput(svgDir1, svgDir2, board_file, kicad_project, prjctPath, datetimes, boardDims1, boardDims2)
 
     if not args.webserver_disable:
         startWebServer(args.port, kicad_project)
