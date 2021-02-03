@@ -98,7 +98,7 @@ plotPCB.py board.kicad_pcb output_folder
 <img src="/docs/main2.png" width="700" alt="main2">
 
 ### Overlaped Diff
-<img src="/docs/diff.png" width="400" alt="fab layer diff">
+<img src="/docs/diff.png" width="300" alt="fab layer diff">
 
 ### Side-by-Side View
 <img src="/docs/pair.png" width="600" alt="fab layer side by side">
