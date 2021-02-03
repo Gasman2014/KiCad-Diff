@@ -77,7 +77,8 @@ There should be some output in the launch terminal. Please copy this and include
 plotPCB.py board.kicad_pcb output_folder
 ```
 
-## Next Steps
+<!-- NEXT Steps was removed. It is better to put this on Wiki -->
+<!-- ## Next Steps
 
   1. Improvement in parsing and meaning of text diffs.
   2. Place all template text/css text in external files.
@@ -86,7 +87,7 @@ plotPCB.py board.kicad_pcb output_folder
   5. Adjust for three pane output to have white outer border & pan-zoom control, not filter color.
   6. Improve three pane output layout, perhaps with diff tree on LHS and not underneath.
   7. Consider adding 'Preferences' for this program.
-
+ -->
 
 # Screenshots
 
