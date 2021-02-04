@@ -66,7 +66,7 @@ def get_boards(diff1, diff2, prjctName, kicad_project_path, prjctPath):
         ' -r ' + artifact2 + ' > ' + outputDir2 + '/' + prjctName
 
     print("")
-    print("Getting artifacts")
+    print("Setting artifact paths")
     print(fossilArtifact1)
     print(fossilArtifact2)
 
@@ -84,7 +84,7 @@ def get_boards(diff1, diff2, prjctName, kicad_project_path, prjctPath):
 
     stdout, stderr = settings.run_cmd(fossilArtifact2)
     dateTime, _ = settings.run_cmd(fossilDateTime2)
-    uuid, _, _, _, _, _, _, _, _, artifactRef, dateDiff2, timeDiff2, *junk1 = dateTime.split(" ")
+    uuid, _, _, _, _, _, _, _, _, artifactRef, dateDiff2, timeDiff2, *junk2 = dateTime.split(" ")
 
     dateTime = dateDiff1 + " " + timeDiff1 + " " + dateDiff2 + " " + timeDiff2
 
@@ -97,7 +97,7 @@ def get_artefacts(prjctPath, board_file):
     cmd = 'cd {prjctPath} && fossil finfo -b {board_file}'.format(prjctPath=prjctPath, board_file=board_file)
 
     print("")
-    print("Getting Artifacts")
+    print("Getting artifacts")
     print(cmd)
 
     stdout, stderr = settings.run_cmd(cmd)
