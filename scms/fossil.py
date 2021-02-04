@@ -45,23 +45,28 @@ def get_boards(diff1, diff2, prjctName, kicad_project_path, prjctPath):
         print("\nThere is no difference in .kicad_pcb file in selected commits")
         sys.exit()
 
-    outputDir1 = prjctPath + '/' + settings.plotDir + '/' + kicad_project_path + '/' + artifact1
-    outputDir2 = prjctPath + '/' + settings.plotDir + '/' + kicad_project_path + '/' + artifact2
+    outputDir1 = prjctPath + settings.plotDir + '/' + artifact1
+    outputDir2 = prjctPath + settings.plotDir + '/' + artifact2
 
     if not os.path.exists(outputDir1):
         os.makedirs(outputDir1)
 
     if not os.path.exists(outputDir2):
         os.makedirs(outputDir2)
+    
+    print("")
+    print("Setting output paths")
+    print(outputDir1)
+    print(outputDir2)
 
-    fossilArtifact1 = 'cd ' + settings.escape_string(prjctPath) + ' && fossil cat ' + settings.escape_string(prjctPath) + '/' + prjctName + \
+    fossilArtifact1 = 'cd ' + settings.escape_string(prjctPath) + ' && fossil cat ' + settings.escape_string(prjctPath) + prjctName + \
         ' -r ' + artifact1 + ' > ' + outputDir1 + '/' + prjctName
 
-    fossilArtifact2 = 'cd ' + settings.escape_string(prjctPath) + ' && fossil cat ' + settings.escape_string(prjctPath) + '/' + prjctName + \
+    fossilArtifact2 = 'cd ' + settings.escape_string(prjctPath) + ' && fossil cat ' + settings.escape_string(prjctPath) + prjctName + \
         ' -r ' + artifact2 + ' > ' + outputDir2 + '/' + prjctName
 
     print("")
-    print("Get Artifacts")
+    print("Getting artifacts")
     print(fossilArtifact1)
     print(fossilArtifact2)
 
@@ -69,7 +74,7 @@ def get_boards(diff1, diff2, prjctName, kicad_project_path, prjctPath):
     fossilDateTime2 = 'cd ' + settings.escape_string(prjctPath) + ' && fossil info ' + artifact2
 
     print("")
-    print("Check datetime")
+    print("Checking datetime")
     print(fossilDateTime1)
     print(fossilDateTime2)
 
