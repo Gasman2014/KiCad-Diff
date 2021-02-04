@@ -154,6 +154,7 @@ def makeSVG(d1, d2, board_file, kicad_project_path, prjctPath):
     print("Artifact 2         : ", d2)
     print("Kicad project path : ", kicad_project_path)
     print("Project            : ", prjctPath)
+    print("Plot program       : ", settings.plotProg)
     print("Settings           : ", settings.plotDir)
 
     d1SVG = prjctPath + '/' + settings.plotDir + '/' + d1
@@ -176,6 +177,10 @@ def makeSVG(d1, d2, board_file, kicad_project_path, prjctPath):
 
     plot1Cmd = settings.plotProg + ' ' + settings.escape_string(Diff1) + ' -o ' + settings.escape_string(d1SVG)
     plot2Cmd = settings.plotProg + ' ' + settings.escape_string(Diff2) + ' -o ' + settings.escape_string(d2SVG)
+    
+    print("")
+    print("Plot 1 Command    : ", plot1Cmd)
+    print("Plot 2 Command    : ", plot2Cmd)
 
     plot1=Popen(
         plot1Cmd,
