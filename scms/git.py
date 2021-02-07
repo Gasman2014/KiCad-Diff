@@ -76,7 +76,7 @@ def get_boards(diff1, diff2, prjctName, kicad_project_path, prjctPath):
         settings.escape_string(outputDir1) + '/' + prjctName
 
     gitArtifact2 = 'cd ' + settings.escape_string(prjctPath) + ' && ' + \
-        'git show ' + artifact2 + ':' + gitPath + ' > ' + 
+        'git show ' + artifact2 + ':' + gitPath + ' > ' + \
         settings.escape_string(outputDir2) + '/' + prjctName
 
     print("")

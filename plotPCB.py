@@ -41,6 +41,7 @@ def processBoard(boardName, plotDir, quiet):
     popt.SetUseGerberAttributes(True)
     popt.SetExcludeEdgeLayer(False)
     popt.SetUseAuxOrigin(True)
+    popt.Set
 
     # layers = [
     #     ("F_Cu", pcbnew.F_Cu, "Top layer"),
