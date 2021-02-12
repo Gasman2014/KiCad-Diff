@@ -149,24 +149,24 @@ def makeSVG(d1, d2, board_file, kicad_project_path, prjctPath):
 
     Diff1 = d1SVG + "/" + board_file
     Diff2 = d2SVG + "/" + board_file
-    print("Setting paths Diff1: ",Diff1)
-    print("              Diff2: ",Diff2)
     print("")
+    print("Setting paths")
+    print("Diff1: ",Diff1)
+    print("Diff2: ",Diff2)
 
     if not os.path.exists(d1SVG):
         os.makedirs(d1SVG)
-        print("Creating Diff1 directory")
 
     if not os.path.exists(d2SVG):
         os.makedirs(d2SVG)
-        print("Creating Diff2 directory")
 
     plot1Cmd = settings.plotProg + ' ' + settings.escape_string(Diff1) + ' -o ' + settings.escape_string(d1SVG)
     plot2Cmd = settings.plotProg + ' ' + settings.escape_string(Diff2) + ' -o ' + settings.escape_string(d2SVG)
     
     print("")
-    print("Plot 1 Command    : ", plot1Cmd)
-    print("Plot 2 Command    : ", plot2Cmd)
+    print("Plot Commands:")
+    print(plot1Cmd)
+    print(plot2Cmd)
 
     plot1=Popen(
         plot1Cmd,
