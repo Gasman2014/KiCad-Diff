@@ -37,9 +37,6 @@ def get_boards(diff1, diff2, prjctName, kicad_project_path, prjctPath):
     artifact1, *tail = diff1.split(' |')
     artifact2, *tail = diff2.split(' |')
 
-    artifact1 = artifact1.replace(" ", "")
-    artifact2 = artifact2.replace(" ", "")
-
     # Using this to fix the path when there is no subproject
     prj_path = kicad_project_path + '/'
     if kicad_project_path == '.':
@@ -110,7 +107,7 @@ def get_boards(diff1, diff2, prjctName, kicad_project_path, prjctPath):
 def get_artefacts(prjctPath, board_file):
     '''Returns list of revisions from a directory'''
 
-    cmd = 'cd {prjctPath} && svn log -r HEAD:0 | perl -l40pe "s/^-+/\\n/"'.format(prjctPath=prjctPath)
+    cmd = 'cd {prjctPath} && svn log -r HEAD:0 | perl -l40pe "s/^-+/\\n/" | sed "s/ [0-9]\\+ line //g" | sed "s/^ //g" '.format(prjctPath=prjctPath)
 
     print("")
     print("Getting Artifacts")

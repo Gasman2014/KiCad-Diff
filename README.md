@@ -8,10 +8,6 @@ The output is presented as a gallery of images of each layer. Each layer pair ca
 
 The diff output can be scrolled and zoomed in and out for closer inspection. The pair of 'before and after' views will also pan and zoom together. I have looked at linking all three windows together but this makes for a very confusing and unsatisfactory effect.
 
-There is an additional 'Text Diff' which is helpful for identifying specific areas which have changed. Ongoing work to compare netlist directly.
-
-This was originally written as a bash script, this newer GUI version has been rewritten in Python3 and supports Git, SVN and Fossil as SCM tools. I have also removed many of the dependencies.
-
 ## Instructions
 
 ### General
@@ -19,42 +15,58 @@ This was originally written as a bash script, this newer GUI version has been re
 - The terminal should give you some useful information on progress. Please include a copy of this if you have any issues.
 - Hit `Ctrl+C` to terminate the webserver.
 
-### Linux and MacOS
-- Run the main script `kidiff_linux.py`. Use `--help` option for usage.
-- [Optional] Temporarily add `kidiff_linux.py` to your PATH with `. env.sh`
-- [MacOS only] KiCad on macOS uses a locally installed version of python and NOT the system python. For other *nix operating systems, the site-packages are installed under the system python so don't need any further adjustment. For macOS, use the 'plotPCB_macOS.py' file. This also assumes that KiCad is installed normally in the 'Applications' folder
 
-### Windows
-- Run `kidiff_gui.py` script
-- Check that the paths to your SCM tools are correct (lines 39-45). You do not need to install all of these but if you do not have one make sure that you set it to null  e.g. if you don't have SVN installed, make sure you set svnProg=''.
-- Check that the path to `plotPCB.py` is correct in `kidiff_gui.py`
+## Usage
 
-The script should build a series of svg files and display the diff in a webpage. If a web page doesn't open automatically, navigate to "http://127.0.0.1:9090/web/index.html" to view the output. You can adjust the port used (9090 by default) if this conflicts with your existing set-up.
-
-
-## Command Line Usage [Linux and MacOS]
+Make sure you have SCMs (Git, Fossil and/or SVN) available throught the PATH variable.
+Add the script path to your PATH too so the `kidiff` and `kiplotpcb` will be available.
+This can be done easely with:
 
 ```
-➜ ./kidiff_linux.py -h
-usage: kidiff_linux.py [-h] [-d DISPLAY] [-a COMMIT1] [-b COMMIT2] [-s SCM] [-g] [-p PORT] [-w] kicad_pcb
+cd KiCad-Diff
+source env.sh
+```
+
+### Comandline help
+
+```
+➜ ./kidiff -h
+usage: kidiff [-h] [-a COMMIT1] [-b COMMIT2] [-g] [-s SCM] [-d DISPLAY] [-p PORT] [-w] [-v] [PCB_PATH]
 
 Kicad PCB visual diffs.
 
 positional arguments:
-  kicad_pcb             Kicad PCB
+  PCB_PATH              Kicad PCB path
 
 optional arguments:
   -h, --help            show this help message and exit
   -a COMMIT1, --commit1 COMMIT1
-                        Commit1
+                        Commit 1
   -b COMMIT2, --commit2 COMMIT2
-                        Commit2
+                        Commit 2
+  -g, --gui             Use gui
+  -s SCM, --scm SCM     Select SCM (git, svn, fossil)
   -d DISPLAY, --display DISPLAY
                         Set DISPLAY value, default :1.0
   -p PORT, --port PORT  Set webserver port
-  -s SCM, --scm SCM     Select SCM (Git, SVN, Fossil)
   -w, --webserver-disable
                         Does not execute webserver (just generate images)
+  -v, --verbose         Increase verbosity (-vvv)
+
+```
+
+### Usage example
+
+```
+# Forcing an specific SCM when both are available (Precedence: Git > Fossil > SVN)
+kidiff ../scms-samples/led-board-git-fossil/led_test.kicad_pcb --scm fossil
+
+# With a Git repo
+kidiff ../scms-samples/led-board-git/led_test.kicad_pcb             
+
+# With a Git repo, passing Commit 1 and 2 on the command line
+kidiff ../scms-samples/led-board-svn/led_test.kicad_pcb -a r1 -b r3
+
 ```
 
 ## Debugging
@@ -65,7 +77,8 @@ There should be some output in the launch terminal. Please copy this and include
 plotPCB.py board.kicad_pcb output_folder
 ```
 
-## Next Steps
+<!-- NEXT Steps was removed. It is better to put this on Wiki -->
+<!-- ## Next Steps
 
   1. Improvement in parsing and meaning of text diffs.
   2. Place all template text/css text in external files.
@@ -74,31 +87,28 @@ plotPCB.py board.kicad_pcb output_folder
   5. Adjust for three pane output to have white outer border & pan-zoom control, not filter color.
   6. Improve three pane output layout, perhaps with diff tree on LHS and not underneath.
   7. Consider adding 'Preferences' for this program.
-
+ -->
 
 # Screenshots
 
 ### GUI
-<img src="/docs/gui.png" width="500" alt="gui">
+<img src="/docs/gui.png" width="550" alt="gui">
 
-<img src="/docs/gui2.png" width="500" alt="gui2">
+### Main View
+<img src="/docs/main1.png" width="820" alt="main1">
+<img src="/docs/main2.png" width="820" alt="main2">
 
-### Overview
-<img src="/docs/Overview.png" width="100" height="100" alt="overview">
+### Overlaped Diff
+<img src="/docs/diff.png" width="300" alt="fab layer diff">
 
-### Main view
-<img src="/docs/main1.png" width="100" height="100" alt="main1">
-<img src="/docs/main2.png" width="100" height="100" alt="main2">
-
-### Diff
-<img src="/docs/diff.png" width="100" height="100" alt="fab layer diff">
-
-### Fab Layer
-<img src="/docs/pair.png" width="100" height="100" alt="fab layer side by side">
+### Side-by-Side View
+<img src="/docs/pair.png" width="600" alt="fab layer side by side">
 
 ### F_Cu Layer
-<img src="/docs/cu.png" width="100" height="100" alt="Cu difference view">
-<img src="/docs/composite.png" width="100" height="100" alt="Cu layer - 3 pane view">
+<img src="/docs/cu.png" width="500" alt="Cu difference view">
 
-### Text Diff
-<img src="/docs/text.png" width="100" height="100" alt="Text Diff">
+### F_Cu Layer 3 Pane View
+<img src="/docs/composite.png" width="500" alt="Cu layer - 3 pane view">
+
+### Attributes Diff
+<img src="/docs/text.png" width="850" alt="Text Diff">

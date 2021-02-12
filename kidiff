@@ -144,43 +144,29 @@ def makeSVG(d1, d2, board_file, kicad_project_path, prjctPath):
     d1 = d1[:6]
     d2 = d2[:6]
 
-    # Diff1 = prjctPath + '/' + settings.plotDir + '/' + kicad_project_path + "/" + board_file
-    # Diff2 = prjctPath + '/' + settings.plotDir + '/' + kicad_project_path + "/" + board_file
-
-    # Using this to fix the path when there is no subproject
-
-    # print(d1, d2, board_file, kicad_project_path, prjctPath)
-    print("Artifact 1         : ", d1)
-    print("Artifact 2         : ", d2)
-    print("Kicad project path : ", kicad_project_path)
-    print("Project            : ", prjctPath)
-    print("Plot program       : ", settings.plotProg)
-    print("Settings           : ", settings.plotDir)
-
-    d1SVG = prjctPath + '/' + settings.plotDir + '/' + d1
-    d2SVG = prjctPath + '/' + settings.plotDir + '/' + d2
-    
+    d1SVG = prjctPath + '/' + settings.plotDir + '/' + kicad_project_path + "/" + d1
+    d2SVG = prjctPath + '/' + settings.plotDir + '/' + kicad_project_path + "/" + d2
 
     Diff1 = d1SVG + "/" + board_file
     Diff2 = d2SVG + "/" + board_file
-    print("Setting paths Diff1: ",Diff1)
-    print("              Diff2: ",Diff2)
     print("")
+    print("Setting paths")
+    print("Diff1: ",Diff1)
+    print("Diff2: ",Diff2)
 
     if not os.path.exists(d1SVG):
         os.makedirs(d1SVG)
-        print("Creating Diff1 directory")
 
     if not os.path.exists(d2SVG):
         os.makedirs(d2SVG)
-        print("Creating Diff2 directory")
 
     plot1Cmd = settings.plotProg + ' ' + settings.escape_string(Diff1) + ' -o ' + settings.escape_string(d1SVG)
     plot2Cmd = settings.plotProg + ' ' + settings.escape_string(Diff2) + ' -o ' + settings.escape_string(d2SVG)
     
     print("")
-    print("Plot 1 Command    : ", plot1Cmd)
-    print("Plot 2 Command    : ", plot2Cmd)
+    print("Plot Commands:")
+    print(plot1Cmd)
+    print(plot2Cmd)
 
     plot1=Popen(
         plot1Cmd,
@@ -313,6 +299,12 @@ def makeOutput(diffDir1, diffDir2, board_file, kicad_project_path, prjctPath, ti
     MODULES1 = board_1_Info.get('modules')
     NETS1 = board_1_Info.get('nets')
 
+    # ======
+
+    TITLE2 = board_2_Info.get('title')
+    DATE2 = board_2_Info.get('date')
+    COMPANY2 = board_2_Info.get('company')
+
     THICK2 = board_2_Info.get('thickness')
     DRAWINGS2 = board_2_Info.get('drawings')
     TRACKS2 = board_2_Info.get('tracks')
@@ -321,27 +313,27 @@ def makeOutput(diffDir1, diffDir2, board_file, kicad_project_path, prjctPath, ti
     NETS2 = board_2_Info.get('nets')
 
     index=custom_page.indexHead.format(
-    TITLE=TITLE,
-    DATE=DATE,
-    COMPANY=COMPANY,
-    diffDir1=diffDir1,
-    diffDir2=diffDir2,
-    THICK1=THICK1,
-    THICK2=THICK2,
-    D1DATE=D1DATE,
-    D2DATE=D2DATE,
-    DRAWINGS1=DRAWINGS1,
-    DRAWINGS2=DRAWINGS2,
-    D1TIME=D1TIME,
-    D2TIME=D2TIME,
-    TRACKS1=TRACKS1,
-    TRACKS2=TRACKS2,
-    ZONES1=ZONES1,
-    ZONES2=ZONES2,
-    MODULES1=MODULES1,
-    MODULES2=MODULES2,
-    NETS1=NETS1,
-    NETS2=NETS2,
+        TITLE=TITLE,
+        DATE=DATE,
+        COMPANY=COMPANY,
+        diffDir1=diffDir1,
+        diffDir2=diffDir2,
+        THICK1=THICK1,
+        THICK2=THICK2,
+        D1DATE=D1DATE,
+        D2DATE=D2DATE,
+        DRAWINGS1=DRAWINGS1,
+        DRAWINGS2=DRAWINGS2,
+        D1TIME=D1TIME,
+        D2TIME=D2TIME,
+        TRACKS1=TRACKS1,
+        TRACKS2=TRACKS2,
+        ZONES1=ZONES1,
+        ZONES2=ZONES2,
+        MODULES1=MODULES1,
+        MODULES2=MODULES2,
+        NETS1=NETS1,
+        NETS2=NETS2,
     )
 
     webOut.write(index)
@@ -554,11 +546,13 @@ def is_tool_available(name):
     return 1 if which(name) is not None else 0
 
 
-class Handler(http.server.SimpleHTTPRequestHandler):
+class WebServerHandler(http.server.SimpleHTTPRequestHandler):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, directory=os.path.realpath(prjctPath + "/" + settings.plotDir), **kwargs)
 
+    def log_message(self, format, *args):
+        return
 
 class Select(tk.Toplevel):
 
@@ -580,8 +574,11 @@ class Select(tk.Toplevel):
 
 
 def startWebServer(port, kicad_project_path):
-    with socketserver.TCPServer(("", port), Handler) as httpd:
-        print("Serving at port", port)
+    with socketserver.TCPServer(("", port), WebServerHandler) as httpd:
+        url = 'http://127.0.0.1:' + str(port) + "/" + kicad_project_path + '/web/index.html'
+        print("")
+        print("Starting webserver at {}".format(url))
+        print("(Hit Ctrl+C to exit)")
         webbrowser.open('http://127.0.0.1:' + str(port) + "/" + kicad_project_path + '/web/index.html')
         httpd.serve_forever()
 
@@ -651,15 +648,15 @@ if __name__ == "__main__":
     print("  Project PATH:", prjctPath)
     print(" Kicad Project:", kicad_project)
     print("    Board Name:", board_file)
-    print("")
 
     artifacts = scm.get_artefacts(settings.escape_string(prjctPath), board_file)
 
     if args.verbose > 1:
         print("")
-        print("Artifacts list")
+        print("Commits list")
         for artifact in artifacts:
-            print(artifact)
+            if artifact != " ":
+                print(artifact)
 
     if args.commit1 is None and args.commit2 is None:
 
