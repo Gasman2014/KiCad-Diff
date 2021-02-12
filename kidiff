@@ -139,28 +139,34 @@ def makeSVG(d1, d2, board_file, kicad_project_path, prjctPath):
     v quick so all layers are plotted to svg.'''
 
     print("")
-    print("Generating images")
+    print("Generating board files")
 
     d1 = d1[:6]
     d2 = d2[:6]
-
-    # Diff1 = prjctPath + '/' + settings.plotDir + '/' + kicad_project_path + "/" + board_file
-    # Diff2 = prjctPath + '/' + settings.plotDir + '/' + kicad_project_path + "/" + board_file
 
     d1SVG = prjctPath + '/' + settings.plotDir + '/' + kicad_project_path + "/" + d1
     d2SVG = prjctPath + '/' + settings.plotDir + '/' + kicad_project_path + "/" + d2
 
     Diff1 = d1SVG + "/" + board_file
     Diff2 = d2SVG + "/" + board_file
+    print("Setting paths Diff1: ",Diff1)
+    print("              Diff2: ",Diff2)
+    print("")
 
     if not os.path.exists(d1SVG):
         os.makedirs(d1SVG)
+        print("Creating Diff1 directory")
 
     if not os.path.exists(d2SVG):
         os.makedirs(d2SVG)
+        print("Creating Diff2 directory")
 
     plot1Cmd = settings.plotProg + ' ' + settings.escape_string(Diff1) + ' -o ' + settings.escape_string(d1SVG)
     plot2Cmd = settings.plotProg + ' ' + settings.escape_string(Diff2) + ' -o ' + settings.escape_string(d2SVG)
+    
+    print("")
+    print("Plot 1 Command    : ", plot1Cmd)
+    print("Plot 2 Command    : ", plot2Cmd)
 
     plot1=Popen(
         plot1Cmd,

@@ -45,23 +45,28 @@ def get_boards(diff1, diff2, prjctName, kicad_project_path, prjctPath):
         print("\nThere is no difference in .kicad_pcb file in selected commits")
         sys.exit()
 
-    outputDir1 = prjctPath + '/' + settings.plotDir + '/' + kicad_project_path + '/' + artifact1
-    outputDir2 = prjctPath + '/' + settings.plotDir + '/' + kicad_project_path + '/' + artifact2
+    outputDir1 = prjctPath + settings.plotDir + '/' + artifact1
+    outputDir2 = prjctPath + settings.plotDir + '/' + artifact2
 
     if not os.path.exists(outputDir1):
         os.makedirs(outputDir1)
 
     if not os.path.exists(outputDir2):
         os.makedirs(outputDir2)
+    
+    print("")
+    print("Setting output paths")
+    print(outputDir1)
+    print(outputDir2)
 
-    fossilArtifact1 = 'cd ' + settings.escape_string(prjctPath) + ' && fossil cat ' + settings.escape_string(prjctPath) + '/' + prjctName + \
+    fossilArtifact1 = 'cd ' + settings.escape_string(prjctPath) + ' && fossil cat ' + settings.escape_string(prjctPath) + prjctName + \
         ' -r ' + artifact1 + ' > ' + outputDir1 + '/' + prjctName
 
-    fossilArtifact2 = 'cd ' + settings.escape_string(prjctPath) + ' && fossil cat ' + settings.escape_string(prjctPath) + '/' + prjctName + \
+    fossilArtifact2 = 'cd ' + settings.escape_string(prjctPath) + ' && fossil cat ' + settings.escape_string(prjctPath) + prjctName + \
         ' -r ' + artifact2 + ' > ' + outputDir2 + '/' + prjctName
 
     print("")
-    print("Get Artifacts")
+    print("Setting artifact paths")
     print(fossilArtifact1)
     print(fossilArtifact2)
 
@@ -69,7 +74,7 @@ def get_boards(diff1, diff2, prjctName, kicad_project_path, prjctPath):
     fossilDateTime2 = 'cd ' + settings.escape_string(prjctPath) + ' && fossil info ' + artifact2
 
     print("")
-    print("Check datetime")
+    print("Checking datetime")
     print(fossilDateTime1)
     print(fossilDateTime2)
 
@@ -79,7 +84,7 @@ def get_boards(diff1, diff2, prjctName, kicad_project_path, prjctPath):
 
     stdout, stderr = settings.run_cmd(fossilArtifact2)
     dateTime, _ = settings.run_cmd(fossilDateTime2)
-    uuid, _, _, _, _, _, _, _, _, artifactRef, dateDiff2, timeDiff2, *junk1 = dateTime.split(" ")
+    uuid, _, _, _, _, _, _, _, _, artifactRef, dateDiff2, timeDiff2, *junk2 = dateTime.split(" ")
 
     dateTime = dateDiff1 + " " + timeDiff1 + " " + dateDiff2 + " " + timeDiff2
 
@@ -92,7 +97,7 @@ def get_artefacts(prjctPath, board_file):
     cmd = 'cd {prjctPath} && fossil finfo -b {board_file}'.format(prjctPath=prjctPath, board_file=board_file)
 
     print("")
-    print("Getting Artifacts")
+    print("Getting artifacts")
     print(cmd)
 
     stdout, stderr = settings.run_cmd(cmd)

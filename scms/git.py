@@ -49,7 +49,7 @@ def get_boards(diff1, diff2, prjctName, kicad_project_path, prjctPath):
         "grep " + prj_path + prjctName
 
     print("")
-    print("Getting Boards")
+    print("Getting boards")
     print(cmd)
 
     stdout, stderr = settings.run_cmd(cmd)
@@ -59,8 +59,8 @@ def get_boards(diff1, diff2, prjctName, kicad_project_path, prjctPath):
         print("\nThere is no difference in .kicad_pcb file in selected commits")
         sys.exit()
 
-    outputDir1 = prjctPath + '/' + settings.plotDir + '/' + kicad_project_path + '/' + artifact1
-    outputDir2 = prjctPath + '/' + settings.plotDir + '/' + kicad_project_path + '/' + artifact2
+    outputDir1 = prjctPath + '/' + settings.plotDir  + '/' + artifact1
+    outputDir2 = prjctPath + '/' + settings.plotDir  + '/' + artifact2
 
     if not os.path.exists(outputDir1):
         os.makedirs(outputDir1)
@@ -76,12 +76,14 @@ def get_boards(diff1, diff2, prjctName, kicad_project_path, prjctPath):
         settings.escape_string(outputDir1) + '/' + prjctName
 
     gitArtifact2 = 'cd ' + settings.escape_string(prjctPath) + ' && ' + \
-        'git show ' + artifact2 + ':' + gitPath + ' > ' + settings.escape_string(outputDir2) + '/' + prjctName
+        'git show ' + artifact2 + ':' + gitPath + ' > ' + \
+        settings.escape_string(outputDir2) + '/' + prjctName
 
     print("")
-    print("Get Artifacts")
-    print(gitArtifact1)
-    print(gitArtifact2)
+    print("Get artifacts")
+    print("gitPath      :", gitPath)
+    print("Git artifact1: ",gitArtifact1)
+    print("Git artifact2: ",gitArtifact2)
 
     stdout, stderr = settings.run_cmd(gitArtifact1)
     stdout, stderr = settings.run_cmd(gitArtifact2)
