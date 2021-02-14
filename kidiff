@@ -7,20 +7,14 @@
 import argparse
 import os
 import shutil
-import time
-
+import re
 import signal
 import sys
 
-import subprocess
-from subprocess import PIPE, STDOUT, Popen
+from subprocess import PIPE, Popen
 
-import tkinter as tk
-from tkinter import *
-from tkinter import filedialog, ttk
-from tkinter.messagebox import showinfo
-import tkUI
-from tkUI import *
+from tkinter import filedialog, Tk, Toplevel, TclError, messagebox
+from tkUI import runGUI
 
 import webbrowser
 import http.server
@@ -73,7 +67,7 @@ def select_project_gui(display):
     '''File select dialogue. Opens Tk File browser and
     selector set for .kicad_pcb files. Returns path and file name
     '''
-    gui = tk.Tk(display)
+    gui = Tk(display)
     gui.withdraw()
     gui.update()
 
@@ -89,7 +83,7 @@ def select_project_gui(display):
     except:
         pass
 
-    selected = tk.filedialog.askopenfile(
+    selected = filedialog.askopenfile(
         initialdir=os.getcwd(),
         title="Select the Kicad board",
         filetypes=(("KiCad PCB files", "*.kicad_pcb"), ("all files", "*.*")))
@@ -162,7 +156,7 @@ def makeSVG(d1, d2, board_file, kicad_project_path, prjctPath):
 
     plot1Cmd = settings.plotProg + ' ' + settings.escape_string(Diff1) + ' -o ' + settings.escape_string(d1SVG)
     plot2Cmd = settings.plotProg + ' ' + settings.escape_string(Diff2) + ' -o ' + settings.escape_string(d2SVG)
-    
+
     print("")
     print("Plot Commands:")
     print(plot1Cmd)
@@ -409,15 +403,13 @@ def makeOutput(diffDir1, diffDir2, board_file, kicad_project_path, prjctPath, ti
             mod = layer.replace("_", ".")
 
             diffCmnd2 = settings.diffProg + " " + "--suppress-common-lines {prjctPath}/{plotDir}/{kicad_project_path}/{diff2}/*.kicad_pcb {prjctPath}/{plotDir}/{kicad_project_path}/{diff1}/*.kicad_pcb | {grepProg} {mod} | sed \'s/(status [1-9][0-9])//g\'".format(
-                layername=filename,
                 plotDir=settings.plotDir,
                 diff1=diffDir1,
                 diff2=diffDir2,
                 kicad_project_path=kicad_project_path,
                 prjctPath=settings.escape_string(prjctPath),
                 mod=mod,
-                grepProg=settings.grepProg,
-                webDir=settings.webDir)
+                grepProg=settings.grepProg)
 
             diff2Txt = Popen(
                     diffCmnd2,
@@ -535,12 +527,6 @@ def processDiff(diffText, mod):
     return(final)
 
 
-def popup_showinfo(progress):
-    display = 'Processing: ' + progress
-    p = Label(gui, Text=display)
-    p.pack()
-
-
 def is_tool_available(name):
     from shutil import which
     return 1 if which(name) is not None else 0
@@ -554,13 +540,13 @@ class WebServerHandler(http.server.SimpleHTTPRequestHandler):
     def log_message(self, format, *args):
         return
 
-class Select(tk.Toplevel):
+class Select(Toplevel):
 
     def __init__(self, parent=None):
-        tk.Toplevel.__init__(self, parent)
+        Toplevel.__init__(self, parent)
         # self.wm_title("Settings")
-        tk.Toplevel.withdraw(self)
-        tk.Toplevel.update(self)
+        Toplevel.withdraw(self)
+        Toplevel.update(self)
 
         action = messagebox.askokcancel(
             self,
@@ -660,7 +646,7 @@ if __name__ == "__main__":
 
     if args.commit1 is None and args.commit2 is None:
 
-        d1, d2 = tkUI.runGUI(artifacts, board_file, kicad_project, prjctPath, scm_name)
+        d1, d2 = runGUI(artifacts, board_file, kicad_project, prjctPath, scm_name)
 
         if not d1 or not d2:
             print("\nERROR: You must select both commits.")

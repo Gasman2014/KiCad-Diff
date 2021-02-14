@@ -1,9 +1,7 @@
 
-import os
 import sys
 
-import subprocess
-from subprocess import PIPE, STDOUT, Popen
+from subprocess import PIPE, Popen
 
 args = ''
 
