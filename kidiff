@@ -19,7 +19,6 @@ from tkUI import runGUI
 import webbrowser
 import http.server
 import socketserver
-socketserver.TCPServer.allow_reuse_address = True
 
 import settings
 
@@ -29,6 +28,8 @@ import scms.svn as svn
 
 import assets.html_data as custom_page
 
+
+socketserver.TCPServer.allow_reuse_address = True
 script_path = os.path.dirname(os.path.realpath(__file__))
 assets_folder = script_path + "/" + 'assets'
 
@@ -80,7 +81,7 @@ def select_project_gui(display):
         except TclError:
             pass
         gui.call('set', '::tk::dialog::file::showHiddenVar', '0')
-    except:
+    except Exception:
         pass
 
     selected = filedialog.askopenfile(
@@ -145,8 +146,8 @@ def makeSVG(d1, d2, board_file, kicad_project_path, prjctPath):
     Diff2 = d2SVG + "/" + board_file
     print("")
     print("Setting paths")
-    print("Diff1: ",Diff1)
-    print("Diff2: ",Diff2)
+    print("Diff1: ", Diff1)
+    print("Diff2: ", Diff2)
 
     if not os.path.exists(d1SVG):
         os.makedirs(d1SVG)
@@ -162,7 +163,7 @@ def makeSVG(d1, d2, board_file, kicad_project_path, prjctPath):
     print(plot1Cmd)
     print(plot2Cmd)
 
-    plot1=Popen(
+    plot1 = Popen(
         plot1Cmd,
         shell=True,
         stdin=PIPE,
@@ -179,7 +180,7 @@ def makeSVG(d1, d2, board_file, kicad_project_path, prjctPath):
         print("Plot1 error: " + errors)
         exit(1)
 
-    plot2=Popen(
+    plot2 = Popen(
         plot2Cmd,
         shell=True,
         stdin=PIPE,
@@ -249,17 +250,15 @@ def getBoardData(board):
         'nets': 0
     }
 
-    thickDone = False
-
     with open(board, 'r') as f:
         for line in f:
             words = line.strip("\t ()").split()
             for key in prms:
                 if len(words) > 1:
                     if key == words[0]:
-                        complete =""
-                        for i in range(1,len(words)):
-                            complete += words[i].strip("\t ()").replace("\"","") + " "
+                        complete = ""
+                        for i in range(1, len(words)):
+                            complete += words[i].strip("\t ()").replace("\"", "") + " "
                         prms[key] = complete
     return(prms)
 
@@ -295,10 +294,6 @@ def makeOutput(diffDir1, diffDir2, board_file, kicad_project_path, prjctPath, ti
 
     # ======
 
-    TITLE2 = board_2_Info.get('title')
-    DATE2 = board_2_Info.get('date')
-    COMPANY2 = board_2_Info.get('company')
-
     THICK2 = board_2_Info.get('thickness')
     DRAWINGS2 = board_2_Info.get('drawings')
     TRACKS2 = board_2_Info.get('tracks')
@@ -306,7 +301,7 @@ def makeOutput(diffDir1, diffDir2, board_file, kicad_project_path, prjctPath, ti
     MODULES2 = board_2_Info.get('modules')
     NETS2 = board_2_Info.get('nets')
 
-    index=custom_page.indexHead.format(
+    index = custom_page.indexHead.format(
         TITLE=TITLE,
         DATE=DATE,
         COMPANY=COMPANY,
@@ -352,10 +347,10 @@ def makeOutput(diffDir1, diffDir2, board_file, kicad_project_path, prjctPath, ti
             *project, layer = filename.split('-')
             layer, ext = layer.split('.')
             prjct, ext = filename.split('.')
-            splitted = prjct.split('-') # Accounts for project names containing hyphens
+            splitted = prjct.split('-')  # Accounts for project names containing hyphens
             prj = "-".join(splitted[0:-1])
             layer = splitted[-1]
-            out=custom_page.outfile.format(
+            out = custom_page.outfile.format(
                 diff1=diffDir1,
                 diff2=diffDir2,
                 dim1=dim1,
@@ -412,12 +407,12 @@ def makeOutput(diffDir1, diffDir2, board_file, kicad_project_path, prjctPath, ti
                 grepProg=settings.grepProg)
 
             diff2Txt = Popen(
-                    diffCmnd2,
-                    shell=True,
-                    stdin=PIPE,
-                    stdout=PIPE,
-                    stderr=PIPE,
-                    close_fds=True)
+                diffCmnd2,
+                shell=True,
+                stdin=PIPE,
+                stdout=PIPE,
+                stderr=PIPE,
+                close_fds=True)
             stdout, stderr = diff2Txt.communicate()
             diff2Txt.wait()
             out = stdout.decode('utf8')
@@ -474,56 +469,59 @@ def processDiff(diffText, mod):
     content = ""
     output = ""
     combined = ""
-    header = ""
     tbL = ""
     tbR = ""
     checked = "checked"
 
-
-    top1='''<input name='tabbed' id='tabbed{tabn}' type='radio' {checked}><section><h1><label for='tabbed{tabn}'>{label}</label></h1><div>{content}</div></section>'''
-    tsl='''<div class='responsive'>
+    top1 = '''<input name='tabbed' id='tabbed{tabn}' type='radio' {checked}/>
+  <section>
+    <h1>
+      <label for='tabbed{tabn}'>{label}</label>
+    </h1>
+    <div>{content}</div>
+  </section>'''
+    tsl = '''<div class='responsive'>
                 <div class = 'tbl'>
                     <table style="border-color: #aaaaaa; width: 100%; height: 2px;" border="2px" cellspacing="2px" cellpadding="3px">'''
-    tsr='''<div class='responsive'>
+    tsr = '''<div class='responsive'>
                 <div class = 'tbr'>
                     <table style="border-color: #aaaaaa; width: 100%; height: 2px;" border="2px" cellspacing="2px" cellpadding="3px">'''
-    clearfix ='''<div class='clearfix'>
+    clearfix = '''<div class='clearfix'>
                 </div>
                 <div style='padding:6px;'>
                 </div>'''
 
-
-    for indx,layerInfo in enumerate(keywords):
+    for indx, layerInfo in enumerate(keywords):
         combined = tbL = tbR = ""
-        for indx2,parameter in enumerate(layerInfo[2]):
-            tbR = tbR + "<th>" + parameter + "</th>"
-            tbL = tbL + "<th>" + parameter + "</th>"
+        for indx2, parameter in enumerate(layerInfo[2]):
+            tbR = tbR + "<th>" + parameter + "</th>\n"
+            tbL = tbL + "<th>" + parameter + "</th>\n"
         for line in diffText.splitlines():
             if ((layerInfo[0] in line) and (mod in line)):
                 output = line.replace(layerInfo[0], "")
                 output = output.replace("(layer " + mod + ")", "")
                 # print(output)
-                for item in d.keys():
-                    output = re.sub(item, d[item], output)
+                for item, replace in d.items():
+                    output = re.sub(item, replace, output)
 
                 if output.count("<td>") == indx2:
-                    output += "<td></td>"
+                    output += "<td></td>\n"
                 if output == "<td>":
                     output = ""
-                output += "</tr>"
+                output += "</tr>\n"
                 # print(output)
 
-                if output[0]==">":
+                if output[0] == ">":
                     tbL = tbL + "<tr>" + output[1:]
                 elif output[0] == "<":
                     tbR = tbR + "<tr>" + output[1:]
 
-        combined = tsl + tbL + "</table></div></div>" + tsr + tbR + "</table></div></div>"
-        content = top1.format(tabn=indx,content=combined,label=layerInfo[1],checked=checked)
-        checked=""
+        combined = tsl + tbL + "</table></div></div>\n" + tsr + tbR + "</table></div></div>\n"
+        content = top1.format(tabn=indx, content=combined, label=layerInfo[1], checked=checked)
+        checked = ""
 
         final = final + content
-    final = "<div class = 'tabbed'>"+ final + "</div>" + clearfix
+    final = "<div class = 'tabbed'>" + final + "</div>" + clearfix
     return(final)
 
 
@@ -578,7 +576,7 @@ def parse_cli_args():
     parser.add_argument('-a', "--commit1", type=str, help="Commit 1")
     parser.add_argument('-b', "--commit2", type=str, help="Commit 2")
     parser.add_argument('-g', "--gui", action='store_true', help="Use gui")
-    parser.add_argument('-s', "--scm", type=str,  help="Select SCM (git, svn, fossil)")
+    parser.add_argument('-s', "--scm", type=str, help="Select SCM (git, svn, fossil)")
     parser.add_argument('-d', "--display", type=str, help="Set DISPLAY value, default :1.0", default=':1.0')
     parser.add_argument('-p', "--port", type=int, help="Set webserver port", default=9092)
     parser.add_argument('-w', "--webserver-disable", action='store_true', help="Does not execute webserver (just generate images)")
@@ -598,7 +596,6 @@ def parse_cli_args():
 if __name__ == "__main__":
 
     signal.signal(signal.SIGINT, signal_handler)
-
     args = parse_cli_args()
 
     if args.kicad_pcb is None:
