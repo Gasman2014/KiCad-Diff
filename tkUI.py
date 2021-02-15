@@ -1,13 +1,9 @@
 #!/usr/local/bin/python3
 
-import subprocess
-import tkinter as tk
-from tkinter import *
-from tkinter import filedialog, ttk, messagebox
+from tkinter import ttk, Tk, LabelFrame, Label, Variable, IntVar, Listbox, \
+    SINGLE, N, E, W, VERTICAL, LEFT, END, CENTER, Radiobutton
 
 global root, commitTop, commitBottom
-
-import sys
 
 
 def runProgram():
@@ -42,13 +38,13 @@ def select_scm_gui():
 
     global root
 
-    root = tk.Tk()
+    root = Tk()
     root.title("SCM")
 
     root.bind("<Escape>", quit)
     root.protocol('WM_DELETE_WINDOW', cancel)
 
-    v = tk.IntVar()
+    v = IntVar()
     v.set(-1)
 
     scms = [
@@ -60,10 +56,10 @@ def select_scm_gui():
     def ShowChoice():
         root.destroy()
 
-    tk.Label(root, text="""Select the project's SCM""", justify=tk.CENTER, padx=20).pack()
+    Label(root, text="""Select the project's SCM""", justify=CENTER, padx=20).pack()
 
     for val, language in enumerate(scms):
-         tk.Radiobutton(
+         Radiobutton(
             root,
             text=language,
             indicatoron=0,
@@ -71,7 +67,7 @@ def select_scm_gui():
             padx=20,
             variable=v,
             command=ShowChoice,
-            value=val).pack(anchor=tk.W)
+            value=val).pack(anchor=W)
 
     root.mainloop()
 
@@ -98,10 +94,10 @@ def runGUI(checkouts_top, prjctName, kicad_project_path, prjctPath, scm):
     root.title("Kicad Visual Layout Diff")
     root.geometry('800x700')
 
-    frame1 = tk.LabelFrame(root, text=scm.upper(), width=1000, height=25, bd=1, background='#ececec')
-    frame2 = tk.LabelFrame(root, text="Commit 1 (a)", width=1000, height=200, bd=1, background='#ececec')
-    frame3 = tk.LabelFrame(root, text="Commit 2 (b)", width=1000, height=200, bd=1, background='#ececec')
-    frame4 = tk.LabelFrame(root, width=1000, height=10, bd=0, background='#ececec')
+    frame1 = LabelFrame(root, text=scm.upper(), width=1000, height=25, bd=1, background='#ececec')
+    frame2 = LabelFrame(root, text="Commit 1 (a)", width=1000, height=200, bd=1, background='#ececec')
+    frame3 = LabelFrame(root, text="Commit 2 (b)", width=1000, height=200, bd=1, background='#ececec')
+    frame4 = LabelFrame(root, width=1000, height=10, bd=0, background='#ececec')
 
     frame1.grid(row=0, column=0, padx=25, sticky='N E W S')
     frame2.grid(row=1, column=0, padx=25, sticky='N E W')
@@ -122,7 +118,7 @@ def runGUI(checkouts_top, prjctName, kicad_project_path, prjctPath, scm):
 
     pcb_path = pcb_path.replace("//", "/")
 
-    tk.Label(frame1, text=pcb_path, bg='#ececec').pack(side=LEFT, padx=10)
+    Label(frame1, text=pcb_path, bg='#ececec').pack(side=LEFT, padx=10)
 
     commitTop = Variable()
     listTop = Listbox(

@@ -11,14 +11,38 @@ import platform
 if platform.system() == 'Darwin':
     sys.path.insert(0,"/Applications/Kicad/kicad.app/Contents/Frameworks/python/site-packages/")
 
-import pcbnew
-from pcbnew import *
+from pcbnew import LoadBoard, PLOT_CONTROLLER, PLOT_FORMAT_SVG, FromMM
+from pcbnew import \
+    F_Cu, \
+    In1_Cu, \
+    In2_Cu, \
+    In3_Cu, \
+    In4_Cu, \
+    B_Cu, \
+    F_Adhes, \
+    B_Adhes, \
+    F_Paste, \
+    B_Paste, \
+    F_SilkS, \
+    B_SilkS, \
+    F_Mask, \
+    B_Mask, \
+    Dwgs_User, \
+    Cmts_User, \
+    Eco1_User, \
+    Eco2_User, \
+    Edge_Cuts, \
+    Margin, \
+    F_CrtYd, \
+    B_CrtYd, \
+    F_Fab, \
+    B_Fab
 
 
 def processBoard(boardName, plotDir, quiet):
     '''Load board and initialize plot controller'''
 
-    board = pcbnew.LoadBoard(boardName)
+    board = LoadBoard(boardName)
     boardbox = board.ComputeBoundingBox()
     boardxl = boardbox.GetX()
     boardyl = boardbox.GetY()
@@ -28,13 +52,13 @@ def processBoard(boardName, plotDir, quiet):
     if not quiet:
         print(boardxl, boardyl, boardwidth, boardheight)
 
-    pctl = pcbnew.PLOT_CONTROLLER(board)
+    pctl = PLOT_CONTROLLER(board)
     pctl.SetColorMode(True)
 
     popt = pctl.GetPlotOptions()
     popt.SetOutputDirectory(plotDir)
     popt.SetPlotFrameRef(False)
-    popt.SetLineWidth(pcbnew.FromMM(0.15))
+    popt.SetLineWidth(FromMM(0.15))
     popt.SetAutoScale(False)
     popt.SetScale(2)
     popt.SetMirror(False)
@@ -68,35 +92,35 @@ def processBoard(boardName, plotDir, quiet):
     # ]
 
     layers = [
-        ("F_Cu",      pcbnew.F_Cu,      "Top copper"),
-        ("In1_Cu",    pcbnew.In1_Cu,    "Inner1 copper"),
-        ("In2_Cu",    pcbnew.In2_Cu,    "Inner2 copper"),
-        ("In3_Cu",    pcbnew.In3_Cu,    "Inner3 copper"),
-        ("In4_Cu",    pcbnew.In4_Cu,    "Inner4 copper"),
-        ("B_Cu",      pcbnew.B_Cu,      "Bottom copper"),
-        ("F_Adhes",   pcbnew.F_Adhes,   "Adhesive top"),
-        ("B_Adhes",   pcbnew.B_Adhes,   "Adhesive bottom"),
-        ("F_Paste",   pcbnew.F_Paste,   "Paste top"),
-        ("B_Paste",   pcbnew.B_Paste,   "Paste bottom"),
-        ("F_SilkS",   pcbnew.F_SilkS,   "Silk top"),
-        ("B_SilkS",   pcbnew.B_SilkS,   "Silk top"),
-        ("F_Mask",    pcbnew.F_Mask,    "Mask top"),
-        ("B_Mask",    pcbnew.B_Mask,    "Mask bottom"),
-        ("Dwgs_User", pcbnew.Dwgs_User, "User drawings"),
-        ("Cmts_User", pcbnew.Cmts_User, "User comments"),
-        ("Eco1_User", pcbnew.Eco1_User, "Eng change order 1"),
-        ("Eco2_User", pcbnew.Eco2_User, "Eng change order 1"),
-        ("Edge_Cuts", pcbnew.Edge_Cuts, "Edges"),
-        ("Margin",    pcbnew.Margin,    "Margin"),
-        ("F_CrtYd",   pcbnew.F_CrtYd,   "Courtyard top"),
-        ("B_CrtYd",   pcbnew.B_CrtYd,   "Courtyard bottom"),
-        ("F_Fab",     pcbnew.F_Fab,     "Fab top"),
-        ("B_Fab",     pcbnew.B_Fab,     "Fab bottom")
+        ("F_Cu",      F_Cu,      "Top copper"),
+        ("In1_Cu",    In1_Cu,    "Inner1 copper"),
+        ("In2_Cu",    In2_Cu,    "Inner2 copper"),
+        ("In3_Cu",    In3_Cu,    "Inner3 copper"),
+        ("In4_Cu",    In4_Cu,    "Inner4 copper"),
+        ("B_Cu",      B_Cu,      "Bottom copper"),
+        ("F_Adhes",   F_Adhes,   "Adhesive top"),
+        ("B_Adhes",   B_Adhes,   "Adhesive bottom"),
+        ("F_Paste",   F_Paste,   "Paste top"),
+        ("B_Paste",   B_Paste,   "Paste bottom"),
+        ("F_SilkS",   F_SilkS,   "Silk top"),
+        ("B_SilkS",   B_SilkS,   "Silk top"),
+        ("F_Mask",    F_Mask,    "Mask top"),
+        ("B_Mask",    B_Mask,    "Mask bottom"),
+        ("Dwgs_User", Dwgs_User, "User drawings"),
+        ("Cmts_User", Cmts_User, "User comments"),
+        ("Eco1_User", Eco1_User, "Eng change order 1"),
+        ("Eco2_User", Eco2_User, "Eng change order 1"),
+        ("Edge_Cuts", Edge_Cuts, "Edges"),
+        ("Margin",    Margin,    "Margin"),
+        ("F_CrtYd",   F_CrtYd,   "Courtyard top"),
+        ("B_CrtYd",   B_CrtYd,   "Courtyard bottom"),
+        ("F_Fab",     F_Fab,     "Fab top"),
+        ("B_Fab",     B_Fab,     "Fab bottom")
     ]
 
     for layer_info in layers:
         pctl.SetLayer(layer_info[1])
-        pctl.OpenPlotfile(layer_info[0], pcbnew.PLOT_FORMAT_SVG, layer_info[2])
+        pctl.OpenPlotfile(layer_info[0], PLOT_FORMAT_SVG, layer_info[2])
         pctl.PlotLayer()
 
     return (boardxl, boardyl, boardwidth, boardheight)
