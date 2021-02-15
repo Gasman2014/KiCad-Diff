@@ -612,15 +612,15 @@ if __name__ == "__main__":
         scm_name = project_scms[0]
 
     if scm_name == "fossil":
-        scm = fossil
+        scm = fossil.scm()
     elif scm_name == "svn":
-        scm = svn
+        scm = svn.scm()
     elif scm_name == "git":
-        scm = git
+        scm = git.scm()
     else:
         print(
-        "This project is either not under version control"
-        "or no SCM tool was was found in the PATH")
+            "This project is either not under version control"
+            "or no SCM tool was was found in the PATH")
         sys.exit(1)
 
     prjctPath, kicad_project = scm.get_kicad_project_path(settings.escape_string(kicad_project_path))
