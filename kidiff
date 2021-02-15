@@ -427,45 +427,45 @@ def makeOutput(diffDir1, diffDir2, board_file, kicad_project_path, prjctPath, ti
 
 def processDiff(diffText, mod):
 
-    keywords=[
-        ("(module ","Modules",("Component","Reference","Timestamp")),
-        ("(gr_text ","Text",("Text","Position")),
-        ("(via ","Vias",("Coordinate","Size","Drill","Layers","Net")),
-        ("(fp_text ","FP Text",("Reference","Coordinate")),
-        ("(pad ","Pads",("Number","Type","Shape","Coordinate","Size","Layers","Ratio")),
-        ("(gr_line ","Graphics",("Start","End ","Width","Net")),
-        ("(fp_arc","Arcs",("Start","End ","Angle","Width")),
-        ("(segment","Segments",("Start","End ","Width","Net","Timestamp")),
-        ("(fp_circle","Circles",("Centre","End ","Width")),
+    keywords = [
+        ("module ", "Modules", ("Component", "Reference", "Timestamp")),
+        ("gr_text ", "Text", ("Text", "Position")),
+        ("\\(via ", "Vias", ("Coordinate", "Size", "Drill", "Layers", "Net")),
+        ("fp_text \\w+ ", "FP Text", ("Reference", "Coordinate")),
+        ("\\(pad ", "Pads", ("Number", "Type", "Shape", "Coordinate", "Size", "Layers", "Ratio")),
+        ("\\(gr_line ", "Graphics", ("Start", "End ", "Width", "Net")),
+        ("\\(fp_arc", "Arcs", ("Start", "End ", "Angle", "Width")),
+        ("\\(segment", "Segments", ("Start", "End ", "Width", "Net", "Timestamp")),
+        ("\\(fp_circle", "Circles", ("Centre", "End ", "Width")),
     ]
 
-    d={
-        "\(start ":"<td>",
-        "\(end ":"<td>",
-        "\(width ":"<td>",
-        "\(tedit ":"<td>",
-        "\(tstamp ":"<td>",
-        "\(at ":"<td>",
-        "\(size ":"<td>",
-        "\(drill ":"<td>",
-        "\(layers ":"<td>",
-        "\(net ":"<td>",
-        "\(roundrect_rratio ":"<td>",
-        "\(angle ":"<td>",
-        "\(center ":"<td>",
-        "\)":"</td>",
-        "user (\w+)":r'<td>\1</td>',
-        "reference (\w+)":r'<td>\1</td>',
-        "([0-9]) smd":r'<td>\1</td><td>Surface</td>',
-        "roundrect":"<td>Rounded</td>",
-        "rect":"<td>Rectangle</td>",
-        "(\w.+):(\w.+)":r'<td>\1 \2</td>',
-        "(?<=\")(.*)(?=\")":r'<td>\1</td>',
-        "[\"]":r'',
-        "[**]":r'',
-        }
+    d = {
+        "\\(start ": "<td>",
+        "\\(end ": "<td>",
+        "\\(width ": "<td>",
+        "\\(tedit ": "<td>",
+        "\\(tstamp ": "<td>",
+        "\\(at ": "<td>",
+        "\\(size ": "<td>",
+        "\\(drill ": "<td>",
+        "\\(layers ": "<td>",
+        "\\(net ": "<td>",
+        "\\(roundrect_rratio ": "<td>",
+        "\\(angle ": "<td>",
+        "\\(center ": "<td>",
+        "\\)": "</td>",
+        "user (\\w+)": r'<td>\1</td>',
+        "reference (\\w+)": r'<td>\1</td>',
+        "([0-9]) smd": r'<td>\1</td><td>Surface</td>',
+        "roundrect": "<td>Rounded</td>",
+        "rect": "<td>Rectangle</td>",
+        "\\(([^ ]+) ": r'<td>\1</td>',
+        "(?<=\")(.*)(?=\")": r'<td>\1</td>',
+        "[\"]": r'',
+        "[**]": r''
+    }
 
-    final =""
+    final = ""
     content = ""
     output = ""
     combined = ""
@@ -497,8 +497,8 @@ def processDiff(diffText, mod):
             tbR = tbR + "<th>" + parameter + "</th>\n"
             tbL = tbL + "<th>" + parameter + "</th>\n"
         for line in diffText.splitlines():
-            if ((layerInfo[0] in line) and (mod in line)):
-                output = line.replace(layerInfo[0], "")
+            if re.search(layerInfo[0], line) and (mod in line):
+                output = re.sub(layerInfo[0], "", line)
                 output = output.replace("(layer " + mod + ")", "")
                 # print(output)
                 for item, replace in d.items():
