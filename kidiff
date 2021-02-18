@@ -307,13 +307,20 @@ def makeOutput(diffDir1, diffDir2, board_file, kicad_project_path, prjctPath, ti
 
     webOut.write(index)
 
-    diffCmnd1 = ()
-
     source = os.path.join(prjctPath, settings.plotDir, kicad_project_path, diffDir1)
     triptychDir = os.path.join(prjctPath, settings.plotDir, kicad_project_path, "web", 'triptych')
 
     if not os.path.exists(triptychDir):
         os.makedirs(triptychDir)
+
+    diff1 = os.path.join(prjctPath, settings.plotDir, kicad_project_path, diffDir1, board_file)
+    diff2 = os.path.join(prjctPath, settings.plotDir, kicad_project_path, diffDir2, board_file)
+    output_file = os.path.join(prjctPath, settings.plotDir, kicad_project_path, 'diff.txt')
+    stdout, stderr = settings.run_cmd(prjctPath, [settings.diffProg, diff2, diff1])
+    with open(output_file, 'a') as fout:
+        fout.write(stdout)
+    diffCmd2 = [settings.diffProg, '--suppress-common-lines', diff2, diff1]
+    stdout, stderr = settings.run_cmd(prjctPath, diffCmd2)
 
     # diffs = os.fsencode(source)
 
@@ -355,21 +362,8 @@ def makeOutput(diffDir1, diffDir2, board_file, kicad_project_path, prjctPath, ti
 
                 triptychOut.write(t_out)
 
-                diff1 = os.path.join(prjctPath, settings.plotDir, kicad_project_path, diffDir1, board_file)
-                diff2 = os.path.join(prjctPath, settings.plotDir, kicad_project_path, diffDir2, board_file)
-                output_file = os.path.join(prjctPath, settings.plotDir, kicad_project_path, 'diff.txt')
-                if not diffCmnd1:
-                    stdout, stderr = settings.run_cmd(prjctPath, [settings.diffProg, diff2, diff1])
-                    with open(output_file, 'a') as fout:
-                        fout.write(stdout)
-
                 mod = layer.replace("_", ".")
 
-                diff1 = os.path.join(prjctPath, settings.plotDir, kicad_project_path, diffDir1, board_file)
-                diff2 = os.path.join(prjctPath, settings.plotDir, kicad_project_path, diffDir2, board_file)
-
-                diffCmd2 = [settings.diffProg, '--suppress-common-lines', diff2, diff1]
-                stdout, stderr = settings.run_cmd(prjctPath, diffCmd2)
                 out = "\n".join(re.sub('status [1-9][0-9]', '', line) for line in stdout.splitlines() if mod in line)
 
                 processed = processDiff(out, mod)
