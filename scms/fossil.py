@@ -12,14 +12,13 @@ class scm(generic_scm):
         cmd = "todo"
 
         stdout, stderr = settings.run_cmd(cmd)
-        scm_root = stdout
 
         # cmd = 'cd ' + settings.escape_string(scm_root) + ' && fossil ls-tree -r --name-only HEAD | grep -m 1 ' + prjctName
         cmd = "todo"
 
         stdout, stderr = settings.run_cmd(cmd)
 
-        return settings.escape_string(stdout)
+        return stdout
 
     @staticmethod
     def get_boards(diff1, diff2, prjctName, kicad_project_path, prjctPath):
@@ -29,22 +28,22 @@ class scm(generic_scm):
         artifact1 = diff1[:6]
         artifact2 = diff2[:6]
 
-        cmd = 'cd ' + settings.escape_string(prjctPath) + ' && fossil diff --brief -r ' + \
-            artifact1 + ' --to ' + artifact2 + ' | grep .kicad_pcb'
+        cmd = ['fossil', 'diff', '--brief', '-r',
+               artifact1, '--to', artifact2]
 
         print("")
         print("Getting Boards")
         print(cmd)
 
-        stdout, stderr = settings.run_cmd(cmd)
-        changed = stdout
+        stdout, stderr = settings.run_cmd(prjctPath, cmd)
+        changed = '.kicad_pcb' in stdout
 
-        if changed == '':
+        if not changed:
             print("\nThere is no difference in .kicad_pcb file in selected commits")
             sys.exit()
 
-        outputDir1 = prjctPath + settings.plotDir + '/' + artifact1
-        outputDir2 = prjctPath + settings.plotDir + '/' + artifact2
+        outputDir1 = os.path.join(prjctPath, settings.plotDir, artifact1)
+        outputDir2 = os.path.join(prjctPath, settings.plotDir, artifact2)
 
         if not os.path.exists(outputDir1):
             os.makedirs(outputDir1)
@@ -57,31 +56,34 @@ class scm(generic_scm):
         print(outputDir1)
         print(outputDir2)
 
-        fossilArtifact1 = 'cd ' + settings.escape_string(prjctPath) + ' && fossil cat ' + settings.escape_string(prjctPath) + prjctName + \
-            ' -r ' + artifact1 + ' > ' + outputDir1 + '/' + prjctName
-
-        fossilArtifact2 = 'cd ' + settings.escape_string(prjctPath) + ' && fossil cat ' + settings.escape_string(prjctPath) + prjctName + \
-            ' -r ' + artifact2 + ' > ' + outputDir2 + '/' + prjctName
+        fossilArtifact1 = ['fossil', 'cat', settings.escape_string(prjctPath) + prjctName,
+                           '-r', artifact1]
+        fossilArtifact2 = ['fossil', 'cat', settings.escape_string(prjctPath) + prjctName,
+                           '-r', artifact2]
 
         print("")
         print("Setting artifact paths")
         print(fossilArtifact1)
         print(fossilArtifact2)
 
-        fossilDateTime1 = 'cd ' + settings.escape_string(prjctPath) + ' && fossil info ' + artifact1
-        fossilDateTime2 = 'cd ' + settings.escape_string(prjctPath) + ' && fossil info ' + artifact2
+        fossilDateTime1 = ['fossil', 'info', artifact1]
+        fossilDateTime2 = ['fossil', 'info', artifact2]
 
         print("")
         print("Checking datetime")
         print(fossilDateTime1)
         print(fossilDateTime2)
 
-        stdout, stderr = settings.run_cmd(fossilArtifact1)
-        dateTime, _ = settings.run_cmd(fossilDateTime1)
+        stdout, stderr = settings.run_cmd(prjctPath, fossilArtifact1)
+        with open(os.path.join(outputDir1, prjctName), 'w') as f:
+            f.write(stdout)
+        dateTime, _ = settings.run_cmd(prjctPath, fossilDateTime1)
         uuid, _, _, _, _, _, _, _, _, artifactRef, dateDiff1, timeDiff1, *junk1 = dateTime.split(" ")
 
-        stdout, stderr = settings.run_cmd(fossilArtifact2)
-        dateTime, _ = settings.run_cmd(fossilDateTime2)
+        stdout, stderr = settings.run_cmd(prjctPath, fossilArtifact2)
+        with open(os.path.join(outputDir2, prjctName), 'w') as f:
+            f.write(stdout)
+        dateTime, _ = settings.run_cmd(prjctPath, fossilDateTime2)
         uuid, _, _, _, _, _, _, _, _, artifactRef, dateDiff2, timeDiff2, *junk2 = dateTime.split(" ")
 
         dateTime = dateDiff1 + " " + timeDiff1 + " " + dateDiff2 + " " + timeDiff2
@@ -92,13 +94,13 @@ class scm(generic_scm):
     def get_artefacts(prjctPath, board_file):
         '''Returns list of artifacts from a directory'''
 
-        cmd = 'cd {prjctPath} && fossil finfo -b {board_file}'.format(prjctPath=prjctPath, board_file=board_file)
+        cmd = ['fossil', 'finfo', '-b', board_file]
 
         print("")
         print("Getting artifacts")
         print(cmd)
 
-        stdout, stderr = settings.run_cmd(cmd)
+        stdout, stderr = settings.run_cmd(prjctPath, cmd)
         artifacts = [a.replace(' ', ' | ', 4) for a in stdout.splitlines()]
 
         return artifacts
@@ -107,10 +109,9 @@ class scm(generic_scm):
     def get_kicad_project_path(prjctPath):
         '''Returns the root folder of the repository'''
 
-        cmd = "cd {prjctPath} && fossil status ".format(
-            prjctPath=settings.escape_string(prjctPath))
+        cmd = ['fossil', 'status']
 
-        stdout, _ = settings.run_cmd(cmd)
+        stdout, _ = settings.run_cmd(prjctPath, cmd)
         repo_root_path = stdout.split()[3]
 
         kicad_project_path = os.path.relpath(prjctPath, repo_root_path)

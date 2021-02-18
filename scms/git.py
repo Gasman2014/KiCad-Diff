@@ -8,25 +8,27 @@ class scm(generic_scm):
     @staticmethod
     def get_board_path(prjctName, prjctPath):
 
-        cmd = 'cd ' + settings.escape_string(prjctPath) + ' && git rev-parse --show-toplevel'
+        cmd = ['git', 'rev-parse', '--show-toplevel']
 
         print("")
         print("Getting SCM top level")
-        print(cmd)
+        print(prjctPath, cmd)
 
-        stdout, _ = settings.run_cmd(cmd)
+        stdout, _ = settings.run_cmd(prjctPath, cmd)
         scm_root = stdout
 
-        cmd = 'cd {scm_root} && git ls-tree -r --name-only HEAD | grep -m 1 {prjctName}'.format(
-            scm_root=settings.escape_string(scm_root), prjctName=prjctName)
+        cmd = ['git', 'ls-tree', '-r', '--name-only', 'HEAD']  # | grep -m 1 {prjctName}'.format(
 
         print("")
-        print("Getting board file")
+        print("Getting board file {}".format(prjctName))
         print(cmd)
 
-        stdout, _ = settings.run_cmd(cmd)
+        stdout, _ = settings.run_cmd(scm_root, cmd)
+        for line in stdout.splitlines():
+            if prjctName in line:
+                return line
 
-        return settings.escape_string(stdout)
+        return ""
 
     @staticmethod
     def get_boards(diff1, diff2, prjctName, kicad_project_path, prjctPath):
@@ -41,24 +43,21 @@ class scm(generic_scm):
         if kicad_project_path == '.':
             prj_path = ''
 
-        cmd = \
-            'cd ' + settings.escape_string(prjctPath) + ' && ' + \
-            'git diff --name-only ' + artifact1 + ' ' + artifact2 + ' . | ' + \
-            "grep " + prj_path + prjctName
+        cmd = ['git', 'diff', '--name-only', artifact1, artifact2, '.']
 
         print("")
         print("Getting boards")
         print(cmd)
 
-        stdout, stderr = settings.run_cmd(cmd)
-        changed = stdout
+        stdout, stderr = settings.run_cmd(prjctPath, cmd)
+        changed = (prj_path + prjctName) in stdout
 
-        if changed == '':
+        if not changed:
             print("\nThere is no difference in .kicad_pcb file in selected commits")
             sys.exit()
 
-        outputDir1 = prjctPath + '/' + settings.plotDir + '/' + artifact1
-        outputDir2 = prjctPath + '/' + settings.plotDir + '/' + artifact2
+        outputDir1 = os.path.join(prjctPath, settings.plotDir, artifact1)
+        outputDir2 = os.path.join(prjctPath, settings.plotDir, artifact2)
 
         if not os.path.exists(outputDir1):
             os.makedirs(outputDir1)
@@ -67,15 +66,10 @@ class scm(generic_scm):
             os.makedirs(outputDir2)
 
         # gitPath = get_board_path(settings.escape_string(kicad_project_path) + "/" + prjctName, settings.escape_string(prjctPath))
-        gitPath = scm.get_board_path(settings.escape_string(prj_path + prjctName), settings.escape_string(prjctPath))
+        gitPath = scm.get_board_path(prj_path + prjctName, prjctPath)
 
-        gitArtifact1 = 'cd ' + settings.escape_string(prjctPath) + ' && ' + \
-            'git show ' + artifact1 + ':' + gitPath + ' > ' + \
-            settings.escape_string(outputDir1) + '/' + prjctName
-
-        gitArtifact2 = 'cd ' + settings.escape_string(prjctPath) + ' && ' + \
-            'git show ' + artifact2 + ':' + gitPath + ' > ' + \
-            settings.escape_string(outputDir2) + '/' + prjctName
+        gitArtifact1 = ['git', 'show', artifact1 + ':' + gitPath]
+        gitArtifact2 = ['git', 'show', artifact2 + ':' + gitPath]
 
         print("")
         print("Get artifacts")
@@ -83,22 +77,25 @@ class scm(generic_scm):
         print("Git artifact1: ", gitArtifact1)
         print("Git artifact2: ", gitArtifact2)
 
-        stdout, stderr = settings.run_cmd(gitArtifact1)
-        stdout, stderr = settings.run_cmd(gitArtifact2)
-
-        gitDateTime1 = 'cd ' + settings.escape_string(prjctPath) + ' && git show -s --format="%ci" ' + artifact1
-        gitDateTime2 = 'cd ' + settings.escape_string(prjctPath) + ' && git show -s --format="%ci" ' + artifact2
+        stdout, stderr = settings.run_cmd(prjctPath, gitArtifact1)
+        with open(os.path.join(outputDir1, prjctName), 'w') as fout1:
+            fout1.write(stdout)
+        stdout, stderr = settings.run_cmd(prjctPath, gitArtifact2)
+        with open(os.path.join(outputDir2, prjctName), 'w') as fout2:
+            fout2.write(stdout)
+        gitDateTime1 = ['git', 'show', '-s', '--format="%ci"', artifact1]
+        gitDateTime2 = ['git', 'show', '-s', '--format="%ci"', artifact2]
 
         print("")
         print("Check datetime")
         print(gitDateTime1)
         print(gitDateTime2)
 
-        stdout, stderr = settings.run_cmd(gitDateTime1)
+        stdout, stderr = settings.run_cmd(prjctPath, gitDateTime1)
         dateTime1 = stdout
         date1, time1, UTC = dateTime1.split(' ')
 
-        stdout, stderr = settings.run_cmd(gitDateTime2)
+        stdout, stderr = settings.run_cmd(prjctPath, gitDateTime2)
         dateTime2 = stdout
         date2, time2, UTC = dateTime2.split(' ')
 
@@ -111,9 +108,10 @@ class scm(generic_scm):
     def get_artefacts(prjctPath, board_file):
         '''Returns list of artifacts from a directory'''
 
-        cmd = 'cd {prjctPath} && git log --pretty=format:"%h | %s"'.format(prjctPath=prjctPath)
+        cmd = ['git', 'log', '--date=local', '--pretty=format:%h | %ai | %an | %s']
 
-        stdout, _ = settings.run_cmd(cmd)
+        stdout, _ = settings.run_cmd(prjctPath, cmd)
+
         artifacts = stdout.splitlines()
 
         return artifacts
@@ -122,10 +120,9 @@ class scm(generic_scm):
     def get_kicad_project_path(prjctPath):
         '''Returns the root folder of the repository'''
 
-        cmd = "cd {prjctPath} && git rev-parse --show-toplevel".format(
-            prjctPath=settings.escape_string(prjctPath))
+        cmd = ['git', 'rev-parse', '--show-toplevel']
 
-        stdout, _ = settings.run_cmd(cmd)
+        stdout, _ = settings.run_cmd(prjctPath, cmd)
         repo_root_path = stdout.strip()
 
         kicad_project_path = os.path.relpath(prjctPath, repo_root_path)
