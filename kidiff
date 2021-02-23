@@ -11,26 +11,26 @@ import re
 import signal
 import sys
 
-from subprocess import PIPE, Popen
-
 from tkinter import filedialog, Tk, Toplevel, TclError, messagebox
 from tkUI import runGUI
 
 import webbrowser
 import http.server
 import socketserver
-socketserver.TCPServer.allow_reuse_address = True
 
 import settings
 
 import scms.fossil as fossil
 import scms.git as git
 import scms.svn as svn
+import scms.generic as generic
 
 import assets.html_data as custom_page
 
+
+socketserver.TCPServer.allow_reuse_address = True
 script_path = os.path.dirname(os.path.realpath(__file__))
-assets_folder = script_path + "/" + 'assets'
+assets_folder = os.path.join(script_path, 'assets')
 
 
 layerCols = {
@@ -80,7 +80,7 @@ def select_project_gui(display):
         except TclError:
             pass
         gui.call('set', '::tk::dialog::file::showHiddenVar', '0')
-    except:
+    except Exception:
         pass
 
     selected = filedialog.askopenfile(
@@ -107,20 +107,20 @@ def check_project_scms(prjctPath):
     scms = []
 
     if is_tool_available("git"):
-        cmd = 'cd {prjctPath} && git status'.format(prjctPath=prjctPath)
-        stdout, stderr = settings.run_cmd(cmd)
+        cmd = ['git', 'status']
+        stdout, stderr = settings.run_cmd(prjctPath, cmd)
         if ((stdout != '') & (stderr == '')):
             scms.append('git')
 
     if is_tool_available("fossil"):
-        cmd = 'cd {prjctPath} && fossil status'.format(prjctPath=prjctPath)
-        stdout, stderr = settings.run_cmd(cmd)
+        cmd = ['fossil', 'status']
+        stdout, stderr = settings.run_cmd(prjctPath, cmd)
         if (stdout != ''):
             scms.append('fossil')
 
     if is_tool_available("svn"):
-        cmd = 'cd {prjctPath} && svn log | perl -l4svn log0pe "s/^-+/\n/"'.format(prjctPath=prjctPath)
-        stdout, stderr = settings.run_cmd(cmd)
+        cmd = ['svn', 'log']  # | perl -l4svn log0pe "s/^-+/\n/"'.format(prjctPath=prjctPath)
+        stdout, stderr = settings.run_cmd(prjctPath, cmd)
         if ((stdout != '') & (stderr == '')):
             scms.append('svn')
 
@@ -138,15 +138,15 @@ def makeSVG(d1, d2, board_file, kicad_project_path, prjctPath):
     d1 = d1[:6]
     d2 = d2[:6]
 
-    d1SVG = prjctPath + '/' + settings.plotDir + '/' + kicad_project_path + "/" + d1
-    d2SVG = prjctPath + '/' + settings.plotDir + '/' + kicad_project_path + "/" + d2
+    d1SVG = os.path.join(prjctPath, settings.plotDir, kicad_project_path, d1)
+    d2SVG = os.path.join(prjctPath, settings.plotDir, kicad_project_path, d2)
 
-    Diff1 = d1SVG + "/" + board_file
-    Diff2 = d2SVG + "/" + board_file
+    Diff1 = os.path.join(d1SVG, board_file)
+    Diff2 = os.path.join(d2SVG, board_file)
     print("")
     print("Setting paths")
-    print("Diff1: ",Diff1)
-    print("Diff2: ",Diff2)
+    print("Diff1: ", Diff1)
+    print("Diff2: ", Diff2)
 
     if not os.path.exists(d1SVG):
         os.makedirs(d1SVG)
@@ -154,50 +154,31 @@ def makeSVG(d1, d2, board_file, kicad_project_path, prjctPath):
     if not os.path.exists(d2SVG):
         os.makedirs(d2SVG)
 
-    plot1Cmd = settings.plotProg + ' ' + settings.escape_string(Diff1) + ' -o ' + settings.escape_string(d1SVG)
-    plot2Cmd = settings.plotProg + ' ' + settings.escape_string(Diff2) + ' -o ' + settings.escape_string(d2SVG)
+    plot1Cmd = [settings.plotProg, Diff1, '-o', d1SVG]
+    plot2Cmd = [settings.plotProg, Diff2, '-o', d2SVG]
 
     print("")
     print("Plot Commands:")
     print(plot1Cmd)
     print(plot2Cmd)
 
-    plot1=Popen(
-        plot1Cmd,
-        shell=True,
-        stdin=PIPE,
-        stdout=PIPE,
-        stderr=PIPE,
-        close_fds=True)
-
-    stdout, stderr = plot1.communicate()
-    plotDims1 = (stdout.decode('utf-8').splitlines())
-    errors = stderr.decode('utf-8')
+    stdout, stderr = settings.run_cmd(prjctPath, plot1Cmd)
+    plotDims1 = stdout.splitlines()
+    errors = stderr
 
     if errors != "":
-        print(stdout.decode('utf-8'))
+        print(stdout)
         print("Plot1 error: " + errors)
         exit(1)
 
-    plot2=Popen(
-        plot2Cmd,
-        shell=True,
-        stdin=PIPE,
-        stdout=PIPE,
-        stderr=PIPE,
-        close_fds=True)
-
-    stdout, stderr = plot2.communicate()
-    plotDims2 = (stdout.decode('utf-8').splitlines())
-    errors = stderr.decode('utf-8')
+    stdout, stderr = settings.run_cmd(prjctPath, plot2Cmd)
+    plotDims2 = stdout.splitlines()
+    errors = stderr
 
     if errors != "":
-        print(stdout.decode('utf-8'))
+        print(stdout)
         print("Plot2 error: " + errors)
         exit(1)
-
-    plot1.wait()
-    plot2.wait()
 
     if not plotDims1 or not plotDims2:
         print('ERROR: Something happened with plotpcb')
@@ -211,15 +192,15 @@ def makeSupportFiles(board_file, kicad_project_path, prjctPath):
     Setup web directories for output
     '''
 
-    webd = prjctPath + "/" + settings.plotDir + "/" + kicad_project_path + "/" + settings.webDir
-    webIndex = webd + '/index.html'
-    webStyle = webd + '/style.css'
+    webd = os.path.join(prjctPath, settings.plotDir, kicad_project_path, settings.webDir)
+    webIndex = os.path.join(webd + '/index.html')
+    webStyle = os.path.join(webd + '/style.css')
 
     if not os.path.exists(webd):
         os.makedirs(webd)
-        os.makedirs(webd + '/triptych')
+        os.makedirs(os.path.join(webd, 'triptych'))
 
-    stylesheet = assets_folder + "/" + "style.css"
+    stylesheet = os.path.join(assets_folder, "style.css")
     shutil.copyfile(stylesheet, webStyle)
 
     if os.path.exists(webIndex):
@@ -249,17 +230,15 @@ def getBoardData(board):
         'nets': 0
     }
 
-    thickDone = False
-
     with open(board, 'r') as f:
         for line in f:
             words = line.strip("\t ()").split()
             for key in prms:
                 if len(words) > 1:
                     if key == words[0]:
-                        complete =""
-                        for i in range(1,len(words)):
-                            complete += words[i].strip("\t ()").replace("\"","") + " "
+                        complete = ""
+                        for i in range(1, len(words)):
+                            complete += words[i].strip("\t ()").replace("\"", "") + " "
                         prms[key] = complete
     return(prms)
 
@@ -269,11 +248,11 @@ def makeOutput(diffDir1, diffDir2, board_file, kicad_project_path, prjctPath, ti
     thumbnails and three way view (triptych) page.
     '''
 
-    webd = prjctPath + "/" + settings.plotDir + "/" + kicad_project_path + "/" + settings.webDir
-    webIndex = webd + '/index.html'
+    webd = os.path.join(prjctPath, settings.plotDir, kicad_project_path, settings.webDir)
+    webIndex = os.path.join(webd, 'index.html')
 
-    board1 = prjctPath + "/" + settings.plotDir + "/" + kicad_project_path + "/" + diffDir1 + "/" + board_file
-    board2 = prjctPath + "/" + settings.plotDir + "/" + kicad_project_path + "/" + diffDir2 + "/" + board_file
+    board1 = os.path.join(prjctPath, settings.plotDir, kicad_project_path, diffDir1, board_file)
+    board2 = os.path.join(prjctPath, settings.plotDir, kicad_project_path, diffDir2, board_file)
 
     webOut = open(webIndex, 'w')
 
@@ -295,10 +274,6 @@ def makeOutput(diffDir1, diffDir2, board_file, kicad_project_path, prjctPath, ti
 
     # ======
 
-    TITLE2 = board_2_Info.get('title')
-    DATE2 = board_2_Info.get('date')
-    COMPANY2 = board_2_Info.get('company')
-
     THICK2 = board_2_Info.get('thickness')
     DRAWINGS2 = board_2_Info.get('drawings')
     TRACKS2 = board_2_Info.get('tracks')
@@ -306,7 +281,7 @@ def makeOutput(diffDir1, diffDir2, board_file, kicad_project_path, prjctPath, ti
     MODULES2 = board_2_Info.get('modules')
     NETS2 = board_2_Info.get('nets')
 
-    index=custom_page.indexHead.format(
+    index = custom_page.indexHead.format(
         TITLE=TITLE,
         DATE=DATE,
         COMPANY=COMPANY,
@@ -332,13 +307,20 @@ def makeOutput(diffDir1, diffDir2, board_file, kicad_project_path, prjctPath, ti
 
     webOut.write(index)
 
-    diffCmnd1 = ()
-
-    source = prjctPath + "/" + settings.plotDir + "/" + kicad_project_path + "/" + diffDir1 + "/"
-    triptychDir = prjctPath + "/" + settings.plotDir + "/" + kicad_project_path + "/" + "web" + "/" + 'triptych'
+    source = os.path.join(prjctPath, settings.plotDir, kicad_project_path, diffDir1)
+    triptychDir = os.path.join(prjctPath, settings.plotDir, kicad_project_path, "web", 'triptych')
 
     if not os.path.exists(triptychDir):
         os.makedirs(triptychDir)
+
+    diff1 = os.path.join(prjctPath, settings.plotDir, kicad_project_path, diffDir1, board_file)
+    diff2 = os.path.join(prjctPath, settings.plotDir, kicad_project_path, diffDir2, board_file)
+    output_file = os.path.join(prjctPath, settings.plotDir, kicad_project_path, 'diff.txt')
+    stdout, stderr = settings.run_cmd(prjctPath, [settings.diffProg, diff2, diff1])
+    with open(output_file, 'a') as fout:
+        fout.write(stdout)
+    diffCmd2 = [settings.diffProg, '--suppress-common-lines', diff2, diff1]
+    stdout, stderr = settings.run_cmd(prjctPath, diffCmd2)
 
     # diffs = os.fsencode(source)
 
@@ -348,14 +330,14 @@ def makeOutput(diffDir1, diffDir2, board_file, kicad_project_path, prjctPath, ti
         if filename.endswith(".svg"):
             # print(filename)
             file, file_extension = os.path.splitext(filename)
-            triptych = triptychDir + '/' + file + '.html'
+            triptych = os.path.join(triptychDir, file + '.html')
             *project, layer = filename.split('-')
             layer, ext = layer.split('.')
             prjct, ext = filename.split('.')
-            splitted = prjct.split('-') # Accounts for project names containing hyphens
+            splitted = prjct.split('-')  # Accounts for project names containing hyphens
             prj = "-".join(splitted[0:-1])
             layer = splitted[-1]
-            out=custom_page.outfile.format(
+            out = custom_page.outfile.format(
                 diff1=diffDir1,
                 diff2=diffDir2,
                 dim1=dim1,
@@ -366,164 +348,129 @@ def makeOutput(diffDir1, diffDir2, board_file, kicad_project_path, prjctPath, ti
 
             webOut.write(out)
 
-            triptychOut = open(triptych, 'w')
+            with open(triptych, 'w') as triptychOut:
 
-            t_out = custom_page.triptychHTML.format(
-                layername=filename,
-                diff1=diffDir1,
-                diff2=diffDir2,
-                dim1=dim1,
-                dim2=dim2,
-                plotDir=settings.plotDir,
-                layer=layer,
-                prj=prj)
-
-            triptychOut.write(t_out)
-
-            diffbase = settings.diffProg + " " + '{prjctPath}/{plotDir}/{kicad_project_path}/{diff2}/*.kicad_pcb {prjctPath}/{plotDir}/{kicad_project_path}/{diff1}/*.kicad_pcb >> {prjctPath}/{plotDir}/{kicad_project_path}/diff.txt'
-
-            if not diffCmnd1:
-                diffCmnd1 = diffbase.format(
-                    plotDir=settings.plotDir,
+                t_out = custom_page.triptychHTML.format(
+                    layername=filename,
                     diff1=diffDir1,
                     diff2=diffDir2,
-                    prjctPath=settings.escape_string(prjctPath),
-                    kicad_project_path=kicad_project_path)
+                    dim1=dim1,
+                    dim2=dim2,
+                    plotDir=settings.plotDir,
+                    layer=layer,
+                    prj=prj)
 
-                diff1Txt = Popen(
-                    diffCmnd1,
-                    shell=True,
-                    stdin=PIPE,
-                    stdout=PIPE,
-                    stderr=PIPE,
-                    close_fds=True)
-                stdout, stderr = diff1Txt.communicate()
-                diff1Txt.wait()
+                triptychOut.write(t_out)
 
-            mod = layer.replace("_", ".")
+                mod = layer.replace("_", ".")
 
-            diffCmnd2 = settings.diffProg + " " + "--suppress-common-lines {prjctPath}/{plotDir}/{kicad_project_path}/{diff2}/*.kicad_pcb {prjctPath}/{plotDir}/{kicad_project_path}/{diff1}/*.kicad_pcb | {grepProg} {mod} | sed \'s/(status [1-9][0-9])//g\'".format(
-                plotDir=settings.plotDir,
-                diff1=diffDir1,
-                diff2=diffDir2,
-                kicad_project_path=kicad_project_path,
-                prjctPath=settings.escape_string(prjctPath),
-                mod=mod,
-                grepProg=settings.grepProg)
+                out = "\n".join(re.sub('status [1-9][0-9]', '', line) for line in stdout.splitlines() if mod in line)
 
-            diff2Txt = Popen(
-                    diffCmnd2,
-                    shell=True,
-                    stdin=PIPE,
-                    stdout=PIPE,
-                    stderr=PIPE,
-                    close_fds=True)
-            stdout, stderr = diff2Txt.communicate()
-            diff2Txt.wait()
-            out = stdout.decode('utf8')
+                processed = processDiff(out, mod)
+                processed += custom_page.twopane
 
-            processed = processDiff(out, mod)
-            processed += custom_page.twopane
-
-            triptychOut.write(processed)
+                triptychOut.write(processed)
 
     webOut.write(custom_page.tail)
 
 
 def processDiff(diffText, mod):
 
-    keywords=[
-        ("(module ","Modules",("Component","Reference","Timestamp")),
-        ("(gr_text ","Text",("Text","Position")),
-        ("(via ","Vias",("Coordinate","Size","Drill","Layers","Net")),
-        ("(fp_text ","FP Text",("Reference","Coordinate")),
-        ("(pad ","Pads",("Number","Type","Shape","Coordinate","Size","Layers","Ratio")),
-        ("(gr_line ","Graphics",("Start","End ","Width","Net")),
-        ("(fp_arc","Arcs",("Start","End ","Angle","Width")),
-        ("(segment","Segments",("Start","End ","Width","Net","Timestamp")),
-        ("(fp_circle","Circles",("Centre","End ","Width")),
+    keywords = [
+        ("module ", "Modules", ("Component", "Reference", "Timestamp")),
+        ("gr_text ", "Text", ("Text", "Position")),
+        ("\\(via ", "Vias", ("Coordinate", "Size", "Drill", "Layers", "Net")),
+        ("fp_text \\w+ ", "FP Text", ("Reference", "Coordinate")),
+        ("\\(pad ", "Pads", ("Number", "Type", "Shape", "Coordinate", "Size", "Layers", "Ratio")),
+        ("\\(gr_line ", "Graphics", ("Start", "End ", "Width", "Net")),
+        ("\\(fp_arc", "Arcs", ("Start", "End ", "Angle", "Width")),
+        ("\\(segment", "Segments", ("Start", "End ", "Width", "Net", "Timestamp")),
+        ("\\(fp_circle", "Circles", ("Centre", "End ", "Width")),
     ]
 
-    d={
-        "\(start ":"<td>",
-        "\(end ":"<td>",
-        "\(width ":"<td>",
-        "\(tedit ":"<td>",
-        "\(tstamp ":"<td>",
-        "\(at ":"<td>",
-        "\(size ":"<td>",
-        "\(drill ":"<td>",
-        "\(layers ":"<td>",
-        "\(net ":"<td>",
-        "\(roundrect_rratio ":"<td>",
-        "\(angle ":"<td>",
-        "\(center ":"<td>",
-        "\)":"</td>",
-        "user (\w+)":r'<td>\1</td>',
-        "reference (\w+)":r'<td>\1</td>',
-        "([0-9]) smd":r'<td>\1</td><td>Surface</td>',
-        "roundrect":"<td>Rounded</td>",
-        "rect":"<td>Rectangle</td>",
-        "(\w.+):(\w.+)":r'<td>\1 \2</td>',
-        "(?<=\")(.*)(?=\")":r'<td>\1</td>',
-        "[\"]":r'',
-        "[**]":r'',
-        }
+    d = {
+        "\\(start ": "<td>",
+        "\\(end ": "<td>",
+        "\\(width ": "<td>",
+        "\\(tedit ": "<td>",
+        "\\(tstamp ": "<td>",
+        "\\(at ": "<td>",
+        "\\(size ": "<td>",
+        "\\(drill ": "<td>",
+        "\\(layers ": "<td>",
+        "\\(net ": "<td>",
+        "\\(roundrect_rratio ": "<td>",
+        "\\(angle ": "<td>",
+        "\\(center ": "<td>",
+        "\\)": "</td>",
+        "user (\\w+)": r'<td>\1</td>',
+        "reference (\\w+)": r'<td>\1</td>',
+        "([0-9]) smd": r'<td>\1</td><td>Surface</td>',
+        "roundrect": "<td>Rounded</td>",
+        "rect": "<td>Rectangle</td>",
+        "\\(([^ ]+) ": r'<td>\1</td>',
+        "(?<=\")(.*)(?=\")": r'<td>\1</td>',
+        "[\"]": r'',
+        "[**]": r''
+    }
 
-    final =""
+    final = ""
     content = ""
     output = ""
     combined = ""
-    header = ""
     tbL = ""
     tbR = ""
     checked = "checked"
 
-
-    top1='''<input name='tabbed' id='tabbed{tabn}' type='radio' {checked}><section><h1><label for='tabbed{tabn}'>{label}</label></h1><div>{content}</div></section>'''
-    tsl='''<div class='responsive'>
+    top1 = '''<input name='tabbed' id='tabbed{tabn}' type='radio' {checked}/>
+  <section>
+    <h1>
+      <label for='tabbed{tabn}'>{label}</label>
+    </h1>
+    <div>{content}</div>
+  </section>'''
+    tsl = '''<div class='responsive'>
                 <div class = 'tbl'>
                     <table style="border-color: #aaaaaa; width: 100%; height: 2px;" border="2px" cellspacing="2px" cellpadding="3px">'''
-    tsr='''<div class='responsive'>
+    tsr = '''<div class='responsive'>
                 <div class = 'tbr'>
                     <table style="border-color: #aaaaaa; width: 100%; height: 2px;" border="2px" cellspacing="2px" cellpadding="3px">'''
-    clearfix ='''<div class='clearfix'>
+    clearfix = '''<div class='clearfix'>
                 </div>
                 <div style='padding:6px;'>
                 </div>'''
 
-
-    for indx,layerInfo in enumerate(keywords):
+    for indx, layerInfo in enumerate(keywords):
         combined = tbL = tbR = ""
-        for indx2,parameter in enumerate(layerInfo[2]):
-            tbR = tbR + "<th>" + parameter + "</th>"
-            tbL = tbL + "<th>" + parameter + "</th>"
+        for indx2, parameter in enumerate(layerInfo[2]):
+            tbR = tbR + "<th>" + parameter + "</th>\n"
+            tbL = tbL + "<th>" + parameter + "</th>\n"
         for line in diffText.splitlines():
-            if ((layerInfo[0] in line) and (mod in line)):
-                output = line.replace(layerInfo[0], "")
+            if re.search(layerInfo[0], line) and (mod in line):
+                output = re.sub(layerInfo[0], "", line)
                 output = output.replace("(layer " + mod + ")", "")
                 # print(output)
-                for item in d.keys():
-                    output = re.sub(item, d[item], output)
+                for item, replace in d.items():
+                    output = re.sub(item, replace, output)
 
                 if output.count("<td>") == indx2:
-                    output += "<td></td>"
+                    output += "<td></td>\n"
                 if output == "<td>":
                     output = ""
-                output += "</tr>"
+                output += "</tr>\n"
                 # print(output)
 
-                if output[0]==">":
+                if output[0] == ">":
                     tbL = tbL + "<tr>" + output[1:]
                 elif output[0] == "<":
                     tbR = tbR + "<tr>" + output[1:]
 
-        combined = tsl + tbL + "</table></div></div>" + tsr + tbR + "</table></div></div>"
-        content = top1.format(tabn=indx,content=combined,label=layerInfo[1],checked=checked)
-        checked=""
+        combined = tsl + tbL + "</table></div></div>\n" + tsr + tbR + "</table></div></div>\n"
+        content = top1.format(tabn=indx, content=combined, label=layerInfo[1], checked=checked)
+        checked = ""
 
         final = final + content
-    final = "<div class = 'tabbed'>"+ final + "</div>" + clearfix
+    final = "<div class = 'tabbed'>" + final + "</div>" + clearfix
     return(final)
 
 
@@ -535,7 +482,7 @@ def is_tool_available(name):
 class WebServerHandler(http.server.SimpleHTTPRequestHandler):
 
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, directory=os.path.realpath(prjctPath + "/" + settings.plotDir), **kwargs)
+        super().__init__(*args, directory=os.path.realpath(os.path.join(prjctPath, settings.plotDir)), **kwargs)
 
     def log_message(self, format, *args):
         return
@@ -578,7 +525,7 @@ def parse_cli_args():
     parser.add_argument('-a', "--commit1", type=str, help="Commit 1")
     parser.add_argument('-b', "--commit2", type=str, help="Commit 2")
     parser.add_argument('-g', "--gui", action='store_true', help="Use gui")
-    parser.add_argument('-s', "--scm", type=str,  help="Select SCM (git, svn, fossil)")
+    parser.add_argument('-s', "--scm", type=str, help="Select SCM (git, svn, fossil)")
     parser.add_argument('-d', "--display", type=str, help="Set DISPLAY value, default :1.0", default=':1.0')
     parser.add_argument('-p', "--port", type=int, help="Set webserver port", default=9092)
     parser.add_argument('-w', "--webserver-disable", action='store_true', help="Does not execute webserver (just generate images)")
@@ -598,7 +545,6 @@ def parse_cli_args():
 if __name__ == "__main__":
 
     signal.signal(signal.SIGINT, signal_handler)
-
     args = parse_cli_args()
 
     if args.kicad_pcb is None:
@@ -613,17 +559,17 @@ if __name__ == "__main__":
         scm_name = args.scm.lower()
     else:
         scm_name = project_scms[0]
-
+    scm = generic.scm()
     if scm_name == "fossil":
-        scm = fossil
+        scm = fossil.scm()
     elif scm_name == "svn":
-        scm = svn
+        scm = svn.scm()
     elif scm_name == "git":
-        scm = git
+        scm = git.scm()
     else:
         print(
-        "This project is either not under version control"
-        "or no SCM tool was was found in the PATH")
+            "This project is either not under version control"
+            "or no SCM tool was was found in the PATH")
         sys.exit(1)
 
     prjctPath, kicad_project = scm.get_kicad_project_path(settings.escape_string(kicad_project_path))
@@ -663,8 +609,8 @@ if __name__ == "__main__":
             d2 = args.commit2
 
     print("")
-    print(" Commit 1 (a):", d1.split(' ')[0])
-    print(" Commit 2 (b):", d2.split(' ')[0])
+    print(" Commit 1 (a):", d1)
+    print(" Commit 2 (b):", d2)
 
     d1, d2, datetimes = scm.get_boards(d1, d2, board_file, kicad_project, prjctPath)
 

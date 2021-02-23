@@ -2,6 +2,7 @@
 import sys
 
 from subprocess import PIPE, Popen
+from typing import List, Tuple
 
 args = ''
 
@@ -40,17 +41,18 @@ def escape_string(val):
     return ''.join(val.splitlines())
 
 
-def run_cmd(cmd):
+def run_cmd(path: str, cmd: List[str]) -> Tuple[str, str]:
 
     p = Popen(
         cmd,
-        shell=True,
         stdin=PIPE,
         stdout=PIPE,
         stderr=PIPE,
-        close_fds=True)
+        close_fds=True,
+        encoding='utf-8',
+        cwd=path)
 
     stdout, stderr = p.communicate()
     p.wait()
 
-    return stdout.decode('utf-8'), stderr.decode('utf-8')
+    return stdout.strip("\n "), stderr

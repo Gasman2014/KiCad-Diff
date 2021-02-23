@@ -59,7 +59,7 @@ def select_scm_gui():
     Label(root, text="""Select the project's SCM""", justify=CENTER, padx=20).pack()
 
     for val, language in enumerate(scms):
-         Radiobutton(
+        Radiobutton(
             root,
             text=language,
             indicatoron=0,
@@ -73,7 +73,7 @@ def select_scm_gui():
 
     try:
         scm = v.get()
-    except:
+    except Exception:
         scm = v
     return scms[scm]
 
@@ -197,5 +197,5 @@ def runGUI(checkouts_top, prjctName, kicad_project_path, prjctPath, scm):
     except:
         commitBottom_str = commitBottom
 
-    return(commitTop_str, commitBottom_str)
+    return(commitTop_str.strip("\""), commitBottom_str.strip("\""))
     root.destroy()
