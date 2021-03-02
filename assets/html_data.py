@@ -12,6 +12,9 @@ indexHead = '''
 <html lang="en">
 <meta charset="utf-8" />
 <head>
+    <title>{TITLE}</title>
+    <link rel="icon" href="http://127.0.0.1:9092/favicon.ico" type="image/x-icon" />
+    <link rel="shortcut icon" href="favicon.ico" type="image/x-icon" />
     <link rel="stylesheet" type="text/css" href="style.css" media="screen" />
 </head>
 <div class="responsivefull">

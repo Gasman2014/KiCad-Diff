@@ -195,6 +195,7 @@ def makeSupportFiles(board_file, kicad_project_path, prjctPath):
     webd = os.path.join(prjctPath, settings.plotDir, kicad_project_path, settings.webDir)
     webIndex = os.path.join(webd + '/index.html')
     webStyle = os.path.join(webd + '/style.css')
+    webFavicon = os.path.join(webd + '/favicon.ico')
 
     if not os.path.exists(webd):
         os.makedirs(webd)
@@ -202,6 +203,9 @@ def makeSupportFiles(board_file, kicad_project_path, prjctPath):
 
     stylesheet = os.path.join(assets_folder, "style.css")
     shutil.copyfile(stylesheet, webStyle)
+
+    favicon = os.path.join(assets_folder, "favicon.ico")
+    shutil.copyfile(favicon, webFavicon)
 
     if os.path.exists(webIndex):
         os.remove(webIndex)
