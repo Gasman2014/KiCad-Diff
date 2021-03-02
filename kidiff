@@ -585,7 +585,7 @@ if __name__ == "__main__":
     print(" Kicad Project:", kicad_project)
     print("    Board Name:", board_file)
 
-    artifacts = scm.get_artefacts(settings.escape_string(prjctPath), board_file)
+    artifacts = scm.get_artefacts(settings.escape_string(prjctPath), kicad_project, board_file)
 
     if args.verbose > 1:
         print("")
