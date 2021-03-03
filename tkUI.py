@@ -89,7 +89,7 @@ def runGUI(checkouts_top, prjctName, kicad_project_path, prjctPath, scm):
     root = Tk()
     root.bind("<Escape>", quit)
 
-    root.configure(background='#ececec', foreground='#000000')
+    root.configure(background='#ececec')
 
     root.title("Kicad Visual Layout Diff")
     root.geometry('800x700')
