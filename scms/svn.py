@@ -9,29 +9,6 @@ from dateutil.parser import isoparse
 
 class scm(generic_scm):
     @staticmethod
-    def get_board_path(prjctName, prjctPath):
-
-        # svnRootCmd = 'cd ' + settings.escape_string(prjctPath) + ' && svn rev-parse --show-toplevel'
-        cmd = "echo [TODO]"
-
-        print("")
-        print("Getting SCM top level")
-        print(cmd)
-
-        stdout, stderr = settings.run_cmd(cmd)
-
-        # svnPathCmd = 'cd ' + settings.escape_string(svnRoot) + ' && svn ls-tree -r --name-only HEAD | grep -m 1 ' + prjctName
-        cmd = "echo [TODO]"
-
-        print("")
-        print("Getting board file")
-        print(cmd)
-
-        stdout, stderr = settings.run_cmd(cmd)
-
-        return settings.escape_string(stdout)
-
-    @staticmethod
     def get_boards(diff1, diff2, prjctName, kicad_project_path, prjctPath):
         '''Given two SVN revisions, write out two kicad_pcb files to their respective
         directories (named after the revision number). Returns the date and time of both commits'''
@@ -39,7 +16,13 @@ class scm(generic_scm):
         artifact1, *tail = diff1.split(' |')
         artifact2, *tail = diff2.split(' |')
 
-        cmd = ['svn', 'diff', '--summarize', '-r', artifact1 + ':' + artifact2, prjctName]
+
+        # Using this to fix the path when there is no subproject
+        prj_path = kicad_project_path + '/'
+        if kicad_project_path == '.':
+            prj_path = ''
+
+        cmd = ['svn', 'diff', '--summarize', '-r', artifact1 + ':' + artifact2, prj_path + prjctName]
 
         print("")
         print("Getting Boards")
@@ -61,8 +44,10 @@ class scm(generic_scm):
         if not os.path.exists(outputDir2):
             os.makedirs(outputDir2)
 
-        svnArtifact1 = ['svn', 'cat', '-r', artifact1, prjctName]
-        svnArtifact2 = ['svn', 'cat', '-r', artifact2, prjctName]
+        gitPath = prj_path + prjctName
+
+        svnArtifact1 = ['svn', 'cat', '-r', artifact1, gitPath]
+        svnArtifact2 = ['svn', 'cat', '-r', artifact2, gitPath]
 
         print("")
         print("Get Artifacts")
@@ -101,10 +86,10 @@ class scm(generic_scm):
         return artifact1, artifact2, times
 
     @staticmethod
-    def get_artefacts(prjctPath, board_file):
+    def get_artefacts(prjctPath, kicad_project_path, board_file):
         '''Returns list of revisions from a directory'''
 
-        cmd = ['svn', 'log', '--xml', '-r', 'HEAD:0']
+        cmd = ['svn', 'log', '--xml', '-r', 'HEAD:0', os.path.join(kicad_project_path, board_file)]
         print("")
         print("Getting Artifacts")
         print(cmd)
