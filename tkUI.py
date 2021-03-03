@@ -89,15 +89,15 @@ def runGUI(checkouts_top, prjctName, kicad_project_path, prjctPath, scm):
     root = Tk()
     root.bind("<Escape>", quit)
 
-    root.configure(background='#ececec')
+    root.configure(background='#ececec', foreground='#000000')
 
     root.title("Kicad Visual Layout Diff")
     root.geometry('800x700')
 
-    frame1 = LabelFrame(root, text=scm.upper(), width=1000, height=25, bd=1, background='#ececec')
-    frame2 = LabelFrame(root, text="Commit 1 (a)", width=1000, height=200, bd=1, background='#ececec')
-    frame3 = LabelFrame(root, text="Commit 2 (b)", width=1000, height=200, bd=1, background='#ececec')
-    frame4 = LabelFrame(root, width=1000, height=10, bd=0, background='#ececec')
+    frame1 = LabelFrame(root, text=scm.upper(), width=1000, height=25, bd=1, background='#ececec', foreground='#000000')
+    frame2 = LabelFrame(root, text="Commit 1 (a)", width=1000, height=200, bd=1, background='#ececec', foreground='#000000')
+    frame3 = LabelFrame(root, text="Commit 2 (b)", width=1000, height=200, bd=1, background='#ececec', foreground='#000000')
+    frame4 = LabelFrame(root, width=1000, height=10, bd=0, background='#ececec', foreground='#000000')
 
     frame1.grid(row=0, column=0, padx=25, sticky='N E W S')
     frame2.grid(row=1, column=0, padx=25, sticky='N E W')
@@ -118,7 +118,7 @@ def runGUI(checkouts_top, prjctName, kicad_project_path, prjctPath, scm):
 
     pcb_path = pcb_path.replace("//", "/")
 
-    Label(frame1, text=pcb_path, bg='#ececec').pack(side=LEFT, padx=10)
+    Label(frame1, text=pcb_path, bg='#ececec', fg='#000000').pack(side=LEFT, padx=10)
 
     commitTop = Variable()
     listTop = Listbox(
@@ -170,14 +170,14 @@ def runGUI(checkouts_top, prjctName, kicad_project_path, prjctPath, scm):
         listTop.insert(END, line)
 
     for i in range(1, len(checkouts_top), 2):
-        listTop.itemconfigure(i, background='#ececec')
+        listTop.itemconfigure(i, background='#ececec', foreground='#000000')
 
     for line in checkouts_bottom:
         # listBottom.insert(END, line[0:-1])
         listBottom.insert(END, line)
 
     for i in range(1, len(checkouts_bottom), 2):
-        listBottom.itemconfigure(i, background='#ececec')
+        listBottom.itemconfigure(i, background='#ececec', foreground='#000000')
 
     for child in root.winfo_children():
         child.grid_configure(padx=5, pady=5)
