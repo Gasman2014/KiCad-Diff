@@ -146,7 +146,7 @@ class SvnLogHandler:
     def characters(self, content):
         if self.save and len(content):
             if self.save == "date":
-                self.current_line += isoparse(content).strftime("YYYY-MM-DD HH:mm")
+                self.current_line += isoparse(content).strftime("%Y-%m-%d %H:%M")
             else:
                 self.current_line += content
             self.save = False
