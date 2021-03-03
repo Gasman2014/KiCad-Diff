@@ -1,201 +1,145 @@
 #!/usr/local/bin/python3
 
+import os
+import pygubu
+
 from tkinter import ttk, Tk, LabelFrame, Label, Variable, IntVar, Listbox, \
-    SINGLE, N, E, W, VERTICAL, LEFT, END, CENTER, Radiobutton
-
-global root, commitTop, commitBottom
+    SINGLE, N, END, W, VERTICAL, LEFT, END, CENTER, Radiobutton
 
 
-def runProgram():
-    root.destroy()
+PROJECT_PATH = os.path.dirname(__file__)
+PROJECT_UI = os.path.join(PROJECT_PATH, "kidiff.ui")
 
 
-def quit(self):
-    root.destroy()
-    exit(0)
+class KidiffApp:
+    def __init__(self, artifacts, prjctName, kicad_project_path, prjctPath, scm):
+
+        self.artifacts = artifacts
+        self.prjctName = prjctName
+        self.kicad_project_path = kicad_project_path
+        self.prjctPath = prjctPath
+        self.scm = scm
+
+        self.builder = builder = pygubu.Builder()
+        builder.add_resource_path(PROJECT_PATH)
+        builder.add_from_file(PROJECT_UI)
+        self.main_window = builder.get_object('main_window')
+        builder.connect_callbacks(self)
+
+        self.main_window.bind("<Escape>", self.on_escape_key)
+        self.main_window.bind('<Return>', self.get_selected_commits)
+
+        self.set_repo_info()
+        self.set_repo_path()
+        self.fill_artifacts()
+
+        self.commit1 = ""
+        self.commit2 = ""
+
+    def on_escape_key(self, event=None):
+        self.on_cancel_button_click(self)
+
+    def on_cancel_button_click(self, event=None):
+        self.main_window.destroy()
+        exit(0)
+
+    def get_selected_commits(self, event=None):
+
+        try:
+            self.commit1_str = self.commit1.get()
+        except:
+            self.commit1_str = self.commit1
+
+        try:
+            self.commit2_str = self.commit2.get()
+        except:
+            self.commit2_str = self.commit2
+
+        self.main_window.destroy()
+
+    def callback(self, event=None):
+        pass
+
+    def set_repo_info(self):
+        scm_info = "{} Repository".format(self.scm.upper())
+        self.labelframe_1 = self.builder.get_object('labelframe_1')
+        self.labelframe_1['text'] = scm_info
+
+    def set_repo_path(self):
+
+        if self.kicad_project_path == '.':
+            board_path = self.prjctPath + "/" + self.prjctName
+        else:
+            board_path = self.prjctPath + "/" + self.kicad_project_path + "/" + self.prjctName
+
+        board_path = board_path.replace("//", "/")
+
+        self.board_path = self.builder.get_object('board_path')
+        self.board_path['text'] = board_path
+
+    def get_text_from_select_rows(self, event=None):
 
 
-def cancel():
-    root.destroy()
-    exit(0)
+        self.listbox_1.event_generate("<<ListboxSelect>>")
+        self.commit1 = self.listbox_1.get(self.listbox_1.curselection())
+
+        self.listbox_2.event_generate("<<ListboxSelect>>")
+        self.commit2 = self.listbox_2.get(self.listbox_2.curselection())
+
+        print("")
+        print("self.commit1: ", self.commit1)
+        print("self.commit2: ", self.commit2)
 
 
-def CurSelect(event):
-    global commitTop, commitBottom
-    widget = event.widget
-    selection = widget.curselection()
-    picked = widget.get(selection)
-    source = ((str(widget).split('.'))[1])[-1:]
-    # TOP window is 3
-    if source == '2':
-        commitTop = picked
-    # BOTTOM window is 4
-    elif source == '3':
-        commitBottom = picked
+    def update_commit1(self, event):
+        self.commit1 = self.listbox_1.get(self.listbox_1.curselection())
+
+    def update_commit2(self, event):
+        self.commit2 = self.listbox_2.get(self.listbox_2.curselection())
+
+    def fill_artifacts(self):
+
+        self.listbox_1 = self.builder.get_object('listbox_1')
+        self.listbox_2 = self.builder.get_object('listbox_2')
+
+        self.listbox_1.bind('<<ListboxSelect>>', self.update_commit1)
+        self.listbox_2.bind('<<ListboxSelect>>', self.update_commit2)
 
 
-def select_scm_gui():
+        for line in self.artifacts:
+            self.listbox_1.insert(END, line)
+            self.listbox_2.insert(END, line)
 
-    global root
+        for i in range(1, len(self.artifacts), 2):
+            self.listbox_1.itemconfigure(i, background='#ececec', foreground='#000000')
+            self.listbox_2.itemconfigure(i, background='#ececec', foreground='#000000')
 
-    root = Tk()
-    root.title("SCM")
+        # Commit set on first commit by default
+        if len(self.artifacts) >= 1:
+            self.listbox_1.select_set(0) # This only sets focus
+            self.listbox_1.event_generate("<<ListboxSelect>>")
+            self.commit1 = self.listbox_1.get(self.listbox_1.curselection())
 
-    root.bind("<Escape>", quit)
-    root.protocol('WM_DELETE_WINDOW', cancel)
+        # Commit set on the second commit by default
+        if len(self.artifacts) >= 2:
+            self.listbox_2.select_set(1) # This only sets focus
+            self.listbox_2.event_generate("<<ListboxSelect>>")
+            self.commit2 = self.listbox_2.get(self.listbox_2.curselection())
+        else:
+            self.listbox_2.select_set(0) # This only sets focus
+            self.listbox_2.event_generate("<<ListboxSelect>>")
+            self.commit2 = self.listbox_2.get(self.listbox_2.curselection())
 
-    v = IntVar()
-    v.set(-1)
+    def run(self):
 
-    scms = [
-        ("Fossil"),
-        ("Git"),
-        ("SVN"),
-    ]
+        self.get_text_from_select_rows()
 
-    def ShowChoice():
-        root.destroy()
-
-    Label(root, text="""Select the project's SCM""", justify=CENTER, padx=20).pack()
-
-    for val, language in enumerate(scms):
-        Radiobutton(
-            root,
-            text=language,
-            indicatoron=0,
-            width=20,
-            padx=20,
-            variable=v,
-            command=ShowChoice,
-            value=val).pack(anchor=W)
-
-    root.mainloop()
-
-    try:
-        scm = v.get()
-    except Exception:
-        scm = v
-    return scms[scm]
+        # self.main_window.update()
+        self.main_window.mainloop()
 
 
-def runGUI(checkouts_top, prjctName, kicad_project_path, prjctPath, scm):
+def runGUI(artifacts, prjctName, kicad_project_path, prjctPath, scm):
 
-    global root
-    global commitTop
-    global commitBottom
-
-    checkouts_bottom = checkouts_top[:]
-
-    root = Tk()
-    root.bind("<Escape>", quit)
-
-    root.configure(background='#ececec')
-
-    root.title("Kicad Visual Layout Diff")
-    root.geometry('800x700')
-
-    frame1 = LabelFrame(root, text=scm.upper(), width=1000, height=25, bd=1, background='#ececec', foreground='#000000')
-    frame2 = LabelFrame(root, text="Commit 1 (a)", width=1000, height=200, bd=1, background='#ececec', foreground='#000000')
-    frame3 = LabelFrame(root, text="Commit 2 (b)", width=1000, height=200, bd=1, background='#ececec', foreground='#000000')
-    frame4 = LabelFrame(root, width=1000, height=10, bd=0, background='#ececec', foreground='#000000')
-
-    frame1.grid(row=0, column=0, padx=25, sticky='N E W S')
-    frame2.grid(row=1, column=0, padx=25, sticky='N E W')
-    frame3.grid(row=2, column=0, padx=25, sticky='N E W')
-    frame4.grid(row=3, column=0, padx=25, sticky='N E W S')
-
-    root.grid_columnconfigure(0, weight=1)
-
-    root.grid_rowconfigure(0, minsize=25,  weight=2)
-    root.grid_rowconfigure(1, minsize=200, weight=4)
-    root.grid_rowconfigure(2, minsize=200, weight=4)
-    root.grid_rowconfigure(3, minsize=10,  weight=1)
-
-    if kicad_project_path == '.':
-        pcb_path = prjctPath + "/" + prjctName
-    else:
-        pcb_path = prjctPath + "/" + kicad_project_path + "/" + prjctName
-
-    pcb_path = pcb_path.replace("//", "/")
-
-    Label(frame1, text=pcb_path, bg='#ececec', fg='#000000').pack(side=LEFT, padx=10)
-
-    commitTop = Variable()
-    listTop = Listbox(
-        frame2,
-        bd=0,
-        selectmode=SINGLE,
-        exportselection=False,
-        font='TkFixedFont')
-    listTop.grid(column=0, row=0, sticky=(N, E, W))
-    scrollTop = ttk.Scrollbar(frame2, orient=VERTICAL, command=listTop.yview)
-    scrollTop.grid(column=1, row=0, sticky=(N, E, W))
-    listTop['yscrollcommand'] = scrollTop.set
-
-    listTop.bind('<<ListboxSelect>>', CurSelect)
-
-    commitBottom = Variable()
-    listBottom = Listbox(
-        frame3,
-        bd=0,
-        selectmode=SINGLE,
-        exportselection=False,
-        font='TkFixedFont')
-    listBottom.grid(column=0, row=0, sticky=(N, E, W))
-    scrollBottom = ttk.Scrollbar(
-        frame3, orient=VERTICAL, command=listBottom.yview)
-    scrollBottom.grid(column=1, row=0, sticky=(N, E, W))
-    listBottom['yscrollcommand'] = scrollBottom.set
-    listBottom.bind('<<ListboxSelect>>', CurSelect)
-
-    frame2.grid_columnconfigure(0, weight=1)
-    frame2.grid_columnconfigure(1, weight=0)
-    frame2.grid_rowconfigure(0, weight=1)
-
-    frame3.grid_columnconfigure(0, weight=1)
-    frame3.grid_columnconfigure(1, weight=0)
-    frame3.grid_rowconfigure(0, weight=1)
-
-    buttonOK = ttk.Button(frame4, text="OK", command=runProgram, default='active')
-    buttonOK.grid(column=2, row=0, sticky='w', pady=10)
-
-    buttonCancel = ttk.Button(frame4, text="Cancel", command=cancel)
-    buttonCancel.grid(column=1, row=0, sticky='e', pady=10)
-
-    frame4.grid_columnconfigure(0, weight=0)
-    frame4.grid_columnconfigure(1, weight=0)
-    frame4.grid_columnconfigure(2, weight=10)
-
-    for line in checkouts_top:
-        listTop.insert(END, line)
-
-    for i in range(1, len(checkouts_top), 2):
-        listTop.itemconfigure(i, background='#ececec', foreground='#000000')
-
-    for line in checkouts_bottom:
-        # listBottom.insert(END, line[0:-1])
-        listBottom.insert(END, line)
-
-    for i in range(1, len(checkouts_bottom), 2):
-        listBottom.itemconfigure(i, background='#ececec', foreground='#000000')
-
-    for child in root.winfo_children():
-        child.grid_configure(padx=5, pady=5)
-
-    root.bind('<Return>', runProgram)
-
-    root.update()
-    root.mainloop()
-
-    try:
-        commitTop_str = commitTop.get()
-    except:
-        commitTop_str = commitTop
-
-    try:
-        commitBottom_str = commitBottom.get()
-    except:
-        commitBottom_str = commitBottom
-
-    return(commitTop_str.strip("\""), commitBottom_str.strip("\""))
-    root.destroy()
+    app = KidiffApp(artifacts, prjctName, kicad_project_path, prjctPath, scm)
+    app.run()
+    return app.commit1, app.commit2
