@@ -1,0 +1,189 @@
+<?xml version='1.0' encoding='utf-8'?>
+<interface version="1.1">
+  <object class="tk.Toplevel" id="main_window">
+    <property name="borderwidth">2</property>
+    <property name="geometry">800x480</property>
+    <property name="minsize">800|480</property>
+    <property name="resizable">both</property>
+    <property name="title" translatable="yes">Kidiff - Select Commits to Compare</property>
+    <bind sequence="dsdsdsd" handler="callback" add="True" />
+    <child>
+      <object class="tk.LabelFrame" id="labelframe_1">
+        <property name="text" translatable="yes">[SCM] Repository</property>
+        <layout manager="pack">
+          <property name="anchor">nw</property>
+          <property name="expand">true</property>
+          <property name="fill">both</property>
+          <property name="ipadx">5</property>
+          <property name="ipady">5</property>
+          <property name="padx">5</property>
+          <property name="pady">5</property>
+          <property name="propagate">True</property>
+          <property name="side">top</property>
+        </layout>
+        <child>
+          <object class="tk.Label" id="board_path">
+            <property name="justify">center</property>
+            <property name="relief">flat</property>
+            <property name="text" translatable="yes">/home/user/path/to/the/board.kicad_pcb</property>
+            <layout manager="pack">
+              <property name="anchor">nw</property>
+              <property name="expand">false</property>
+              <property name="ipadx">5</property>
+              <property name="ipady">5</property>
+              <property name="padx">5</property>
+              <property name="pady">5</property>
+              <property name="propagate">True</property>
+              <property name="side">top</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="tk.LabelFrame" id="labelframe_commit1">
+            <property name="text" translatable="yes">Commit 1 (a)</property>
+            <layout manager="pack">
+              <property name="anchor">nw</property>
+              <property name="expand">true</property>
+              <property name="fill">both</property>
+              <property name="ipadx">5</property>
+              <property name="ipady">5</property>
+              <property name="padx">5</property>
+              <property name="pady">5</property>
+              <property name="propagate">True</property>
+              <property name="side">top</property>
+            </layout>
+            <child>
+              <object class="pygubu.builder.widgets.tkscrollbarhelper" id="tkscrollbarhelper_commit1">
+                <property name="scrolltype">both</property>
+                <property name="usemousewheel">true</property>
+                <layout manager="pack">
+                  <property name="anchor">nw</property>
+                  <property name="expand">true</property>
+                  <property name="fill">both</property>
+                  <property name="ipadx">5</property>
+                  <property name="ipady">5</property>
+                  <property name="padx">5</property>
+                  <property name="pady">5</property>
+                  <property name="propagate">True</property>
+                  <property name="side">top</property>
+                </layout>
+                <child>
+                  <object class="tk.Listbox" id="listbox_1">
+                    <property name="exportselection">false</property>
+                    <property name="font">TkFixedFont</property>
+                    <property name="height">4</property>
+                    <property name="selectmode">single</property>
+                    <layout manager="pack">
+                      <property name="anchor">nw</property>
+                      <property name="expand">false</property>
+                      <property name="fill">both</property>
+                      <property name="ipadx">5</property>
+                      <property name="ipady">5</property>
+                      <property name="padx">5</property>
+                      <property name="pady">5</property>
+                      <property name="propagate">True</property>
+                      <property name="side">top</property>
+                    </layout>
+                  </object>
+                </child>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="tk.LabelFrame" id="labelframe_commit2">
+            <property name="height">200</property>
+            <property name="text" translatable="yes">Commit 2 (b)</property>
+            <layout manager="pack">
+              <property name="anchor">nw</property>
+              <property name="expand">true</property>
+              <property name="fill">both</property>
+              <property name="ipadx">5</property>
+              <property name="ipady">5</property>
+              <property name="padx">5</property>
+              <property name="pady">5</property>
+              <property name="propagate">True</property>
+              <property name="side">top</property>
+            </layout>
+            <child>
+              <object class="pygubu.builder.widgets.tkscrollbarhelper" id="tkscrollbarhelper_commit2">
+                <property name="borderwidth">2</property>
+                <property name="scrolltype">both</property>
+                <property name="usemousewheel">true</property>
+                <layout manager="pack">
+                  <property name="anchor">nw</property>
+                  <property name="expand">true</property>
+                  <property name="fill">both</property>
+                  <property name="propagate">True</property>
+                  <property name="side">top</property>
+                </layout>
+                <child>
+                  <object class="tk.Listbox" id="listbox_2">
+                    <property name="exportselection">false</property>
+                    <property name="font">TkFixedFont</property>
+                    <property name="height">4</property>
+                    <property name="selectmode">single</property>
+                    <layout manager="pack">
+                      <property name="anchor">nw</property>
+                      <property name="expand">true</property>
+                      <property name="fill">both</property>
+                      <property name="ipadx">5</property>
+                      <property name="ipady">5</property>
+                      <property name="padx">5</property>
+                      <property name="pady">5</property>
+                      <property name="propagate">True</property>
+                      <property name="side">top</property>
+                    </layout>
+                  </object>
+                </child>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </child>
+    <child>
+      <object class="tk.Frame" id="frame_1">
+        <property name="height">55</property>
+        <property name="width">200</property>
+        <layout manager="pack">
+          <property name="anchor">sw</property>
+          <property name="expand">true</property>
+          <property name="fill">x</property>
+          <property name="ipadx">5</property>
+          <property name="ipady">0</property>
+          <property name="padx">5</property>
+          <property name="pady">5</property>
+          <property name="propagate">True</property>
+          <property name="side">right</property>
+        </layout>
+        <child>
+          <object class="tk.Button" id="cancel_button">
+            <property name="command" type="command" cbtype="simple">on_cancel_button_click</property>
+            <property name="text" translatable="yes">Cancel</property>
+            <property name="width">10</property>
+            <layout manager="grid">
+              <property name="column">1</property>
+              <property name="propagate">True</property>
+              <property name="row">0</property>
+              <property name="sticky">se</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="tk.Button" id="ok_button">
+            <property name="command" type="command" cbtype="simple">get_selected_commits</property>
+            <property name="text" translatable="yes">Ok</property>
+            <property name="width">10</property>
+            <layout manager="grid">
+              <property name="column">2</property>
+              <property name="propagate">True</property>
+              <property name="row">0</property>
+              <property name="sticky">se</property>
+            </layout>
+          </object>
+        </child>
+      </object>
+    </child>
+  </object>
+</interface>

@@ -10,8 +10,8 @@ class scm(generic_scm):
         '''Given two git artifacts, write out two kicad_pcb files to their respective
         directories (named after the artifact). Returns the date and time of both commits'''
 
-        artifact1 = diff1[:6]
-        artifact2 = diff2[:6]
+        artifact1 = diff1[:7]
+        artifact2 = diff2[:7]
 
         # Using this to fix the path when there is no subproject
         prj_path = kicad_project_path + '/'
