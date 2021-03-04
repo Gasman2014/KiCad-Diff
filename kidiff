@@ -135,8 +135,8 @@ def makeSVG(d1, d2, board_file, kicad_project_path, prjctPath):
     print("")
     print("Generating board files")
 
-    d1 = d1[:6]
-    d2 = d2[:6]
+    d1 = d1[:7]
+    d2 = d2[:7]
 
     d1SVG = os.path.join(prjctPath, settings.plotDir, kicad_project_path, d1)
     d2SVG = os.path.join(prjctPath, settings.plotDir, kicad_project_path, d2)
