@@ -1,0 +1,2 @@
+pygubu==0.10.5
+python_dateutil==2.8.1
