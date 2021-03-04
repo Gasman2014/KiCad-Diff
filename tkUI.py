@@ -78,18 +78,8 @@ class KidiffApp:
         self.board_path['text'] = board_path
 
     def get_text_from_select_rows(self, event=None):
-
-
-        self.listbox_1.event_generate("<<ListboxSelect>>")
         self.commit1 = self.listbox_1.get(self.listbox_1.curselection())
-
-        self.listbox_2.event_generate("<<ListboxSelect>>")
         self.commit2 = self.listbox_2.get(self.listbox_2.curselection())
-
-        print("")
-        print("self.commit1: ", self.commit1)
-        print("self.commit2: ", self.commit2)
-
 
     def update_commit1(self, event):
         self.commit1 = self.listbox_1.get(self.listbox_1.curselection())
@@ -105,30 +95,32 @@ class KidiffApp:
         self.listbox_1.bind('<<ListboxSelect>>', self.update_commit1)
         self.listbox_2.bind('<<ListboxSelect>>', self.update_commit2)
 
-
-        for line in self.artifacts:
+        # Fill artifacts
+        for i, line in enumerate(self.artifacts):
             self.listbox_1.insert(END, line)
             self.listbox_2.insert(END, line)
 
-        for i in range(1, len(self.artifacts), 2):
-            self.listbox_1.itemconfigure(i, background='#ececec', foreground='#000000')
-            self.listbox_2.itemconfigure(i, background='#ececec', foreground='#000000')
+            # Alternate row colors
+            if i % 2:
+                self.listbox_1.itemconfigure(i, background='#ececec', foreground='#000000')
+                self.listbox_2.itemconfigure(i, background='#ececec', foreground='#000000')
 
         # Commit set on first commit by default
         if len(self.artifacts) >= 1:
+
             self.listbox_1.select_set(0) # This only sets focus
             self.listbox_1.event_generate("<<ListboxSelect>>")
             self.commit1 = self.listbox_1.get(self.listbox_1.curselection())
 
-        # Commit set on the second commit by default
-        if len(self.artifacts) >= 2:
-            self.listbox_2.select_set(1) # This only sets focus
-            self.listbox_2.event_generate("<<ListboxSelect>>")
-            self.commit2 = self.listbox_2.get(self.listbox_2.curselection())
-        else:
-            self.listbox_2.select_set(0) # This only sets focus
-            self.listbox_2.event_generate("<<ListboxSelect>>")
-            self.commit2 = self.listbox_2.get(self.listbox_2.curselection())
+            # Commit set on the second commit by default
+            if len(self.artifacts) >= 2:
+                self.listbox_2.select_set(1) # This only sets focus
+                self.listbox_2.event_generate("<<ListboxSelect>>")
+                self.commit2 = self.listbox_2.get(self.listbox_2.curselection())
+            else:
+                self.listbox_2.select_set(0) # This only sets focus
+                self.listbox_2.event_generate("<<ListboxSelect>>")
+                self.commit2 = self.listbox_2.get(self.listbox_2.curselection())
 
     def run(self):
 
