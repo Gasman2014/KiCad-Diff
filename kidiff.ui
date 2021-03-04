@@ -5,7 +5,7 @@
     <property name="geometry">800x480</property>
     <property name="minsize">800|480</property>
     <property name="resizable">both</property>
-    <property name="title" translatable="yes">Kidiff - Select Commiits to Compare</property>
+    <property name="title" translatable="yes">Kidiff - Select Commits to Compare</property>
     <bind sequence="dsdsdsd" handler="callback" add="True" />
     <child>
       <object class="tk.LabelFrame" id="labelframe_1">
