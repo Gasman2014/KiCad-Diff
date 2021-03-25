@@ -121,7 +121,9 @@ def processBoard(boardName, plotDir, quiet):
     for layer_info in layers:
         pctl.SetLayer(layer_info[1])
         pctl.OpenPlotfile(layer_info[0], PLOT_FORMAT_SVG, layer_info[2])
-        pctl.OpenPlotfile(board.GetLayerName(layer_info[1]), PLOT_FORMAT_SVG, layer_info[2])
+        layer_name = board.GetLayerName(layer_info[1]).replace(".", "_")
+        if layer_info[0] != layer_name:
+            pctl.OpenPlotfile(layer_name, PLOT_FORMAT_SVG, layer_info[2])
         pctl.PlotLayer()
 
     return (boardxl, boardyl, boardwidth, boardheight)
