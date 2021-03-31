@@ -320,19 +320,24 @@ def makeOutput(diffDir1, diffDir2, board_file, kicad_project_path, prjctPath, ti
     diff1 = os.path.join(prjctPath, settings.plotDir, kicad_project_path, diffDir1, board_file)
     diff2 = os.path.join(prjctPath, settings.plotDir, kicad_project_path, diffDir2, board_file)
     output_file = os.path.join(prjctPath, settings.plotDir, kicad_project_path, 'diff.txt')
+
     stdout, stderr = settings.run_cmd(prjctPath, [settings.diffProg, diff2, diff1])
+
     with open(output_file, 'a') as fout:
         fout.write(stdout)
+
     diffCmd2 = [settings.diffProg, '--suppress-common-lines', diff2, diff1]
     stdout, stderr = settings.run_cmd(prjctPath, diffCmd2)
 
     # diffs = os.fsencode(source)
 
+
     for f in os.listdir(source):
+
         filename = os.fsdecode(f)
 
         if filename.endswith(".svg"):
-            # print(filename)
+
             file, file_extension = os.path.splitext(filename)
             triptych = os.path.join(triptychDir, file + '.html')
             *project, layer = filename.split('-')
@@ -341,6 +346,7 @@ def makeOutput(diffDir1, diffDir2, board_file, kicad_project_path, prjctPath, ti
             splitted = prjct.split('-')  # Accounts for project names containing hyphens
             prj = "-".join(splitted[0:-1])
             layer = splitted[-1]
+
             out = custom_page.outfile.format(
                 diff1=diffDir1,
                 diff2=diffDir2,
@@ -426,46 +432,63 @@ def processDiff(diffText, mod):
     tbR = ""
     checked = "checked"
 
-    top1 = '''<input name='tabbed' id='tabbed{tabn}' type='radio' {checked}/>
-  <section>
-    <h1>
-      <label for='tabbed{tabn}'>{label}</label>
-    </h1>
-    <div>{content}</div>
-  </section>'''
-    tsl = '''<div class='responsive'>
-                <div class = 'tbl'>
-                    <table style="border-color: #aaaaaa; width: 100%; height: 2px;" border="2px" cellspacing="2px" cellpadding="3px">'''
-    tsr = '''<div class='responsive'>
-                <div class = 'tbr'>
-                    <table style="border-color: #aaaaaa; width: 100%; height: 2px;" border="2px" cellspacing="2px" cellpadding="3px">'''
-    clearfix = '''<div class='clearfix'>
-                </div>
-                <div style='padding:6px;'>
-                </div>'''
+    top1 = '''
+        <input name='tabbed' id='tabbed{tabn}' type='radio' {checked}/>
+        <section>
+            <h1>
+                <label for='tabbed{tabn}'>{label}</label>
+            </h1>
+            <div>
+                {content}
+            </div>
+        </section>
+    '''
+
+    tsl = '''
+        <div class='responsive'>
+            <div class = 'tbl'>
+                <table style="border-color: #aaaaaa; width: 100%; height: 2px;" border="2px" cellspacing="2px" cellpadding="3px">
+    '''
+
+    tsr = '''
+        <div class='responsive'>
+            <div class = 'tbr'>
+                <table style="border-color: #aaaaaa; width: 100%; height: 2px;" border="2px" cellspacing="2px" cellpadding="3px">
+    '''
+
+    clearfix = '''
+        <div class='clearfix'></div>
+        <div style='padding:6px;'></div>
+    '''
 
     for indx, layerInfo in enumerate(keywords):
+
         combined = tbL = tbR = ""
+
         for indx2, parameter in enumerate(layerInfo[2]):
             tbR = tbR + "<th>" + parameter + "</th>\n"
             tbL = tbL + "<th>" + parameter + "</th>\n"
+
         for line in diffText.splitlines():
+
             if re.search(layerInfo[0], line) and (mod in line):
                 output = re.sub(layerInfo[0], "", line)
                 output = output.replace("(layer " + mod + ")", "")
-                # print(output)
+
                 for item, replace in d.items():
                     output = re.sub(item, replace, output)
 
                 if output.count("<td>") == indx2:
                     output += "<td></td>\n"
+
                 if output == "<td>":
                     output = ""
+
                 output += "</tr>\n"
-                # print(output)
 
                 if output[0] == ">":
                     tbL = tbL + "<tr>" + output[1:]
+
                 elif output[0] == "<":
                     tbR = tbR + "<tr>" + output[1:]
 
@@ -474,7 +497,9 @@ def processDiff(diffText, mod):
         checked = ""
 
         final = final + content
+
     final = "<div class = 'tabbed'>" + final + "</div>" + clearfix
+
     return(final)
 
 
