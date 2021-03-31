@@ -132,8 +132,8 @@ outfile = '''
 triptychHTML = '''
 <!DOCTYPE HTML>
 <html lang="en">
+<head>
     <meta charset="utf-8" />
-    <head>
     <link rel="stylesheet" type="text/css" href="../style.css" media="screen" />
     <style>
         div.responsive {{
@@ -142,56 +142,75 @@ triptychHTML = '''
             width: 49.99%;
     }}
     </style>
-    <script src="https://cdn.jsdelivr.net/npm/svg-pan-zoom@3.6.0/dist/svg-pan-zoom.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/svg-pan-zoom@3.6.1/dist/svg-pan-zoom.min.js"></script>
 </head>
 <body>
 
-    <div class="title">{prj}</div>
-    <div class="subtitle">{layer}</div>
-
-     <div id="compo-container" style="width: 100%; height: 800px;">
-        <svg id="svg-id" xmlns="http://www.w3.org/2000/svg" style="display: inline; width: inherit; min-width: inherit; max-width: inherit; height: inherit; min-height: inherit; max-height: inherit;" version="1.1">
-            <g>
-                <svg id="compo">
-                    <defs>
-                        <filter id="f1">
-                            <feColorMatrix id="c1" type="matrix" values="
-                            1   0   0   0   0
-                            0   1   0   1   0
-                            0   0   1   1   0
-                            0   0   0   1   0 " />
-                        </filter>
-                    </defs>
-                    <image x="0" y="0" height="100%" width="100%" filter="url(#f1)" xlink:href="../../{diff1}/{layername}" />
-                </svg>
-                <svg id="compo2">
-                    <defs>
-                        <filter id="f2">
-                            <feColorMatrix id="c2" type="matrix" values="
-                            1   0   0   1   0
-                            0   1   0   0   0
-                            0   0   1   0   0
-                            0   0   0   .5   0" />
-                        </filter>
-                    </defs>
-                    <image x="0" y="0" height="100%" width="100%" filter="url(#f2)" xlink:href="../../{diff2}/{layername}" />
-                </svg>
-            </g>
-        </svg>
+    <div id="compo-container" style="width: 100%; height: 600px; position: relative;">
+        <div style="position: absolute; width: 100%; height: inherit;">
+            <svg id="svg-id" xmlns="http://www.w3.org/2000/svg" style="display: inline; width: inherit; min-width: inherit; max-width: inherit; height: inherit; min-height: inherit; max-height: inherit;" version="1.1">
+                <g>
+                    <svg id="compo">
+                        <defs>
+                            <filter id="f1">
+                                <feColorMatrix id="c1" type="matrix" values="
+                                1   0   0   0   0
+                                0   1   0   1   0
+                                0   0   1   1   0
+                                0   0   0   1   0 " />
+                            </filter>
+                        </defs>
+                        <image x="0" y="0" height="100%" width="100%" filter="url(#f1)" xlink:href="../../{diff1}/{layername}" />
+                    </svg>
+                    <svg id="compo2">
+                        <defs>
+                            <filter id="f2">
+                                <feColorMatrix id="c2" type="matrix" values="
+                                1   0   0   1   0
+                                0   1   0   0   0
+                                0   0   1   0   0
+                                0   0   0   .5   0" />
+                            </filter>
+                        </defs>
+                        <image x="0" y="0" height="100%" width="100%" filter="url(#f2)" xlink:href="../../{diff2}/{layername}" />
+                    </svg>
+                </g>
+            </svg>
+        </div>
+        <div style="background: rgba(255, 0, 0, 0.0); z-index: 10; position: absolute;" class="title">{prj}</div>
+        <div style="background: rgba(255, 0, 0, 0.0); z-index: 10; position: absolute;" class="subtitle">{layer}</div>
     </div>
 
-    <div id="sbs-container"  width=100%; height=100% >
-        <embed id="image_1" class="{layer}" type="image/svg+xml" src="../../{diff1}/{layername}" style="width: 50%; border:1px solid #555; float: left;" />
-        <embed id="image_2" class="{layer}" type="image/svg+xml" src="../../{diff2}/{layername}" style="width: 50%; border:1px solid #555;"/>
-    </div>
+    <div id="sbs-container" style="position:relative; width: 100%; border:1px solid #555; background-color: #222; text-align: center; display: flex;">
 
+        <div id="image1-container" style="border: 1px solid #555; width: 50%; height: 250px">
+            <div style="width: 100%; height: 250px">
+                <svg id="svg-img2-id" xmlns="http://www.w3.org/2000/svg" style="display: inline; width: 100%; min-width: 100%; max-width: 100%; height: 100%; min-height: 100%; max-height: 100%;" version="1.1">
+                    <svg id="image_1">
+                        <image x="0" y="0" height="100%" width="100%" xlink:href="../../{diff1}/{layername}" class="{layer}"/>
+                    </svg>
+                </svg>
+            </div>
+        </div>
+
+        <div id="image2-container" style="border: 1px solid #555; width: 50%; height: 250px">
+            <div style="width: 100%; height: 250px">
+                <svg id="svg-img2-id" xmlns="http://www.w3.org/2000/svg" style="display: inline; width: 100%; min-width: 100%; max-width: 100%; height: 100%; min-height: 100%; max-height: 100%;" version="1.1">
+                    <svg id="image_2">
+                       <image x="0" y="0" height="100%" width="100%" xlink:href="../../{diff1}/{layername}" class="{layer}"/>
+                    </svg>
+                </svg>
+            </div>
+        </div>
+
+    </div>
 '''
 
 twopane='''
 <script>
     window.onload = function() {
 
-        window.panZoomDiff = svgPanZoom(
+        var panZoomDiff = svgPanZoom(
             '#svg-id', {
                 zoomEnabled: true,
                 controlIconsEnabled: true,
@@ -201,19 +220,17 @@ twopane='''
             }
         );
 
-        window.zoomDiff = svgPanZoom(
+        var zoomDiff1 = svgPanZoom(
             '#image_1', {
                 zoomEnabled: true,
                 controlIconsEnabled: true,
+                center: true,
                 minZoom: 1.0,
                 maxZoom: 20,
-                // This is not working
-                // Uncomment this in order to get Y asis synchronized pan
-                // beforePan: function(oldP, newP) {return {y:false}},
             }
         );
 
-        window.zoomDiff2 = svgPanZoom(
+        var zoomDiff2 = svgPanZoom(
             '#image_2', {
                 zoomEnabled: true,
                 controlIconsEnabled: true,
@@ -222,31 +239,33 @@ twopane='''
             }
         );
 
-        zoomDiff.setOnZoom(
+        zoomDiff1.setOnZoom(
             function(level) {
-                zoomDiff2.zoom(level)
-                zoomDiff2.pan(zoomDiff.getPan())
+                zoomDiff2.zoom(level);
+                zoomDiff2.pan(zoomDiff1.getPan());
             }
         );
 
-        zoomDiff.setOnPan(
+        zoomDiff1.setOnPan(
             function(point) {
-                zoomDiff2.pan(point)
+                zoomDiff2.pan(point);
             }
         );
 
         zoomDiff2.setOnZoom(
             function(level) {
-                zoomDiff.zoom(level)
-                zoomDiff.pan(zoomDiff2.getPan())
+                zoomDiff1.zoom(level);
+                zoomDiff1.pan(zoomDiff2.getPan());
             }
         );
 
         zoomDiff2.setOnPan(
             function(point) {
-                zoomDiff.pan(point)
+                zoomDiff1.pan(point);
             }
         );
+
+
     };
 </script>
 
