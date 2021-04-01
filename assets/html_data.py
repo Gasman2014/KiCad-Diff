@@ -197,7 +197,7 @@ triptychHTML = '''
             <div style="width: 100%; height: 250px">
                 <svg id="svg-img2-id" xmlns="http://www.w3.org/2000/svg" style="display: inline; width: 100%; min-width: 100%; max-width: 100%; height: 100%; min-height: 100%; max-height: 100%;" version="1.1">
                     <svg id="image_2">
-                       <image x="0" y="0" height="100%" width="100%" xlink:href="../../{diff1}/{layername}" class="{layer}"/>
+                       <image x="0" y="0" height="100%" width="100%" xlink:href="../../{diff2}/{layername}" class="{layer}"/>
                     </svg>
                 </svg>
             </div>
