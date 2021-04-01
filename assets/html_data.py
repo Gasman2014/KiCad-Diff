@@ -153,11 +153,11 @@ triptychHTML = '''
                     <svg id="compo">
                         <defs>
                             <filter id="f1">
-                                <feColorMatrix id="c1" type="matrix" values="
-                                1   0   0   0   0
-                                0   1   0   1   0
-                                0   0   1   1   0
-                                0   0   0   1   0 " />
+                                <feColorMatrix id="c1" type="matrix"
+                                    values="1   0   0   0   0
+                                            0   1   0   1   0
+                                            0   0   1   1   0
+                                            0   0   0   1   0 " />
                             </filter>
                         </defs>
                         <image x="0" y="0" height="100%" width="100%" filter="url(#f1)" xlink:href="../../{diff1}/{layername}" />
@@ -165,11 +165,11 @@ triptychHTML = '''
                     <svg id="compo2">
                         <defs>
                             <filter id="f2">
-                                <feColorMatrix id="c2" type="matrix" values="
-                                1   0   0   1   0
-                                0   1   0   0   0
-                                0   0   1   0   0
-                                0   0   0   .5   0" />
+                                <feColorMatrix id="c2" type="matrix"
+                                    values="1   0   0   1   0
+                                            0   1   0   0   0
+                                            0   0   1   0   0
+                                            0   0   0   .5   0" />
                             </filter>
                         </defs>
                         <image x="0" y="0" height="100%" width="100%" filter="url(#f2)" xlink:href="../../{diff2}/{layername}" />
