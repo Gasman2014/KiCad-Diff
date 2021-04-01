@@ -1,3 +1,4 @@
+
 body {
     background-color: #2c3031;
     margin: 0 auto;
@@ -54,7 +55,7 @@ html {
     border-bottom: none;
     border-top-left-radius: 4px;
     border-top-right-radius: 4px;
-    box-shadow: 0 0 0.5em rgba(0, 0, 0, 0.0625);
+    box-shadow: none;
     background: rgb(50, 50, 50);
     cursor: pointer;
 }
@@ -68,8 +69,7 @@ html {
     margin: 1.95em 0 0 -100%;
     padding: 0.25em 0.75em;
     border: 1px solid #ddd;
-
-    box-shadow: 0 0 1em rgb(245, 245, 245);
+    box-shadow: none;
     background: rgba(70, 67, 67, 0.185);
 }
 
@@ -92,7 +92,6 @@ a:hover {
     border: 1px solid #ccc;
     background-color: #222;
     padding: 5px;
-    align: middle;
     vertical-align: middle;
 }
 
@@ -258,4 +257,3 @@ a:hover {
 .B_Adhes   { filter: invert(24%) sepia(48%) saturate(2586%) hue-rotate(218deg) brightness(88%)  contrast(92%);  }
 .F_CrtYd   { filter: invert(73%) sepia(1%)  saturate(0%)    hue-rotate(116deg) brightness(92%)  contrast(91%);  }
 .B_CrtYd   { filter: invert(79%) sepia(92%) saturate(322%)  hue-rotate(3deg)   brightness(89%)  contrast(92%);  }
-
