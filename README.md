@@ -10,11 +10,18 @@ The diff output can be scrolled and zoomed in and out for closer inspection. The
 
 ## Instructions
 
-### General
-- Ensure that you have Python3 installed. Why? https://www.pythonclock.org 
-- The terminal should give you some useful information on progress. Please include a copy of this if you have any issues.
-- Hit `Ctrl+C` to terminate the webserver.
+### Dependencies
 
+- Ensure that you have Python3 installed. Why? https://www.pythonclock.org 
+- Python Libraries from Kicad 5.*
+- For python dependencies check the `requitements.txt`
+
+To install KiCad-Diff dependencies:
+
+```
+cd KiCad-Diff
+pip3 install -r requirements.txt
+```
 
 ## Usage
 
@@ -26,6 +33,8 @@ This can be done easely with:
 cd KiCad-Diff
 source env.sh
 ```
+
+The terminal should give you some useful information on progress. Please include a copy of the terminal output if you have any issues.
 
 ### Comandline help
 
