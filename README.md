@@ -16,6 +16,16 @@ The diff output can be scrolled and zoomed in and out for closer inspection. The
 - Hit `Ctrl+C` to terminate the webserver.
 
 
+## Dependence:
+Python version >= 3.8
+```bash
+cd KiCad-Diff
+python3 -m venv kidiff-env
+source kidiff-env/bin/activate
+python3 -m pip install --upgrade pip
+pip3 install -r requirements.txt
+```
+
 ## Usage
 
 Make sure you have SCMs (Git, Fossil and/or SVN) available throught the PATH variable.
