@@ -11,7 +11,7 @@ import platform
 if platform.system() == 'Darwin':
     sys.path.insert(0,"/Applications/Kicad/kicad.app/Contents/Frameworks/python/site-packages/")
 
-from pcbnew import LoadBoard, PLOT_CONTROLLER, PLOT_FORMAT_SVG, FromMM
+from pcbnew import LoadBoard, PLOT_CONTROLLER, PLOT_FORMAT_SVG, FromMM, GetBuildVersion
 from pcbnew import \
     F_Cu, \
     In1_Cu, \
@@ -38,8 +38,13 @@ from pcbnew import \
     F_Fab, \
     B_Fab
 
+pcbnew_version = GetBuildVersion()
+version_major = int(pcbnew_version.split(".")[0])
+version_minor = int(pcbnew_version.split(".")[1])
+version_patch = int(pcbnew_version.split(".")[2].split("-")[0])
 
-def processBoard(boardName, plotDir, quiet):
+
+def processBoard(boardName, plotDir, quiet=0):
     '''Load board and initialize plot controller'''
 
     board = LoadBoard(boardName)
@@ -50,7 +55,7 @@ def processBoard(boardName, plotDir, quiet):
     boardheight = boardbox.GetHeight()
 
     if not quiet:
-        print(boardxl, boardyl, boardwidth, boardheight)
+        print("Board dimensions:", boardxl, boardyl, boardwidth, boardheight)
 
     pctl = PLOT_CONTROLLER(board)
     pctl.SetColorMode(True)
@@ -58,7 +63,12 @@ def processBoard(boardName, plotDir, quiet):
     popt = pctl.GetPlotOptions()
     popt.SetOutputDirectory(plotDir)
     popt.SetPlotFrameRef(False)
-    popt.SetLineWidth(FromMM(0.15))
+
+    if (version_major > 5) or (version_major == 5) and (version_minor == 99):
+        popt.SetWidthAdjust(FromMM(0.15))
+    else:
+        popt.SetLineWidth(FromMM(0.15))
+
     popt.SetAutoScale(False)
     popt.SetScale(2)
     popt.SetMirror(False)
@@ -93,10 +103,11 @@ def processBoard(boardName, plotDir, quiet):
         ("B_Fab",     B_Fab,     "Fab bottom")
     ]
 
-    for layer_info in layers:
+    for i, layer_info in enumerate(layers):
         pctl.SetLayer(layer_info[1])
         pctl.OpenPlotfile(layer_info[0], PLOT_FORMAT_SVG, layer_info[2])
         layer_name = board.GetLayerName(layer_info[1]).replace(".", "_")
+        print(i, layer_name, layer_info)
         if layer_info[0] != layer_name:
             pctl.OpenPlotfile(layer_name, PLOT_FORMAT_SVG, layer_info[2])
         pctl.PlotLayer()
@@ -121,5 +132,8 @@ if __name__ == "__main__":
 
     if args.output_folder:
         plotDir = args.output_folder
+
+    if not args.quiet:
+        print("pcbnew {}.{}.{}".format(version_major, version_minor, version_patch))
 
     processBoard(boardName, plotDir, args.quiet)
