@@ -601,7 +601,7 @@ if __name__ == "__main__":
             "or no SCM tool was was found in the PATH")
         sys.exit(1)
 
-    prjctPath, kicad_project = scm.get_kicad_project_path(settings.escape_string(kicad_project_path))
+    prjctPath, kicad_project = scm.get_kicad_project_path(kicad_project_path)
 
     avaialble_scms = "" if len(project_scms) <= 1 else '(available: {})'.format(', '.join(map(str, project_scms)))
     print("")
@@ -610,7 +610,7 @@ if __name__ == "__main__":
     print(" Kicad Project:", kicad_project)
     print("    Board Name:", board_file)
 
-    artifacts = scm.get_artefacts(settings.escape_string(prjctPath), kicad_project, board_file)
+    artifacts = scm.get_artefacts(prjctPath, kicad_project, board_file)
 
     if args.verbose > 1:
         print("")
