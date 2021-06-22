@@ -39,10 +39,9 @@ from pcbnew import \
     B_Fab
 
 pcbnew_version = GetBuildVersion()
-version_major = int(pcbnew_version.split(".")[0])
-version_minor = int(pcbnew_version.split(".")[1])
-version_patch = int(pcbnew_version.split(".")[2].split("-")[0])
-
+version_major = int(pcbnew_version.strip("()").split(".")[0])
+version_minor = int(pcbnew_version.strip("()").split(".")[1])
+version_patch = int(pcbnew_version.strip("()").split(".")[2].split("-")[0])
 
 def processBoard(boardName, plotDir, quiet=0):
     '''Load board and initialize plot controller'''
@@ -107,7 +106,8 @@ def processBoard(boardName, plotDir, quiet=0):
         pctl.SetLayer(layer_info[1])
         pctl.OpenPlotfile(layer_info[0], PLOT_FORMAT_SVG, layer_info[2])
         layer_name = board.GetLayerName(layer_info[1]).replace(".", "_")
-        print(i, layer_name, layer_info)
+        if not quiet:
+            print(i, layer_name, layer_info)
         if layer_info[0] != layer_name:
             pctl.OpenPlotfile(layer_name, PLOT_FORMAT_SVG, layer_info[2])
         pctl.PlotLayer()
@@ -117,7 +117,7 @@ def processBoard(boardName, plotDir, quiet=0):
 
 def parse_cli_args():
     parser = argparse.ArgumentParser(description='Plot PCB Layers')
-    parser.add_argument('-o', "--output_folder", type=str, help="Output folder")
+    parser.add_argument('-o', "--output_folder", type=str, default="./", help="Output folder")
     parser.add_argument('-q', "--quiet", action='store_true', help="Disable output")
     parser.add_argument("kicad_pcb", nargs=1, help="Kicad PCB")
     args = parser.parse_args()
