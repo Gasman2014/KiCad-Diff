@@ -3,4 +3,4 @@
 # Usage: Source this file as:
 # $> source ./env.sh
 
-export PATH=$(pwd):$PATH
+export PATH=$(pwd):${PATH}
