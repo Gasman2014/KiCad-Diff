@@ -135,14 +135,23 @@ def makeSVG(d1, d2, board_file, kicad_project_path, prjctPath):
     print("")
     print("Generating board files")
 
-    d1 = d1[:7]
-    d2 = d2[:7]
+    if not d1 == board_file:
+        d1 = d1[:7]
+    else:
+        d1 = "local"
 
     d1SVG = os.path.join(prjctPath, settings.plotDir, kicad_project_path, d1)
+
+    if not d2 == board_file:
+        d2 = d2[:7]
+    else:
+        d2 = "local"
+
     d2SVG = os.path.join(prjctPath, settings.plotDir, kicad_project_path, d2)
 
     Diff1 = os.path.join(d1SVG, board_file)
     Diff2 = os.path.join(d2SVG, board_file)
+
     print("")
     print("Setting paths")
     print("Diff1: ", Diff1)
