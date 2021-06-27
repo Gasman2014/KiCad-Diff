@@ -1,10 +1,11 @@
 
+import time
 import os
+import shutil
 import sys
 import settings
 from scms.generic import scm as generic_scm
 from xml.parsers.expat import ParserCreate
-import datetime
 from dateutil.parser import isoparse
 
 class scm(generic_scm):
@@ -13,73 +14,111 @@ class scm(generic_scm):
         '''Given two SVN revisions, write out two kicad_pcb files to their respective
         directories (named after the revision number). Returns the date and time of both commits'''
 
-        artifact1, *tail = diff1.split(' |')
-        artifact2, *tail = diff2.split(' |')
+        if not diff1 == prjctName:
+            artifact1, *tail = diff1.split(' |')
+        else:
+            artifact1 = "local"
 
+        if not diff2 == prjctName:
+            artifact2, *tail = diff2.split(' |')
+        else:
+            artifact2 = "local"
 
         # Using this to fix the path when there is no subproject
         prj_path = kicad_project_path + '/'
         if kicad_project_path == '.':
             prj_path = ''
 
-        cmd = ['svn', 'diff', '--summarize', '-r', artifact1 + ':' + artifact2, prj_path + prjctName]
+        if (not diff1 == prjctName) and (not diff2 == prjctName):
 
-        print("")
-        print("Getting Boards")
-        print(cmd)
+            cmd = ['svn', 'diff', '--summarize', '-r', artifact1 + ':' + artifact2, prj_path + prjctName]
 
-        stdout, stderr = settings.run_cmd(prjctPath, cmd)
-        changed, *boardName = stdout
+            print("")
+            print("Getting Boards")
+            print(cmd)
 
-        if changed != 'M':
-            print("\nThere is no difference in .kicad_pcb file in selected commits")
-            sys.exit()
+            stdout, stderr = settings.run_cmd(prjctPath, cmd)
+            changed, *boardName = stdout
+
+            if changed != 'M':
+                print("\nThere is no difference in .kicad_pcb file in selected commits")
 
         outputDir1 = os.path.join(prjctPath, settings.plotDir, kicad_project_path, artifact1)
-        outputDir2 = os.path.join(prjctPath, settings.plotDir, kicad_project_path, artifact2)
-
         if not os.path.exists(outputDir1):
             os.makedirs(outputDir1)
 
+        outputDir2 = os.path.join(prjctPath, settings.plotDir, kicad_project_path, artifact2)
         if not os.path.exists(outputDir2):
             os.makedirs(outputDir2)
 
-        gitPath = prj_path + prjctName
-
-        svnArtifact1 = ['svn', 'cat', '-r', artifact1, gitPath]
-        svnArtifact2 = ['svn', 'cat', '-r', artifact2, gitPath]
+        svnPath = prj_path + prjctName
 
         print("")
-        print("Get Artifacts")
-        print(svnArtifact1)
-        print(svnArtifact2)
+        print("Setting artifacts paths")
+        print("svnPath      :", svnPath)
 
-        stdout, stderr = settings.run_cmd(prjctPath, svnArtifact1)
-        with open(os.path.join(outputDir1, prjctName), 'w') as fout1:
-            fout1.write(stdout)
-        stdout, stderr = settings.run_cmd(prjctPath, svnArtifact2)
-        with open(os.path.join(outputDir2, prjctName), 'w') as fout2:
-            fout2.write(stdout)
+        if not diff1 == prjctName:
+            svnArtifact1 = ['svn', 'cat', '-r', artifact1, svnPath]
+            print("SVN artifact1: ", svnArtifact1)
+        else:
+            print("SVN artifact1: ", diff1)
 
-        svnDateTime1 = ['svn', 'log', '-r', artifact1]
-        svnDateTime2 = ['svn', 'log', '-r', artifact2]
+        if not diff2 == prjctName:
+            svnArtifact2 = ['svn', 'cat', '-r', artifact2, svnPath]
+            print("SVN artifact2: ", svnArtifact2)
+
+        else:
+            print("SVN artifact2: ", diff2)
+
+        if not diff1 == prjctName:
+            stdout, stderr = settings.run_cmd(prjctPath, svnArtifact1)
+            with open(os.path.join(outputDir1, prjctName), 'w') as fout1:
+                fout1.write(stdout)
+        else:
+            shutil.copyfile(prjctName, os.path.join(outputDir1, prjctName))
+
+        if not diff2 == prjctName:
+            stdout, stderr = settings.run_cmd(prjctPath, svnArtifact2)
+            with open(os.path.join(outputDir2, prjctName), 'w') as fout2:
+                fout2.write(stdout)
+        else:
+            shutil.copyfile(prjctName, os.path.join(outputDir2, prjctName))
+
 
         print("")
         print("Check datetime")
-        print(svnDateTime1)
-        print(svnDateTime2)
 
-        stdout, stderr = settings.run_cmd(prjctPath, svnDateTime1)
-        dateTime = stdout
+        if not diff1 == prjctName:
+            svnDateTime1 = ['svn', 'log', '-r', artifact1]
+            print(svnDateTime1)
 
-        cmt = (dateTime.splitlines()[1]).split('|')
-        _, SVNdate1, SVNtime1, SVNutc, *_ = cmt[2].split(' ')
+        if not diff2 == prjctName:
+            svnDateTime2 = ['svn', 'log', '-r', artifact2]
+            print(svnDateTime2)
 
-        stdout, stderr = settings.run_cmd(prjctPath, svnDateTime2)
-        dateTime = stdout
+        if not diff1 == prjctName:
+            stdout, stderr = settings.run_cmd(prjctPath, svnDateTime1)
+            dateTime = stdout
 
-        cmt = (dateTime.splitlines()[1]).split('|')
-        _, SVNdate2, SVNtime2, SVNutc, *_ = cmt[2].split(' ')
+            cmt = (dateTime.splitlines()[1]).split('|')
+            _, SVNdate1, SVNtime1, SVNutc, *_ = cmt[2].split(' ')
+        else:
+            artifact1 = prjctName
+            modTimesinceEpoc = os.path.getmtime(prjctName)
+            SVNdate1 = time.strftime('%Y-%m-%d', time.localtime(modTimesinceEpoc))
+            SVNtime1 = time.strftime('%H:%M:%S', time.localtime(modTimesinceEpoc))
+
+        if not diff2 == prjctName:
+            stdout, stderr = settings.run_cmd(prjctPath, svnDateTime2)
+            dateTime = stdout
+
+            cmt = (dateTime.splitlines()[1]).split('|')
+            _, SVNdate2, SVNtime2, SVNutc, *_ = cmt[2].split(' ')
+        else:
+            artifact2 = prjctName
+            modTimesinceEpoc = os.path.getmtime(prjctName)
+            SVNdate2 = time.strftime('%Y-%m-%d', time.localtime(modTimesinceEpoc))
+            SVNtime2 = time.strftime('%H:%M:%S', time.localtime(modTimesinceEpoc))
 
         times = SVNdate1 + " " + SVNtime1 + " " + SVNdate2 + " " + SVNtime2
 
@@ -97,7 +136,7 @@ class scm(generic_scm):
         stdout, _ = settings.run_cmd(prjctPath, cmd)
         parser = SvnLogHandler()
         parser.parseString(stdout)
-        artifacts = parser.lines
+        artifacts = [board_file] + parser.lines
 
         return artifacts
 
