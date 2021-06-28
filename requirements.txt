@@ -1,0 +1,7 @@
+AwesomeTkinter==2021.1.7
+dateutils==0.6.12
+Pillow==8.1.2
+pygubu==0.10.7
+python_dateutil==2.8.1
+pytz==2021.1
+six==1.15.0
