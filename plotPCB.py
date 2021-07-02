@@ -45,6 +45,8 @@ def processBoard(board_path, plot_dir, quiet=0):
 
     if (version_major > 5) or (version_major == 5) and (version_minor == 99):
         popt.SetWidthAdjust(pn.FromMM(0.15))
+    else:
+        popt.SetLineWidth(pn.FromMM(0.15))
 
     popt.SetAutoScale(False)
     popt.SetScale(2)
@@ -56,13 +58,13 @@ def processBoard(board_path, plot_dir, quiet=0):
     enabled_layers = board.GetEnabledLayers()
     layer_ids = list(enabled_layers.Seq())
 
-    layer_names = None
+    layer_names = []
     for layer_id in layer_ids:
-        layer_names = board.GetLayerName(layer_id)
-    max_string = max(layer_names, key=len)
+        layer_names.append(board.GetLayerName(layer_id))
+    max_string_len = max(layer_names, key=len)
 
     if not quiet:
-        print("\n{} {} {} {}".format("#".rjust(2), "ID", "Name".ljust(10), "Filename"))
+        print("\n{} {} {} {}".format("#".rjust(2), "ID", "Name".ljust(len(max_string_len)), "Filename"))
 
     for i, layer_id in enumerate(layer_ids):
 
@@ -78,7 +80,7 @@ def processBoard(board_path, plot_dir, quiet=0):
         if not quiet:
             print(
                 "{:2d} {:2d} {} {}".format(
-                    i + 1, layer_id, layer_name.ljust(10), layer_filename
+                    i + 1, layer_id, layer_name.ljust(len(max_string_len)), layer_filename
                 )
             )
 
@@ -88,7 +90,7 @@ def list_layers(board_path):
     board = pn.LoadBoard(board_path)
     pctl = pn.PLOT_CONTROLLER(board)
 
-    print(" #", "ID", "Name")
+    print("\n{} {} {}".format("#".rjust(2), "ID", "Name"))
 
     enabled_layers = board.GetEnabledLayers()
     layer_ids = list(enabled_layers.Seq())
