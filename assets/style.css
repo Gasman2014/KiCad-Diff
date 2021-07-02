@@ -51,7 +51,7 @@ html {
     font: 14px arial, sans-serif;
     display: block;
     padding: 0.25em 0.75em;
-    border: 1px solid #ddd;
+    border: 1px solid #555555;
     border-bottom: none;
     border-top-left-radius: 4px;
     border-top-right-radius: 4px;
@@ -68,7 +68,7 @@ html {
     width: 100%;
     margin: 1.95em 0 0 -100%;
     padding: 0.25em 0.75em;
-    border: 1px solid #ddd;
+    border: 1px solid #555555;
     box-shadow: none;
     background: rgba(70, 67, 67, 0.185);
 }
@@ -89,14 +89,14 @@ a:hover {
 }
 
 .gallery {
-    border: 1px solid #ccc;
+    border: 1px solid #555555;
     background-color: #222;
     padding: 5px;
     vertical-align: middle;
 }
 
 .gallery:hover {
-    border: 1px solid #777;
+    border: 1px solid #cccccc;
 }
 
 .gallery img {
@@ -121,7 +121,7 @@ a:hover {
 }
 
 .subtitle {
-    font: 14px arial, sans-serif;
+    font: 24px arial, sans-serif;
 }
 
 .details,
@@ -190,7 +190,6 @@ a:hover {
     background: #44808aa8;
 }
 
-
 .added {
     color: #5eb6c4;
     text-align: left;
@@ -233,27 +232,32 @@ a:hover {
     padding-bottom: 5px;
 }
 
-.F_Cu      { filter: invert(28%) sepia(50%) saturate(2065%) hue-rotate(334deg) brightness(73%)  contrast(97%);  }
-.In1_Cu    { filter: invert(69%) sepia(39%) saturate(1246%) hue-rotate(17deg)  brightness(97%)  contrast(104%); }
-.In2_Cu    { filter: invert(14%) sepia(79%) saturate(5231%) hue-rotate(293deg) brightness(91%)  contrast(119%); }
-.In3_Cu    { filter: invert(14%) sepia(79%) saturate(5231%) hue-rotate(293deg) brightness(91%)  contrast(119%); }
-.In4_Cu    { filter: invert(14%) sepia(79%) saturate(5231%) hue-rotate(293deg) brightness(91%)  contrast(119%); }
-.B_Cu      { filter: invert(44%) sepia(14%) saturate(2359%) hue-rotate(70deg)  brightness(103%) contrast(82%);  }
-.F_Mask    { filter: invert(27%) sepia(51%) saturate(1920%) hue-rotate(269deg) brightness(89%)  contrast(96%);  }
-.B_Mask    { filter: invert(22%) sepia(56%) saturate(2652%) hue-rotate(277deg) brightness(94%)  contrast(87%);  }
-.F_Paste   { filter: invert(57%) sepia(60%) saturate(6%)    hue-rotate(314deg) brightness(92%)  contrast(99%);  }
-.B_Paste   { filter: invert(91%) sepia(47%) saturate(4033%) hue-rotate(139deg) brightness(82%)  contrast(91%);  }
-.F_SilkS   { filter: invert(46%) sepia(44%) saturate(587%)  hue-rotate(132deg) brightness(101%) contrast(85%);  }
-.B_SilkS   { filter: invert(14%) sepia(27%) saturate(2741%) hue-rotate(264deg) brightness(95%)  contrast(102%); }
-.Edge_Cuts { filter: invert(79%) sepia(79%) saturate(401%)  hue-rotate(6deg)   brightness(88%)  contrast(88%);  }
-.Margin    { filter: invert(74%) sepia(71%) saturate(5700%) hue-rotate(268deg) brightness(89%)  contrast(84%);  }
-.Dwgs_User { filter: invert(40%) sepia(68%) saturate(7431%) hue-rotate(203deg) brightness(89%)  contrast(98%);  }
-.Cmts_User { filter: invert(73%) sepia(10%) saturate(1901%) hue-rotate(171deg) brightness(95%)  contrast(102%); }
-.Eco1_User { filter: invert(25%) sepia(98%) saturate(2882%) hue-rotate(109deg) brightness(90%)  contrast(104%); }
-.Eco2_User { filter: invert(85%) sepia(21%) saturate(5099%) hue-rotate(12deg)  brightness(91%)  contrast(102%); }
-.F_Fab     { filter: invert(71%) sepia(21%) saturate(4662%) hue-rotate(21deg)  brightness(103%) contrast(100%); }
-.B_Fab     { filter: invert(60%) sepia(0%)  saturate(0%)    hue-rotate(253deg) brightness(87%)  contrast(90%);  }
-.F_Adhes   { filter: invert(38%) sepia(49%) saturate(1009%) hue-rotate(254deg) brightness(88%)  contrast(86%);  }
-.B_Adhes   { filter: invert(24%) sepia(48%) saturate(2586%) hue-rotate(218deg) brightness(88%)  contrast(92%);  }
-.F_CrtYd   { filter: invert(73%) sepia(1%)  saturate(0%)    hue-rotate(116deg) brightness(92%)  contrast(91%);  }
-.B_CrtYd   { filter: invert(79%) sepia(92%) saturate(322%)  hue-rotate(3deg)   brightness(89%)  contrast(92%);  }
+.F_Cu      { filter: invert(9%)  sepia(62%) saturate(7115%) hue-rotate(359deg) brightness(85%)  contrast(110%); }   /* #840000*/
+.In1_Cu    { filter: invert(82%) sepia(23%) saturate(5502%) hue-rotate(15deg)  brightness(95%)  contrast(102%); }   /* #c2c200*/
+.In2_Cu    { filter: invert(26%) sepia(82%) saturate(7438%) hue-rotate(293deg) brightness(87%)  contrast(117%); }   /* #c200c2*/
+.In3_Cu    { filter: invert(17%) sepia(36%) saturate(6242%) hue-rotate(350deg) brightness(96%)  contrast(128%); }   /* #c20000*/
+.In4_Cu    { filter: invert(25%) sepia(79%) saturate(2231%) hue-rotate(161deg) brightness(100%) contrast(101%); }   /* #008484*/
+.In5_Cu    { filter: invert(28%) sepia(88%) saturate(6574%) hue-rotate(126deg) brightness(96%)  contrast(101%); }   /* #008400*/
+.In6_Cu    { filter: invert(8%)  sepia(97%) saturate(3557%) hue-rotate(236deg) brightness(150%) contrast(126%); }   /* #000084*/
+.In7_Cu    { filter: invert(61%) sepia(0%)  saturate(63%)   hue-rotate(180deg) brightness(186%)  contrast(89%); }   /* #848484*/
+.In8_Cu    { filter: invert(15%) sepia(88%) saturate(3853%) hue-rotate(291deg) brightness(71%)  contrast(114%); }   /* #840084*/
+.B_Cu      { filter: invert(28%) sepia(88%) saturate(6574%) hue-rotate(126deg) brightness(96%)  contrast(101%); }   /* #008400*/
+.B_Adhes   { filter: invert(8%)  sepia(97%) saturate(3557%) hue-rotate(236deg) brightness(150%) contrast(126%); }   /* #000084*/
+.F_Adhes   { filter: invert(15%) sepia(88%) saturate(3853%) hue-rotate(291deg) brightness(71%)  contrast(114%); }   /* #840084*/
+.B_Paste   { filter: invert(63%) sepia(46%) saturate(6432%) hue-rotate(145deg) brightness(104%) contrast(100%); }   /* #00c2c2*/
+.F_Paste   { filter: invert(9%)  sepia(62%) saturate(7115%) hue-rotate(359deg) brightness(85%)  contrast(110%); }   /* #840000*/
+.B_SilkS   { filter: invert(15%) sepia(88%) saturate(3853%) hue-rotate(291deg) brightness(71%)  contrast(114%); }   /* #840084*/
+.F_SilkS   { filter: invert(25%) sepia(79%) saturate(2231%) hue-rotate(161deg) brightness(100%) contrast(101%); }   /* #008484*/
+.B_Mask    { filter: invert(76%) sepia(57%) saturate(7473%) hue-rotate(36deg)  brightness(87%)  contrast(104%); }   /* #848400*/
+.F_Mask    { filter: invert(15%) sepia(88%) saturate(3853%) hue-rotate(291deg) brightness(71%)  contrast(114%); }   /* #840084*/
+.Dwgs_User { filter: invert(67%) sepia(93%) saturate(0%)    hue-rotate(282deg) brightness(97%)  contrast(92%);  }   /* #c2c2c2*/
+.Cmts_User { filter: invert(14%) sepia(32%) saturate(6064%) hue-rotate(204deg) brightness(152%) contrast(106%); }   /* #003784*/
+.Eco1_User { filter: invert(28%) sepia(88%) saturate(6574%) hue-rotate(126deg) brightness(96%)  contrast(101%); }   /* #008400*/
+.Eco2_User { filter: invert(82%) sepia(23%) saturate(5502%) hue-rotate(15deg)  brightness(95%)  contrast(102%); }   /* #c2c200*/
+.Edge_Cuts { filter: invert(82%) sepia(23%) saturate(5502%) hue-rotate(15deg)  brightness(95%)  contrast(102%); }   /* #c2c200*/
+.Margin    { filter: invert(26%) sepia(82%) saturate(7438%) hue-rotate(293deg) brightness(87%)  contrast(117%); }   /* #c200c2*/
+.B_CrtYd   { filter: invert(61%) sepia(0%)  saturate(63%)   hue-rotate(180deg) brightness(186%)  contrast(89%); }   /* #848484*/
+.F_CrtYd   { filter: invert(67%) sepia(93%) saturate(0%)    hue-rotate(282deg) brightness(97%)  contrast(92%);  }   /* #c2c2c2*/
+.B_Fab     { filter: invert(10%) sepia(99%) saturate(6679%) hue-rotate(246deg) brightness(77%)  contrast(147%); }   /* #0000e6*/
+.F_Fab     { filter: invert(61%) sepia(0%)  saturate(63%)   hue-rotate(180deg) brightness(186%)  contrast(89%); }   /* #848484*/
+.User      { filter: invert(79%) sepia(92%) saturate(322%)  hue-rotate(3deg)   brightness(89%)  contrast(92%);  }   /* #0000e6*/

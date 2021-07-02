@@ -1,10 +1,9 @@
-
 import sys
 
 from subprocess import PIPE, Popen
 from typing import List, Tuple
 
-args = ''
+args = ""
 
 global gitProg
 global fossilProg
@@ -12,21 +11,21 @@ global svnProg
 global diffProg
 global grepProg
 
-global plotProg
+global plot_prog
 
-global plotDir
-global webDir
+global plot_dir
+global web_dir
 
-gitProg = 'git'
-fossilProg = 'fossil'
-svnProg = 'svn'
-diffProg = 'diff'
-grepProg = 'grep'
+gitProg = "git"
+fossilProg = "fossil"
+svnProg = "svn"
+diffProg = "diff"
+grepProg = "grep"
 
-plotProg = 'plotpcb'
+plot_prog = "plotpcb"
 
-plotDir = 'kidiff'
-webDir = 'web'
+plot_dir = "kidiff"
+web_dir = "web"
 
 
 def run_cmd(path: str, cmd: List[str]) -> Tuple[str, str]:
@@ -37,8 +36,9 @@ def run_cmd(path: str, cmd: List[str]) -> Tuple[str, str]:
         stdout=PIPE,
         stderr=PIPE,
         close_fds=True,
-        encoding='utf-8',
-        cwd=path)
+        encoding="utf-8",
+        cwd=path,
+    )
 
     stdout, stderr = p.communicate()
     p.wait()

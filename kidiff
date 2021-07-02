@@ -30,43 +30,15 @@ import assets.html_data as custom_page
 
 socketserver.TCPServer.allow_reuse_address = True
 script_path = os.path.dirname(os.path.realpath(__file__))
-assets_folder = os.path.join(script_path, 'assets')
-
-
-layerCols = {
-    'F_Cu'      : "#952927",
-    'B_Cu'      : "#359632",
-    'B_Paste'   : "#3DC9C9",
-    'F_Paste'   : "#969696",
-    'F_SilkS'   : "#339697",
-    'B_SilkS'   : "#481649",
-    'B_Mask'    : "#943197",
-    'F_Mask'    : "#943197",
-    'Edge_Cuts' : "#C9C83B",
-    'Margin'    : "#D357D2",
-    'In1_Cu'    : "#C2C200",
-    'In2_Cu'    : "#C200C2",
-    'In3_Cu'    : "#C20000",
-    'In4_Cu'    : "#0000C2",
-    'Dwgs_User' : "#0364D3",
-    'Cmts_User' : "#7AC0F4",
-    'Eco1_User' : "#008500",
-    'Eco2_User' : "#C2C200",
-    'B_Fab'     : "#858585",
-    'F_Fab'     : "#C2C200",
-    'B_Adhes'   : "#3545A8",
-    'F_Adhes'   : "#A74AA8",
-    'B_CrtYd'   : "#D3D04B",
-    'F_CrtYd'   : "#A7A7A7",
-}
+assets_folder = os.path.join(script_path, "assets")
 
 Handler = http.server.SimpleHTTPRequestHandler
 
 
 def select_project_gui(display):
-    '''File select dialogue. Opens Tk File browser and
+    """File select dialogue. Opens Tk File browser and
     selector set for .kicad_pcb files. Returns path and file name
-    '''
+    """
     gui = Tk(display)
     gui.withdraw()
     gui.update()
@@ -76,17 +48,18 @@ def select_project_gui(display):
         # dialog without really getting a dialog window; this will throw a
         # TclError, so we need a try...except :
         try:
-            gui.call('tk_getOpenFile', '-foobarbaz')
+            gui.call("tk_getOpenFile", "-foobarbaz")
         except TclError:
             pass
-        gui.call('set', '::tk::dialog::file::showHiddenVar', '0')
+        gui.call("set", "::tk::dialog::file::showHiddenVar", "0")
     except Exception:
         pass
 
     selected = filedialog.askopenfile(
         initialdir=os.getcwd(),
         title="Select the Kicad board",
-        filetypes=(("KiCad PCB files", "*.kicad_pcb"), ("all files", "*.*")))
+        filetypes=(("KiCad PCB files", "*.kicad_pcb"), ("all files", "*.*")),
+    )
 
     if selected:
         repo_path, kicad_pcb = os.path.split(selected.name)
@@ -99,38 +72,41 @@ def select_project_gui(display):
     return (repo_path, kicad_pcb)
 
 
-def check_project_scms(prjctPath):
-    '''Determines which SCM is being used by the project.
+def check_project_scms(prjct_path):
+    """Determines which SCM is being used by the project.
     Current order of priority: Git > Fossil > SVN
-    '''
+    """
 
     scms = []
 
     if is_tool_available("git"):
-        cmd = ['git', 'status']
-        stdout, stderr = settings.run_cmd(prjctPath, cmd)
-        if ((stdout != '') & (stderr == '')):
-            scms.append('git')
+        cmd = ["git", "status"]
+        stdout, stderr = settings.run_cmd(prjct_path, cmd)
+        if (stdout != "") & (stderr == ""):
+            scms.append("git")
 
     if is_tool_available("fossil"):
-        cmd = ['fossil', 'status']
-        stdout, stderr = settings.run_cmd(prjctPath, cmd)
-        if (stdout != ''):
-            scms.append('fossil')
+        cmd = ["fossil", "status"]
+        stdout, stderr = settings.run_cmd(prjct_path, cmd)
+        if stdout != "":
+            scms.append("fossil")
 
     if is_tool_available("svn"):
-        cmd = ['svn', 'log']  # | perl -l4svn log0pe "s/^-+/\n/"'.format(prjctPath=prjctPath)
-        stdout, stderr = settings.run_cmd(prjctPath, cmd)
-        if ((stdout != '') & (stderr == '')):
-            scms.append('svn')
+        cmd = [
+            "svn",
+            "log",
+        ]  # | perl -l4svn log0pe "s/^-+/\n/"'.format(prjct_path=prjct_path)
+        stdout, stderr = settings.run_cmd(prjct_path, cmd)
+        if (stdout != "") & (stderr == ""):
+            scms.append("svn")
 
     return scms
 
 
-def makeSVG(d1, d2, board_file, kicad_project_path, prjctPath):
-    '''Hands off required .kicad_pcb files to "plotPCB2.py"
-    and generate .svg files. Routine is
-    v quick so all layers are plotted to svg.'''
+def make_svg(d1, d2, board_file, kicad_project_path, prjct_path):
+    """Hands off required .kicad_pcb files to "plotpcb"
+    and generate .svg files. Routine is quick so all
+    layers are plotted to svg."""
 
     print("")
     print("Generating board files")
@@ -140,39 +116,39 @@ def makeSVG(d1, d2, board_file, kicad_project_path, prjctPath):
     else:
         d1 = "local"
 
-    d1SVG = os.path.join(prjctPath, settings.plotDir, kicad_project_path, d1)
+    d1_svg = os.path.join(prjct_path, settings.plot_dir, kicad_project_path, d1)
 
     if not d2 == board_file:
         d2 = d2[:7]
     else:
         d2 = "local"
 
-    d2SVG = os.path.join(prjctPath, settings.plotDir, kicad_project_path, d2)
+    d2_svg = os.path.join(prjct_path, settings.plot_dir, kicad_project_path, d2)
 
-    Diff1 = os.path.join(d1SVG, board_file)
-    Diff2 = os.path.join(d2SVG, board_file)
+    diff1 = os.path.join(d1_svg, board_file)
+    diff2 = os.path.join(d2_svg, board_file)
 
     print("")
     print("Setting paths")
-    print("Diff1: ", Diff1)
-    print("Diff2: ", Diff2)
+    print("Diff1: ", diff1)
+    print("Diff2: ", diff2)
 
-    if not os.path.exists(d1SVG):
-        os.makedirs(d1SVG)
+    if not os.path.exists(d1_svg):
+        os.makedirs(d1_svg)
 
-    if not os.path.exists(d2SVG):
-        os.makedirs(d2SVG)
+    if not os.path.exists(d2_svg):
+        os.makedirs(d2_svg)
 
-    plot1Cmd = [settings.plotProg, Diff1, '-o', d1SVG]
-    plot2Cmd = [settings.plotProg, Diff2, '-o', d2SVG]
+    plot1_cmd = [settings.plot_prog, diff1, "-o", d1_svg]
+    plot2_cmd = [settings.plot_prog, diff2, "-o", d2_svg]
 
     print("")
     print("Plot Commands:")
-    print(plot1Cmd)
-    print(plot2Cmd)
+    print(plot1_cmd)
+    print(plot2_cmd)
 
-    stdout, stderr = settings.run_cmd(prjctPath, plot1Cmd)
-    plotDims1 = stdout.splitlines()
+    stdout, stderr = settings.run_cmd(prjct_path, plot1_cmd)
+    plot_dims1 = stdout.splitlines()
     errors = stderr
 
     if errors != "":
@@ -180,8 +156,8 @@ def makeSVG(d1, d2, board_file, kicad_project_path, prjctPath):
         print("Plot1 error: " + errors)
         exit(1)
 
-    stdout, stderr = settings.run_cmd(prjctPath, plot2Cmd)
-    plotDims2 = stdout.splitlines()
+    stdout, stderr = settings.run_cmd(prjct_path, plot2_cmd)
+    plot_dims2 = stdout.splitlines()
     errors = stderr
 
     if errors != "":
@@ -189,61 +165,110 @@ def makeSVG(d1, d2, board_file, kicad_project_path, prjctPath):
         print("Plot2 error: " + errors)
         exit(1)
 
-    if not plotDims1 or not plotDims2:
-        print('ERROR: Something happened with plotpcb')
+    if not plot_dims1 or not plot_dims2:
+        print("ERROR: Something happened with plotpcb")
         exit(1)
 
-    return (d1, d2, plotDims1[0], plotDims2[0])
+    return (d1, d2, plot_dims1[0], plot_dims2[0])
 
 
-def makeSupportFiles(board_file, kicad_project_path, prjctPath):
-    '''
+def make_support_files(board_file, kicad_project_path, prjct_path, svg_dir1, svg_dir2):
+    """
     Setup web directories for output
-    '''
+    """
 
-    webd = os.path.join(prjctPath, settings.plotDir, kicad_project_path, settings.webDir)
-    webIndex = os.path.join(webd + '/index.html')
-    webStyle = os.path.join(webd + '/style.css')
-    webFavicon = os.path.join(webd + '/favicon.ico')
+    web_dir = os.path.join(
+        prjct_path, settings.plot_dir, kicad_project_path, settings.web_dir
+    )
+    web_index = os.path.join(web_dir + "/index.html")
+    web_style = os.path.join(web_dir + "/style.css")
+    web_favicon = os.path.join(web_dir + "/favicon.ico")
+    blank_svg = os.path.join(assets_folder + "/blank.svg")
 
-    if not os.path.exists(webd):
-        os.makedirs(webd)
-        os.makedirs(os.path.join(webd, 'triptych'))
+    if not os.path.exists(web_dir):
+        os.makedirs(web_dir)
+        os.makedirs(os.path.join(web_dir, "triptych"))
 
     stylesheet = os.path.join(assets_folder, "style.css")
-    shutil.copyfile(stylesheet, webStyle)
+    shutil.copyfile(stylesheet, web_style)
 
     favicon = os.path.join(assets_folder, "favicon.ico")
-    shutil.copyfile(favicon, webFavicon)
+    shutil.copyfile(favicon, web_favicon)
 
-    if os.path.exists(webIndex):
-        os.remove(webIndex)
+    if os.path.exists(web_index):
+        os.remove(web_index)
+
+    # Generate blank images if there are layer changes between versions
+
+    source_dir1 = os.path.join(
+        prjct_path, settings.plot_dir, kicad_project_path, svg_dir1
+    )
+    source_dir2 = os.path.join(
+        prjct_path, settings.plot_dir, kicad_project_path, svg_dir2
+    )
+
+    project_name, _ = os.path.splitext(board_file)
+    layers = dict()
+
+    for i, f in enumerate(sorted(os.listdir(source_dir1))):
+        filename = os.fsdecode(f)
+        if filename.endswith(".svg"):
+            file_name, _ = os.path.splitext(filename)
+            project_name, _ = os.path.splitext(board_file)
+            layer_id = int(file_name.replace(project_name + "-", "")[0:2])
+            layer_name = file_name.replace(project_name + "-", "")[3:]
+            layers[layer_id] = (file_name, None)
+
+    for i, f in enumerate(sorted(os.listdir(source_dir2))):
+        filename = os.fsdecode(f)
+        if filename.endswith(".svg"):
+            file_name, _ = os.path.splitext(filename)
+            project_name, _ = os.path.splitext(board_file)
+            layer_id = int(file_name.replace(project_name + "-", "")[0:2])
+            layer_name = file_name.replace(project_name + "-", "")[3:]
+            if layers[layer_id]:
+                layer = layers[layer_id]
+                layers[layer_id] = (layer[0], file_name)
+            else:
+                layers[layer_id] = (None, file_name)
+
+    for i in sorted(layers.keys()):
+        # print(i, layers[i])
+        if layers[i][0] == None:
+            missing_svg = os.path.join(source_dir1, layers[i][1] + ".svg")
+            print("Creating blank", missing_svg)
+            shutil.copyfile(blank_svg, missing_svg)
+
+        if layers[i][1] == None:
+            missing_svg = os.path.join(source_dir2, layers[i][0] + ".svg")
+            shutil.copyfile(blank_svg, missing_svg)
+            print("Creating blank", missing_svg)
 
     return
 
 
 def getBoardData(board):
-    '''Takes a board reference and returns the
+    """Takes a board reference and returns the
     basic parameters from it.
     Might be safer to split off the top section
     before the modules to avoid the possibility of
-    recyling keywords like 'title' '''
+    recyling keywords like 'title'"""
 
     prms = {
-        'title': "",
-        'rev': "",
-        'company': "",
-        'date': "",
-        'page': "",
-        'thickness': 0,
-        'drawings': 0,
-        'tracks': 0,
-        'zones': 0,
-        'modules': 0,
-        'nets': 0
+        "title": "",
+        "rev": "",
+        "company": "",
+        "date": "",
+        "page": "",
+        "thickness": 0,
+        "drawings": 0,
+        "tracks": 0,
+        "zones": 0,
+        "modules": 0,
+        "nets": 0,
     }
 
-    with open(board, 'r') as f:
+    with open(board, "r") as f:
         for line in f:
             words = line.strip("\t ()").split()
             for key in prms:
@@ -251,156 +276,258 @@ def getBoardData(board):
                     if key == words[0]:
                         complete = ""
                         for i in range(1, len(words)):
-                            complete += words[i].strip("\t ()").replace("\"", "") + " "
+                            complete += words[i].strip("\t ()").replace('"', "") + " "
                         prms[key] = complete
-    return(prms)
+    return prms
 
 
-def makeOutput(diffDir1, diffDir2, board_file, kicad_project_path, prjctPath, times, dim1, dim2):
-    '''Write out HTML using template. Iterate through files in diff directories, generating
+def html_class_from_layer_id(layer_id):
+    # KEEP THIS LIST ORDERED
+    # Use this to select the right class (color) on css
+    # https://docs.kicad.org/doxygen/layers__id__colors__and__visibility_8h_source.html
+    layer_name = [
+        "F_Cu",
+        "In1_Cu",
+        "In2_Cu",
+        "In3_Cu",
+        "In4_Cu",
+        "In5_Cu",
+        "In6_Cu",
+        "In7_Cu",
+        "In8_Cu",
+        "In9_Cu",
+        "In10_Cu",
+        "In11_Cu",
+        "In12_Cu",
+        "In13_Cu",
+        "In14_Cu",
+        "In15_Cu",
+        "In16_Cu",
+        "In17_Cu",
+        "In18_Cu",
+        "In19_Cu",
+        "In20_Cu",
+        "In21_Cu",
+        "In22_Cu",
+        "In23_Cu",
+        "In24_Cu",
+        "In25_Cu",
+        "In26_Cu",
+        "In27_Cu",
+        "In28_Cu",
+        "In29_Cu",
+        "In30_Cu",
+        "B_Cu",  # 31
+        "B_Adhes",
+        "F_Adhes",
+        "B_Paste",
+        "F_Paste",
+        "B_SilkS",
+        "F_SilkS",
+        "B_Mask",
+        "F_Mask",  # 39
+        "Dwgs_User",
+        "Cmts_User",
+        "Eco1_User",
+        "Eco2_User",
+        "Edge_Cuts",
+        "Margin",
+        "B_CrtYd",
+        "F_CrtYd",
+        "B_Fab",
+        "F_Fab",  # 49
+        "User_1",
+        "User_2",
+        "User_3",
+        "User_4",
+        "User_5",
+        "User_6",
+        "User_7",
+        "User_8",
+        "User_9",
+        "Rescue",  # 59
+    ]
+
+    # Reuse some colors
+
+    if (layer_id >= 8) and (layer_id <= 30):
+        class_name = "In8_Cu"
+    else:
+        if (layer_id >= 50) and (layer_id <= 59):
+            class_name = "User"
+        else:
+            class_name = layer_name[layer_id]
+
+    return class_name
+
+
+def assemble_html(
+    diff_dir1, diff_dir2, board_file, kicad_project_path, prjct_path, times
+):
+    """Write out HTML using template. Iterate through files in diff directories, generating
     thumbnails and three way view (triptych) page.
-    '''
+    """
 
-    webd = os.path.join(prjctPath, settings.plotDir, kicad_project_path, settings.webDir)
-    webIndex = os.path.join(webd, 'index.html')
+    web_dir = os.path.join(
+        prjct_path, settings.plot_dir, kicad_project_path, settings.web_dir
+    )
+    web_index = os.path.join(web_dir, "index.html")
 
-    board1 = os.path.join(prjctPath, settings.plotDir, kicad_project_path, diffDir1, board_file)
-    board2 = os.path.join(prjctPath, settings.plotDir, kicad_project_path, diffDir2, board_file)
+    board1 = os.path.join(
+        prjct_path, settings.plot_dir, kicad_project_path, diff_dir1, board_file
+    )
+    board2 = os.path.join(
+        prjct_path, settings.plot_dir, kicad_project_path, diff_dir2, board_file
+    )
 
-    webOut = open(webIndex, 'w')
+    main_html = open(web_index, "w")
 
-    D1DATE, D1TIME, D2DATE, D2TIME = times.split(" ")
+    date1, time1, date2, time2 = times.replace('"', "").split(" ")
 
-    board_1_Info = getBoardData(board1)
-    board_2_Info = getBoardData(board2)
+    board1_info = getBoardData(board1)
+    board2_info = getBoardData(board2)
 
-    TITLE = board_1_Info.get('title')
-    DATE = board_1_Info.get('date')
-    COMPANY = board_1_Info.get('company')
-
-    THICK1 = board_1_Info.get('thickness')
-    DRAWINGS1 = board_1_Info.get('drawings')
-    TRACKS1 = board_1_Info.get('tracks')
-    ZONES1 = board_1_Info.get('zones')
-    MODULES1 = board_1_Info.get('modules')
-    NETS1 = board_1_Info.get('nets')
+    board_title = board1_info.get("title")
+    board_company = board1_info.get("company")
 
     # ======
 
-    THICK2 = board_2_Info.get('thickness')
-    DRAWINGS2 = board_2_Info.get('drawings')
-    TRACKS2 = board_2_Info.get('tracks')
-    ZONES2 = board_2_Info.get('zones')
-    MODULES2 = board_2_Info.get('modules')
-    NETS2 = board_2_Info.get('nets')
+    thickness1 = board1_info.get("thickness")
+    drawings1 = board1_info.get("drawings")
+    tracks1 = board1_info.get("tracks")
+    zones1 = board1_info.get("zones")
+    modules1 = board1_info.get("modules")
+    nets1 = board1_info.get("nets")
+
+    # ======
+
+    thickness2 = board2_info.get("thickness")
+    drawings2 = board2_info.get("drawings")
+    tracks2 = board2_info.get("tracks")
+    zones2 = board2_info.get("zones")
+    modules2 = board2_info.get("modules")
+    nets2 = board2_info.get("nets")
 
     index = custom_page.indexHead.format(
-        TITLE=TITLE,
-        DATE=DATE,
-        COMPANY=COMPANY,
-        diffDir1=diffDir1,
-        diffDir2=diffDir2,
-        THICK1=THICK1,
-        THICK2=THICK2,
-        D1DATE=D1DATE,
-        D2DATE=D2DATE,
-        DRAWINGS1=DRAWINGS1,
-        DRAWINGS2=DRAWINGS2,
-        D1TIME=D1TIME,
-        D2TIME=D2TIME,
-        TRACKS1=TRACKS1,
-        TRACKS2=TRACKS2,
-        ZONES1=ZONES1,
-        ZONES2=ZONES2,
-        MODULES1=MODULES1,
-        MODULES2=MODULES2,
-        NETS1=NETS1,
-        NETS2=NETS2,
+        board_title=board_title,
+        board_company=board_company,
+        date1=date1,
+        date2=date2,
+        time1=time1,
+        time2=time2,
+        hash1=diff_dir1,
+        hash2=diff_dir2,
+        thickness1=thickness1,
+        thickness2=thickness2,
+        drawings1=drawings1,
+        drawings2=drawings2,
+        tracks1=tracks1,
+        tracks2=tracks2,
+        zones1=zones1,
+        zones2=zones2,
+        modules1=modules1,
+        modules2=modules2,
+        nets1=nets1,
+        nets2=nets2,
     )
 
-    webOut.write(index)
+    main_html.write(index)
 
-    source = os.path.join(prjctPath, settings.plotDir, kicad_project_path, diffDir1)
-    triptychDir = os.path.join(prjctPath, settings.plotDir, kicad_project_path, "web", 'triptych')
+    source_dir = os.path.join(
+        prjct_path, settings.plot_dir, kicad_project_path, diff_dir1
+    )
+    triptych_dir = os.path.join(
+        prjct_path, settings.plot_dir, kicad_project_path, "web", "triptych"
+    )
 
-    if not os.path.exists(triptychDir):
-        os.makedirs(triptychDir)
+    if not os.path.exists(triptych_dir):
+        os.makedirs(triptych_dir)
 
-    diff1 = os.path.join(prjctPath, settings.plotDir, kicad_project_path, diffDir1, board_file)
-    diff2 = os.path.join(prjctPath, settings.plotDir, kicad_project_path, diffDir2, board_file)
-    output_file = os.path.join(prjctPath, settings.plotDir, kicad_project_path, 'diff.txt')
+    diff1 = os.path.join(
+        prjct_path, settings.plot_dir, kicad_project_path, diff_dir1, board_file
+    )
+    diff2 = os.path.join(
+        prjct_path, settings.plot_dir, kicad_project_path, diff_dir2, board_file
+    )
+    output_file = os.path.join(
+        prjct_path, settings.plot_dir, kicad_project_path, "diff.txt"
+    )
 
-    stdout, stderr = settings.run_cmd(prjctPath, [settings.diffProg, diff2, diff1])
+    stdout, stderr = settings.run_cmd(prjct_path, [settings.diffProg, diff2, diff1])
 
-    with open(output_file, 'a') as fout:
+    with open(output_file, "a") as fout:
         fout.write(stdout)
 
-    diffCmd2 = [settings.diffProg, '--suppress-common-lines', diff2, diff1]
-    stdout, stderr = settings.run_cmd(prjctPath, diffCmd2)
+    diff_cmd2 = [settings.diffProg, "--suppress-common-lines", diff2, diff1]
+    stdout, stderr = settings.run_cmd(prjct_path, diff_cmd2)
 
-    # diffs = os.fsencode(source)
-
-
-    for f in os.listdir(source):
+    for f in sorted(os.listdir(source_dir)):
 
         filename = os.fsdecode(f)
 
         if filename.endswith(".svg"):
 
-            file, file_extension = os.path.splitext(filename)
-            triptych = os.path.join(triptychDir, file + '.html')
-            *project, layer = filename.split('-')
-            layer, ext = layer.split('.')
-            prjct, ext = filename.split('.')
-            splitted = prjct.split('-')  # Accounts for project names containing hyphens
-            prj = "-".join(splitted[0:-1])
-            layer = splitted[-1]
+            file_name, _ = os.path.splitext(filename)
+            project_name, _ = os.path.splitext(board_file)
 
-            out = custom_page.outfile.format(
-                diff1=diffDir1,
-                diff2=diffDir2,
-                dim1=dim1,
-                dim2=dim2,
-                layer=layer,
-                layername=filename,
-                prj=prj)
+            layer_id = int(file_name.replace(project_name + "-", "")[0:2])
+            layer_name = file_name.replace(project_name + "-", "")[3:]
+            layer_name_orig = layer_name.replace(
+                "_", "."
+            )  # not sure this is good and works all the time
 
-            webOut.write(out)
+            triptych_html = file_name + ".html"
+            triptych_html_path = os.path.join(triptych_dir, triptych_html)
 
-            with open(triptych, 'w') as triptychOut:
+            out_html = custom_page.outfile.format(
+                hash1=diff_dir1,
+                hash2=diff_dir2,
+                layer_name=layer_name,
+                filename_svg=filename,
+                triptych_html=triptych_html,
+                layer_class=html_class_from_layer_id(layer_id),
+            )
+
+            main_html.write(out_html)
+
+            with open(triptych_html_path, "w") as triptych_out_html:
 
                 t_out = custom_page.triptychHTML.format(
-                    layername=filename,
-                    diff1=diffDir1,
-                    diff2=diffDir2,
-                    dim1=dim1,
-                    dim2=dim2,
-                    plotDir=settings.plotDir,
-                    layer=layer,
-                    prj=prj)
+                    hash1=diff_dir1,
+                    hash2=diff_dir2,
+                    layer_name=layer_name,
+                    filename_svg=filename,
+                    layer_class=html_class_from_layer_id(layer_id),
+                )
 
-                triptychOut.write(t_out)
+                triptych_out_html.write(t_out)
 
-                mod = layer.replace("_", ".")
+                out_html = "\n".join(
+                    re.sub("status [1-9][0-9]", "", line)
+                    for line in stdout.splitlines()
+                    if layer_name_orig in line
+                )
 
-                out = "\n".join(re.sub('status [1-9][0-9]', '', line) for line in stdout.splitlines() if mod in line)
-
-                processed = processDiff(out, mod)
+                processed = process_diff(out_html, layer_name_orig)
                 processed += custom_page.twopane
 
-                triptychOut.write(processed)
+                triptych_out_html.write(processed)
 
-    webOut.write(custom_page.tail)
+    main_html.write(custom_page.tail)
 
 
-def processDiff(diffText, mod):
+def process_diff(diff_text, mod):
 
     keywords = [
         ("module ", "Modules", ("Component", "Reference", "Timestamp")),
         ("gr_text ", "Text", ("Text", "Position")),
         ("\\(via ", "Vias", ("Coordinate", "Size", "Drill", "Layers", "Net")),
         ("fp_text \\w+ ", "FP Text", ("Reference", "Coordinate")),
-        ("\\(pad ", "Pads", ("Number", "Type", "Shape", "Coordinate", "Size", "Layers", "Ratio")),
+        (
+            "\\(pad ",
+            "Pads",
+            ("Number", "Type", "Shape", "Coordinate", "Size", "Layers", "Ratio"),
+        ),
         ("\\(gr_line ", "Graphics", ("Start", "End ", "Width", "Net")),
         ("\\(fp_arc", "Arcs", ("Start", "End ", "Angle", "Width")),
         ("\\(segment", "Segments", ("Start", "End ", "Width", "Net", "Timestamp")),
@@ -422,15 +549,15 @@ def processDiff(diffText, mod):
         "\\(angle ": "<td>",
         "\\(center ": "<td>",
         "\\)": "</td>",
-        "user (\\w+)": r'<td>\1</td>',
-        "reference (\\w+)": r'<td>\1</td>',
-        "([0-9]) smd": r'<td>\1</td><td>Surface</td>',
+        "user (\\w+)": r"<td>\1</td>",
+        "reference (\\w+)": r"<td>\1</td>",
+        "([0-9]) smd": r"<td>\1</td><td>Surface</td>",
         "roundrect": "<td>Rounded</td>",
         "rect": "<td>Rectangle</td>",
-        "\\(([^ ]+) ": r'<td>\1</td>',
-        "(?<=\")(.*)(?=\")": r'<td>\1</td>',
-        "[\"]": r'',
-        "[**]": r''
+        "\\(([^ ]+) ": r"<td>\1</td>",
+        '(?<=")(.*)(?=")': r"<td>\1</td>",
+        '["]': r"",
+        "[**]": r"",
     }
 
     final = ""
@@ -441,7 +568,7 @@ def processDiff(diffText, mod):
     tbR = ""
     checked = "checked"
 
-    top1 = '''
+    top1 = """
         <input name='tabbed' id='tabbed{tabn}' type='radio' {checked}/>
         <section>
             <h1>
@@ -451,37 +578,37 @@ def processDiff(diffText, mod):
                 {content}
             </div>
         </section>
-    '''
+    """
 
-    tsl = '''
+    tsl = """
         <div class='responsive'>
             <div class = 'tbl'>
-                <table style="border-color: #aaaaaa; width: 100%; height: 2px;" border="2px" cellspacing="2px" cellpadding="3px">
-    '''
+                <table style="border-color: #555555; width: 100%; height: 2px;" border="2px" cellspacing="2px" cellpadding="3px">
+    """
 
-    tsr = '''
+    tsr = """
         <div class='responsive'>
             <div class = 'tbr'>
-                <table style="border-color: #aaaaaa; width: 100%; height: 2px;" border="2px" cellspacing="2px" cellpadding="3px">
-    '''
+                <table style="border-color: #555555; width: 100%; height: 2px;" border="2px" cellspacing="2px" cellpadding="3px">
+    """
 
-    clearfix = '''
+    clearfix = """
         <div class='clearfix'></div>
         <div style='padding:6px;'></div>
-    '''
+    """
 
-    for indx, layerInfo in enumerate(keywords):
+    for indx, layer_info in enumerate(keywords):
 
         combined = tbL = tbR = ""
 
-        for indx2, parameter in enumerate(layerInfo[2]):
+        for indx2, parameter in enumerate(layer_info[2]):
             tbR = tbR + "<th>" + parameter + "</th>\n"
             tbL = tbL + "<th>" + parameter + "</th>\n"
 
-        for line in diffText.splitlines():
+        for line in diff_text.splitlines():
 
-            if re.search(layerInfo[0], line) and (mod in line):
-                output = re.sub(layerInfo[0], "", line)
+            if re.search(layer_info[0], line) and (mod in line):
+                output = re.sub(layer_info[0], "", line)
                 output = output.replace("(layer " + mod + ")", "")
 
                 for item, replace in d.items():
@@ -501,32 +628,40 @@ def processDiff(diffText, mod):
                 elif output[0] == "<":
                     tbR = tbR + "<tr>" + output[1:]
 
-        combined = tsl + tbL + "</table></div></div>\n" + tsr + tbR + "</table></div></div>\n"
-        content = top1.format(tabn=indx, content=combined, label=layerInfo[1], checked=checked)
+        combined = (
+            tsl + tbL + "</table></div></div>\n" + tsr + tbR + "</table></div></div>\n"
+        )
+        content = top1.format(
+            tabn=indx, content=combined, label=layer_info[1], checked=checked
+        )
         checked = ""
 
         final = final + content
 
     final = "<div class = 'tabbed'>" + final + "</div>" + clearfix
 
-    return(final)
+    return final
 
 
 def is_tool_available(name):
     from shutil import which
+
     return 1 if which(name) is not None else 0
 
 
 class WebServerHandler(http.server.SimpleHTTPRequestHandler):
-
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, directory=os.path.realpath(os.path.join(prjctPath, settings.plotDir)), **kwargs)
+        super().__init__(
+            *args,
+            directory=os.path.realpath(os.path.join(prjct_path, settings.plot_dir)),
+            **kwargs
+        )
 
     def log_message(self, format, *args):
         return
 
-class Select(Toplevel):
 
+class Select(Toplevel):
     def __init__(self, parent=None):
         Toplevel.__init__(self, parent)
         # self.wm_title("Settings")
@@ -536,7 +671,8 @@ class Select(Toplevel):
         action = messagebox.askokcancel(
             self,
             message="Select the board file (*.kicad_pcb) file under version control",
-            detail="Available: \n\n" + scm)
+            detail="Available: \n\n" + scm,
+        )
 
         self.update()
 
@@ -544,13 +680,25 @@ class Select(Toplevel):
             self.quit()
 
 
-def startWebServer(port, kicad_project_path):
+def start_web_server(port, kicad_project_path):
     with socketserver.TCPServer(("", port), WebServerHandler) as httpd:
-        url = 'http://127.0.0.1:' + str(port) + "/" + kicad_project_path + '/web/index.html'
+        url = (
+            "http://127.0.0.1:"
+            + str(port)
+            + "/"
+            + kicad_project_path
+            + "/web/index.html"
+        )
         print("")
         print("Starting webserver at {}".format(url))
         print("(Hit Ctrl+C to exit)")
-        webbrowser.open('http://127.0.0.1:' + str(port) + "/" + kicad_project_path + '/web/index.html')
+        webbrowser.open(
+            "http://127.0.0.1:"
+            + str(port)
+            + "/"
+            + kicad_project_path
+            + "/web/index.html"
+        )
         httpd.serve_forever()
 
 
@@ -559,16 +707,33 @@ def signal_handler(sig, frame):
 
 
 def parse_cli_args():
-    parser = argparse.ArgumentParser(description='Kicad PCB visual diffs.')
-    parser.add_argument('-a', "--commit1", type=str, help="Commit 1")
-    parser.add_argument('-b', "--commit2", type=str, help="Commit 2")
-    parser.add_argument('-g', "--gui", action='store_true', help="Use gui")
-    parser.add_argument('-s', "--scm", type=str, help="Select SCM (git, svn, fossil)")
-    parser.add_argument('-d', "--display", type=str, help="Set DISPLAY value, default :1.0", default=':1.0')
-    parser.add_argument('-p', "--port", type=int, help="Set webserver port", default=9092)
-    parser.add_argument('-w', "--webserver-disable", action='store_true', help="Does not execute webserver (just generate images)")
-    parser.add_argument('-v', '--verbose', action='count', default=0, help="Increase verbosity (-vvv)")
-    parser.add_argument("kicad_pcb", metavar='PCB_PATH', nargs='?', help="Kicad PCB path")
+    parser = argparse.ArgumentParser(description="Kicad PCB visual diffs.")
+    parser.add_argument("-a", "--commit1", type=str, help="Commit 1")
+    parser.add_argument("-b", "--commit2", type=str, help="Commit 2")
+    parser.add_argument("-g", "--gui", action="store_true", help="Use gui")
+    parser.add_argument("-s", "--scm", type=str, help="Select SCM (git, svn, fossil)")
+    parser.add_argument(
+        "-d",
+        "--display",
+        type=str,
+        help="Set DISPLAY value, default :1.0",
+        default=":1.0",
+    )
+    parser.add_argument(
+        "-p", "--port", type=int, help="Set webserver port", default=9092
+    )
+    parser.add_argument(
+        "-w",
+        "--webserver-disable",
+        action="store_true",
+        help="Does not execute webserver (just generate images)",
+    )
+    parser.add_argument(
+        "-v", "--verbose", action="count", default=0, help="Increase verbosity (-vvv)"
+    )
+    parser.add_argument(
+        "kicad_pcb", metavar="PCB_PATH", nargs="?", help="Kicad PCB path"
+    )
 
     args = parser.parse_args()
 
@@ -607,19 +772,24 @@ if __name__ == "__main__":
     else:
         print(
             "This project is either not under version control"
-            "or no SCM tool was was found in the PATH")
+            "or no SCM tool was was found in the PATH"
+        )
         sys.exit(1)
 
-    prjctPath, kicad_project = scm.get_kicad_project_path(kicad_project_path)
+    prjct_path, kicad_project = scm.get_kicad_project_path(kicad_project_path)
 
-    avaialble_scms = "" if len(project_scms) <= 1 else '(available: {})'.format(', '.join(map(str, project_scms)))
+    avaialble_scms = (
+        ""
+        if len(project_scms) <= 1
+        else "(available: {})".format(", ".join(map(str, project_scms)))
+    )
     print("")
     print("  SCM Selected:", scm_name, avaialble_scms)
-    print("  Project PATH:", prjctPath)
+    print("  Project PATH:", prjct_path)
     print(" Kicad Project:", kicad_project)
     print("    Board Name:", board_file)
 
-    artifacts = scm.get_artefacts(prjctPath, kicad_project, board_file)
+    artifacts = scm.get_artefacts(prjct_path, kicad_project, board_file)
 
     if args.verbose > 1:
         print("")
@@ -630,7 +800,7 @@ if __name__ == "__main__":
 
     if args.commit1 is None and args.commit2 is None:
 
-        d1, d2 = runGUI(artifacts, board_file, kicad_project, prjctPath, scm_name)
+        d1, d2 = runGUI(artifacts, board_file, kicad_project, prjct_path, scm_name)
 
         if not d1 or not d2:
             print("\nERROR: You must select both commits.")
@@ -650,13 +820,13 @@ if __name__ == "__main__":
     print(" Commit 1 (a):", d1)
     print(" Commit 2 (b):", d2)
 
-    d1, d2, datetimes = scm.get_boards(d1, d2, board_file, kicad_project, prjctPath)
+    d1, d2, datetimes = scm.get_boards(d1, d2, board_file, kicad_project, prjct_path)
 
-    svgDir1, svgDir2, boardDims1, boardDims2 = makeSVG(d1, d2, board_file, kicad_project, prjctPath)
+    svg_dir1, svg_dir2, _, _ = make_svg(d1, d2, board_file, kicad_project, prjct_path)
 
-    makeSupportFiles(board_file, kicad_project, prjctPath)
+    make_support_files(board_file, kicad_project, prjct_path, svg_dir1, svg_dir2)
 
-    makeOutput(svgDir1, svgDir2, board_file, kicad_project, prjctPath, datetimes, boardDims1, boardDims2)
+    assemble_html(svg_dir1, svg_dir2, board_file, kicad_project, prjct_path, datetimes)
 
     if not args.webserver_disable:
-        startWebServer(args.port, kicad_project)
+        start_web_server(args.port, kicad_project)
