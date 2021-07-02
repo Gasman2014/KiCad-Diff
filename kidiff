@@ -10,6 +10,7 @@ import shutil
 import re
 import signal
 import sys
+import fnmatch
 
 from tkinter import filedialog, Tk, Toplevel, TclError, messagebox
 from tkUI import runGUI
@@ -210,33 +211,25 @@ def make_support_files(board_file, kicad_project_path, prjct_path, svg_dir1, svg
     project_name, _ = os.path.splitext(board_file)
     layers = dict()
 
-    for i, f in enumerate(sorted(os.listdir(source_dir1))):
+    project_name, _ = os.path.splitext(board_file)
+    svg_files1 = sorted(fnmatch.filter(os.listdir(source_dir1), project_name + '-[0-9][0-9]-*.svg'))
+    svg_files2 = sorted(fnmatch.filter(os.listdir(source_dir2), project_name + '-[0-9][0-9]-*.svg'))
+
+    for i, f in enumerate(svg_files1):
         filename = os.fsdecode(f)
         if filename.endswith(".svg"):
             file_name, _ = os.path.splitext(filename)
             project_name, _ = os.path.splitext(board_file)
-
-            # try parsing file name, if it is not in this format continue with the next file
-            try:
-                layer_id = int(file_name.replace(project_name + "-", "")[0:2])
-            except:
-                continue
-
+            layer_id = int(file_name.replace(project_name + "-", "")[0:2])
             layer_name = file_name.replace(project_name + "-", "")[3:]
             layers[layer_id] = (file_name, None)
 
-    for i, f in enumerate(sorted(os.listdir(source_dir2))):
+    for i, f in enumerate(svg_files2):
         filename = os.fsdecode(f)
         if filename.endswith(".svg"):
             file_name, _ = os.path.splitext(filename)
             project_name, _ = os.path.splitext(board_file)
-
-            # try parsing file name, if it is not in this format continue with the next file
-            try:
-                layer_id = int(file_name.replace(project_name + "-", "")[0:2])
-            except:
-                continue
-
+            layer_id = int(file_name.replace(project_name + "-", "")[0:2])
             layer_name = file_name.replace(project_name + "-", "")[3:]
             if layers[layer_id]:
                 layer = layers[layer_id]
@@ -474,21 +467,18 @@ def assemble_html(
     diff_cmd2 = [settings.diffProg, "--suppress-common-lines", diff2, diff1]
     stdout, stderr = settings.run_cmd(prjct_path, diff_cmd2)
 
-    for f in sorted(os.listdir(source_dir)):
+    project_name, _ = os.path.splitext(board_file)
+    svg_files = sorted(fnmatch.filter(os.listdir(source_dir), project_name + '-[0-9][0-9]-*.svg'))
+    triptych_htmls = [svg_file.replace('.svg', '.html') for svg_file in svg_files]
+
+    for i, f in enumerate(svg_files):
 
         filename = os.fsdecode(f)
 
         if filename.endswith(".svg"):
 
             file_name, _ = os.path.splitext(filename)
-            project_name, _ = os.path.splitext(board_file)
-
-            # try parsing file name, if it is not in this format continue with the next file
-            try:
-                layer_id = int(file_name.replace(project_name + "-", "")[0:2])
-            except:
-                continue
-
+            layer_id = int(file_name.replace(project_name + "-", "")[0:2])
             layer_name = file_name.replace(project_name + "-", "")[3:]
             layer_name_orig = layer_name.replace(
                 "_", "."
@@ -510,12 +500,19 @@ def assemble_html(
 
             with open(triptych_html_path, "w") as triptych_out_html:
 
+                if i+1 >= len(triptych_htmls):
+                    n = 0
+                else:
+                    n = i+1
+
                 t_out = custom_page.triptychHTML.format(
                     hash1=diff_dir1,
                     hash2=diff_dir2,
                     layer_name=layer_name,
                     filename_svg=filename,
                     layer_class=html_class_from_layer_id(layer_id),
+                    previous_page=triptych_htmls[i-1],
+                    next_page=triptych_htmls[n]
                 )
 
                 triptych_out_html.write(t_out)

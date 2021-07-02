@@ -144,6 +144,36 @@ triptychHTML = """
     }}
     </style>
     <script src="https://cdn.jsdelivr.net/npm/svg-pan-zoom@3.6.1/dist/svg-pan-zoom.min.js"></script>
+
+    <script type="text/javascript">
+        var keysDown = {{}};
+        window.onkeydown = function(e) {{
+            var url = window.location.pathname;
+            console.log(url);
+            keysDown[e.key] = true;
+            if (keysDown.ArrowLeft) {{
+                console.log("left");
+                keysDown = {{}};
+                document.location.href = "/web/triptych/{previous_page}";
+                var url = window.location.pathname
+                console.log(url);
+            }};
+            if (keysDown.ArrowRight) {{
+                console.log("right");
+                keysDown = {{}};
+                document.location.href = "/web/triptych/{next_page}";
+                var url = window.location.pathname
+                console.log(url);
+            }};
+            if (keysDown.h || keysDown.H) {{
+                console.log("home");
+                keysDown = {{}};
+                document.location.href = "/web/";
+                var url = window.location.pathname
+                console.log(url);
+            }};
+        }}
+    </script>
 </head>
 <body>
 
