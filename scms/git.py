@@ -115,9 +115,6 @@ class scm(generic_scm):
             modTimesinceEpoc = os.path.getmtime(prjct_name)
             time2 = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(modTimesinceEpoc))
 
-        print("time1", time1)
-        print("time2", time2)
-
         return artifact1, artifact2, time1 + " " + time2
 
     @staticmethod
