@@ -148,29 +148,18 @@ triptychHTML = """
     <script type="text/javascript">
         var keysDown = {{}};
         window.onkeydown = function(e) {{
-            var url = window.location.pathname;
-            console.log(url);
             keysDown[e.key] = true;
             if (keysDown.ArrowLeft) {{
-                console.log("left");
                 keysDown = {{}};
                 document.location.href = "/web/triptych/{previous_page}";
-                var url = window.location.pathname
-                console.log(url);
             }};
             if (keysDown.ArrowRight) {{
-                console.log("right");
                 keysDown = {{}};
                 document.location.href = "/web/triptych/{next_page}";
-                var url = window.location.pathname
-                console.log(url);
             }};
-            if (keysDown.h || keysDown.H) {{
-                console.log("home");
+            if (keysDown.h || keysDown.H || e.which === 32) {{
                 keysDown = {{}};
                 document.location.href = "/web/";
-                var url = window.location.pathname
-                console.log(url);
             }};
         }}
     </script>
