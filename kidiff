@@ -130,8 +130,8 @@ def make_svg(d1, d2, board_file, kicad_project_path, prjct_path):
 
     print("")
     print("Setting paths")
-    print("Diff1: ", diff1)
-    print("Diff2: ", diff2)
+    print("diff1: ", diff1)
+    print("diff2: ", diff2)
 
     if not os.path.exists(d1_svg):
         os.makedirs(d1_svg)
