@@ -82,7 +82,7 @@ class scm(generic_scm):
             with open(os.path.join(outputDir2, prjct_name), "w") as fout2:
                 fout2.write(stdout)
         else:
-            shutil.copyfile(prjct_name, os.path.join(outputDir1, prjct_name))
+            shutil.copyfile(prjct_name, os.path.join(outputDir2, prjct_name))
 
         print("")
         print("Check datetime")
