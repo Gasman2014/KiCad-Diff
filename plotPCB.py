@@ -62,8 +62,7 @@ def processBoard(board_path, plot_dir, quiet=0):
     max_string = max(layer_names, key=len)
 
     if not quiet:
-        print()
-        print("#".rjust(2), "ID", "Name".ljust(10), "Filename")
+        print("\n{} {} {} {}".format("#".rjust(2), "ID", "Name".ljust(10), "Filename"))
 
     for i, layer_id in enumerate(layer_ids):
 
