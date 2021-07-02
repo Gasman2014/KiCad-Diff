@@ -32,7 +32,7 @@ class scm(generic_scm):
 
             print("")
             print("Getting boards")
-            print(cmd)
+            print(' '.join(cmd))
 
             stdout, stderr = settings.run_cmd(prjct_path, cmd)
             changed = (prj_path + prjct_name) in stdout

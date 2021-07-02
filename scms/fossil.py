@@ -34,7 +34,7 @@ class scm(generic_scm):
 
             print("")
             print("Getting Boards")
-            print(cmd)
+            print(' '.join(cmd))
 
             stdout, stderr = settings.run_cmd(prjct_path, cmd)
             changed = ".kicad_pcb" in stdout
