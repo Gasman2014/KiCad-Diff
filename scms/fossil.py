@@ -43,13 +43,13 @@ class scm(generic_scm):
                 print("\nThere is no difference in .kicad_pcb file in selected commits")
 
         outputDir1 = os.path.join(
-            prjct_path, settings.plotDir, kicad_project_path, artifact1
+            prjct_path, settings.plot_dir, kicad_project_path, artifact1
         )
         if not os.path.exists(outputDir1):
             os.makedirs(outputDir1)
 
         outputDir2 = os.path.join(
-            prjct_path, settings.plotDir, kicad_project_path, artifact2
+            prjct_path, settings.plot_dir, kicad_project_path, artifact2
         )
         if not os.path.exists(outputDir2):
             os.makedirs(outputDir2)
