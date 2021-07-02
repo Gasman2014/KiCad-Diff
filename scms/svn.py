@@ -100,11 +100,11 @@ class scm(generic_scm):
 
         if not diff1 == prjct_name:
             svnDateTime1 = ["svn", "log", "-r", artifact1]
-            print(svnDateTime1)
+            print(' '.join(svnDateTime1))
 
         if not diff2 == prjct_name:
             svnDateTime2 = ["svn", "log", "-r", artifact2]
-            print(svnDateTime2)
+            print(' '.join(svnDateTime2))
 
         if not diff1 == prjct_name:
             stdout, stderr = settings.run_cmd(prjct_path, svnDateTime1)

@@ -91,9 +91,11 @@ class scm(generic_scm):
 
         print("")
         print("Checking datetime")
+
         if not diff1 == prjct_name:
             fossilDateTime1 = ["fossil", "info", artifact1]
-            print(fossilDateTime1)
+            print(' '.join(fossilDateTime1))
+
         else:
             artifact1 = prjct_name
             modTimesinceEpoc = os.path.getmtime(prjct_name)
@@ -102,7 +104,7 @@ class scm(generic_scm):
 
         if not diff2 == prjct_name:
             fossilDateTime2 = ["fossil", "info", artifact2]
-            print(fossilDateTime2)
+            print(' '.join(fossilDateTime2))
         else:
             artifact2 = prjct_name
             modTimesinceEpoc = os.path.getmtime(prjct_name)

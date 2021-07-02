@@ -144,8 +144,8 @@ def make_svg(d1, d2, board_file, kicad_project_path, prjct_path):
 
     print("")
     print("Plot Commands:")
-    print(plot1_cmd)
-    print(plot2_cmd)
+    print(' '.join(plot1_cmd))
+    print(' '.join(plot2_cmd))
 
     stdout, stderr = settings.run_cmd(prjct_path, plot1_cmd)
     plot_dims1 = stdout.splitlines()

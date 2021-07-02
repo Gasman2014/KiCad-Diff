@@ -89,11 +89,11 @@ class scm(generic_scm):
 
         if not diff1 == prjct_name:
             gitDateTime1 = ["git", "show", "-s", '--format="%ci"', artifact1]
-            print(gitDateTime1)
+            print(' '.join(gitDateTime1))
 
         if not diff2 == prjct_name:
             gitDateTime2 = ["git", "show", "-s", '--format="%ci"', artifact2]
-            print(gitDateTime2)
+            print(' '.join(gitDateTime2))
 
         if not diff1 == prjct_name:
             stdout, stderr = settings.run_cmd(prjct_path, gitDateTime1)
