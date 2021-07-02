@@ -118,9 +118,9 @@ indexHead = """
 outfile = """
 <div class="responsive">
     <div class="gallery">
-        <a target="_blank" href=../{hash1}/{filename_svg}>
-            <a href=./triptych/{triptych_html}>
-                <img class="{layer_class}" src=../{hash1}/{filename_svg} height="200">
+        <a target="_blank" href="../{hash1}/{filename_svg}">
+            <a href="./triptych/{triptych_html}">
+                <img class="{layer_class}" src="../{hash1}/{filename_svg}" height="200">
             </a>
         </a>
         <div class="desc">{layer_name}</div>
@@ -185,9 +185,11 @@ triptychHTML = """
 
         <div id="image1-container" style="border: 1px solid #555; width: 50%; height: 250px">
             <div style="width: 100%; height: 250px">
-                <svg id="svg-img1-id" xmlns="http://www.w3.org/2000/svg" style="display: inline; width: 100%; min-width: 100%; max-width: 100%; height: 100%; min-height: 100%; max-height: 100%;" version="1.1">
+                <svg id="svg-img1-id" xmlns="http://www.w3.org/2000/svg"
+                    style="display: inline; width: 100%; min-width: 100%; max-width: 100%; height: 100%; min-height: 100%; max-height: 100%;"
+                    version="1.1" class="{layer_class}">
                     <svg id="image_1">
-                        <image x="0" y="0" height="100%" width="100%" xlink:href="../../{hash1}/{filename_svg}" class="{layer_class}"/>
+                        <image x="0" y="0" height="100%" width="100%" xlink:href="../../{hash1}/{filename_svg}"/>
                     </svg>
                 </svg>
             </div>
@@ -195,9 +197,11 @@ triptychHTML = """
 
         <div id="image2-container" style="border: 1px solid #555; width: 50%; height: 250px">
             <div style="width: 100%; height: 250px">
-                <svg id="svg-img2-id" xmlns="http://www.w3.org/2000/svg" style="display: inline; width: 100%; min-width: 100%; max-width: 100%; height: 100%; min-height: 100%; max-height: 100%;" version="1.1">
+                <svg id="svg-img2-id" xmlns="http://www.w3.org/2000/svg" style="display: inline; width: 100%; min-width: 100%; max-width: 100%;
+                    height: 100%; min-height: 100%; max-height: 100%;"
+                    version="1.1"  class="{layer_class}">
                     <svg id="image_2">
-                       <image x="0" y="0" height="100%" width="100%" xlink:href="../../{hash2}/{filename_svg}" class="{layer_class}"/>
+                       <image x="0" y="0" height="100%" width="100%" xlink:href="../../{hash2}/{filename_svg}"/>
                     </svg>
                 </svg>
             </div>
