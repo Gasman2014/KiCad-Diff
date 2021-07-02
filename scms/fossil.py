@@ -73,9 +73,9 @@ class scm(generic_scm):
                 "-r",
                 artifact1,
             ]
-            print("Fossil artifact2: ", fossilArtifact1)
+            print("Fossil artifact1: ", ' '.join(fossilArtifact1))
         else:
-            print("Fossil artifact2: ", diff1)
+            print("Fossil artifact1: ", diff1)
 
         if not diff2 == prjct_name:
             fossilArtifact2 = [
@@ -85,7 +85,7 @@ class scm(generic_scm):
                 "-r",
                 artifact2,
             ]
-            print("Fossil artifact2: ", fossilArtifact2)
+            print("Fossil artifact2: ", ' '.join(fossilArtifact2))
         else:
             print("Fossil artifact2: ", diff2)
 

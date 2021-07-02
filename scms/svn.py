@@ -70,13 +70,13 @@ class scm(generic_scm):
 
         if not diff1 == prjct_name:
             svnArtifact1 = ["svn", "cat", "-r", artifact1, svnPath]
-            print("SVN artifact1: ", svnArtifact1)
+            print("SVN artifact1: ", ' '.join(svnArtifact1))
         else:
             print("SVN artifact1: ", diff1)
 
         if not diff2 == prjct_name:
             svnArtifact2 = ["svn", "cat", "-r", artifact2, svnPath]
-            print("SVN artifact2: ", svnArtifact2)
+            print("SVN artifact2: ", ' '.join(svnArtifact2))
 
         else:
             print("SVN artifact2: ", diff2)

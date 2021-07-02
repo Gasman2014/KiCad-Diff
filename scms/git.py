@@ -60,13 +60,13 @@ class scm(generic_scm):
 
         if not diff1 == prjct_name:
             gitArtifact1 = ["git", "show", artifact1 + ":" + gitPath]
-            print("Git artifact1: ", gitArtifact1)
+            print("Git artifact1: ", ' '.join(gitArtifact1))
         else:
             print("Git artifact1: ", diff1)
 
         if not diff2 == prjct_name:
             gitArtifact2 = ["git", "show", artifact2 + ":" + gitPath]
-            print("Git artifact2: ", gitArtifact2)
+            print("Git artifact2: ", ' '.join(gitArtifact2))
         else:
             print("Git artifact2: ", diff2)
 
