@@ -215,7 +215,13 @@ def make_support_files(board_file, kicad_project_path, prjct_path, svg_dir1, svg
         if filename.endswith(".svg"):
             file_name, _ = os.path.splitext(filename)
             project_name, _ = os.path.splitext(board_file)
-            layer_id = int(file_name.replace(project_name + "-", "")[0:2])
+
+            # try parsing file name, if it is not in this format continue with the next file
+            try:
+                layer_id = int(file_name.replace(project_name + "-", "")[0:2])
+            except:
+                continue
+
             layer_name = file_name.replace(project_name + "-", "")[3:]
             layers[layer_id] = (file_name, None)
 
@@ -224,7 +230,13 @@ def make_support_files(board_file, kicad_project_path, prjct_path, svg_dir1, svg
         if filename.endswith(".svg"):
             file_name, _ = os.path.splitext(filename)
             project_name, _ = os.path.splitext(board_file)
-            layer_id = int(file_name.replace(project_name + "-", "")[0:2])
+
+            # try parsing file name, if it is not in this format continue with the next file
+            try:
+                layer_id = int(file_name.replace(project_name + "-", "")[0:2])
+            except:
+                continue
+
             layer_name = file_name.replace(project_name + "-", "")[3:]
             if layers[layer_id]:
                 layer = layers[layer_id]
@@ -285,6 +297,11 @@ def html_class_from_layer_id(layer_id):
     # KEEP THIS LIST ORDERED
     # Use this to select the right class (color) on css
     # https://docs.kicad.org/doxygen/layers__id__colors__and__visibility_8h_source.html
+
+    # Cycle layer colors in inner layers
+    if (layer_id >= 8) and (layer_id <= 30):
+        layer_id = layer_id % 8
+
     layer_name = [
         "F_Cu",
         "In1_Cu",
@@ -349,14 +366,10 @@ def html_class_from_layer_id(layer_id):
     ]
 
     # Reuse some colors
-
-    if (layer_id >= 8) and (layer_id <= 30):
-        class_name = "In8_Cu"
+    if (layer_id >= 50):
+        class_name = "User"
     else:
-        if (layer_id >= 50) and (layer_id <= 59):
-            class_name = "User"
-        else:
-            class_name = layer_name[layer_id]
+        class_name = layer_name[layer_id]
 
     return class_name
 
@@ -470,7 +483,12 @@ def assemble_html(
             file_name, _ = os.path.splitext(filename)
             project_name, _ = os.path.splitext(board_file)
 
-            layer_id = int(file_name.replace(project_name + "-", "")[0:2])
+            # try parsing file name, if it is not in this format continue with the next file
+            try:
+                layer_id = int(file_name.replace(project_name + "-", "")[0:2])
+            except:
+                continue
+
             layer_name = file_name.replace(project_name + "-", "")[3:]
             layer_name_orig = layer_name.replace(
                 "_", "."
