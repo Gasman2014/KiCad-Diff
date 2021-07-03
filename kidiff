@@ -771,14 +771,14 @@ if __name__ == "__main__":
         kicad_project_path = os.path.dirname(os.path.realpath(args.kicad_pcb))
         board_file = os.path.basename(os.path.realpath(args.kicad_pcb))
 
-    if not os.path.exists(args.kicad_pcb):
-        print("Kicad file {} does not exit".format(args.kicad_pcb))
-        exit(1)
+        if not os.path.exists(args.kicad_pcb):
+            print("Kicad file {} does not exit".format(args.kicad_pcb))
+            exit(1)
 
-    _, extension = os.path.splitext(args.kicad_pcb)
-    if extension != ".kicad_pcb":
-        print("The file {} seems not to be a Kicad PCB".format(args.kicad_pcb))
-        exit(1)
+        _, extension = os.path.splitext(args.kicad_pcb)
+        if extension != ".kicad_pcb":
+            print("The file {} seems not to be a Kicad PCB".format(args.kicad_pcb))
+            exit(1)
 
     project_scms = check_project_scms(kicad_project_path)
 
