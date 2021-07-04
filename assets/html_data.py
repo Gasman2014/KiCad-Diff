@@ -151,15 +151,15 @@ triptychHTML = """
             keysDown[e.key] = true;
             if (keysDown.ArrowLeft) {{
                 keysDown = {{}};
-                document.location.href = "/web/triptych/{previous_page}";
+                document.location.href = "{previous_page}";
             }};
             if (keysDown.ArrowRight) {{
                 keysDown = {{}};
-                document.location.href = "/web/triptych/{next_page}";
+                document.location.href = "{next_page}";
             }};
             if (keysDown.h || keysDown.H || e.which === 32) {{
                 keysDown = {{}};
-                document.location.href = "/web/";
+                document.location.href = "../../../{homebase}";
             }};
         }}
     </script>

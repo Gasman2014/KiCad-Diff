@@ -25,7 +25,7 @@ class scm(generic_scm):
             artifact2 = "local"
 
         # Using this to fix the path when there is no subproject
-        prj_path = os.path.join(kicad_project_path, "/")
+        prj_path = kicad_project_path + "/"
         if kicad_project_path == ".":
             prj_path = ""
 

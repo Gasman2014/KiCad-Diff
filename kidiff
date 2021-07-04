@@ -503,7 +503,8 @@ def assemble_html(
                 layer_class=html_class_from_layer_id(layer_id),
                 previous_page=triptych_htmls[i-1],
                 next_page=triptych_htmls[n],
-                index=i+1
+                index=i+1,
+                homebase=kicad_project_path + "/web/"
             )
 
             triptych_out_html.write(t_out)
