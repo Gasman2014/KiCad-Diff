@@ -209,36 +209,29 @@ def make_support_files(board_file, kicad_project_path, prjct_path, svg_dir1, svg
     )
 
     project_name, _ = os.path.splitext(board_file)
-    layers = dict()
-
-    project_name, _ = os.path.splitext(board_file)
     svg_files1 = sorted(fnmatch.filter(os.listdir(source_dir1), project_name + '-[0-9][0-9]-*.svg'))
     svg_files2 = sorted(fnmatch.filter(os.listdir(source_dir2), project_name + '-[0-9][0-9]-*.svg'))
+    layers = dict()
 
     for i, f in enumerate(svg_files1):
-        filename = os.fsdecode(f)
-        if filename.endswith(".svg"):
-            file_name, _ = os.path.splitext(filename)
-            project_name, _ = os.path.splitext(board_file)
-            layer_id = int(file_name.replace(project_name + "-", "")[0:2])
-            layer_name = file_name.replace(project_name + "-", "")[3:]
-            layers[layer_id] = (file_name, None)
+        file_name, _ = os.path.splitext(os.fsdecode(f))
+        project_name, _ = os.path.splitext(board_file)
+        layer_id = int(file_name.replace(project_name + "-", "")[0:2])
+        layer_name = file_name.replace(project_name + "-", "")[3:]
+        layers[layer_id] = (file_name, None)
 
     for i, f in enumerate(svg_files2):
-        filename = os.fsdecode(f)
-        if filename.endswith(".svg"):
-            file_name, _ = os.path.splitext(filename)
-            project_name, _ = os.path.splitext(board_file)
-            layer_id = int(file_name.replace(project_name + "-", "")[0:2])
-            layer_name = file_name.replace(project_name + "-", "")[3:]
-            if layers[layer_id]:
-                layer = layers[layer_id]
-                layers[layer_id] = (layer[0], file_name)
-            else:
-                layers[layer_id] = (None, file_name)
+        file_name, _ = os.path.splitext(os.fsdecode(f))
+        project_name, _ = os.path.splitext(board_file)
+        layer_id = int(file_name.replace(project_name + "-", "")[0:2])
+        layer_name = file_name.replace(project_name + "-", "")[3:]
+        if layers[layer_id]:
+            layer = layers[layer_id]
+            layers[layer_id] = (layer[0], file_name)
+        else:
+            layers[layer_id] = (None, file_name)
 
     for i in sorted(layers.keys()):
-        # print(i, layers[i])
         if layers[i][0] == None:
             missing_svg = os.path.join(source_dir1, layers[i][1] + ".svg")
             print("Creating blank", missing_svg)
@@ -473,60 +466,58 @@ def assemble_html(
 
     for i, f in enumerate(svg_files):
 
-        filename = os.fsdecode(f)
+        file_name, _ = os.path.splitext(os.fsdecode(f))
+        layer_id = int(file_name.replace(project_name + "-", "")[0:2])
+        layer_name = file_name.replace(project_name + "-", "")[3:]
+        layer_name_orig = layer_name.replace(
+            "_", "."
+        )  # not sure this is good and works all the time
 
-        if filename.endswith(".svg"):
+        triptych_html = file_name + ".html"
+        triptych_html_path = os.path.join(triptych_dir, triptych_html)
 
-            file_name, _ = os.path.splitext(filename)
-            layer_id = int(file_name.replace(project_name + "-", "")[0:2])
-            layer_name = file_name.replace(project_name + "-", "")[3:]
-            layer_name_orig = layer_name.replace(
-                "_", "."
-            )  # not sure this is good and works all the time
+        out_html = custom_page.outfile.format(
+            hash1=diff_dir1,
+            hash2=diff_dir2,
+            layer_name=layer_name,
+            filename_svg=f,
+            triptych_html=triptych_html,
+            layer_class=html_class_from_layer_id(layer_id),
+            index=i+1,
+        )
 
-            triptych_html = file_name + ".html"
-            triptych_html_path = os.path.join(triptych_dir, triptych_html)
+        main_html.write(out_html)
 
-            out_html = custom_page.outfile.format(
+        with open(triptych_html_path, "w") as triptych_out_html:
+
+            if i+1 >= len(triptych_htmls):
+                n = 0
+            else:
+                n = i+1
+
+            t_out = custom_page.triptychHTML.format(
                 hash1=diff_dir1,
                 hash2=diff_dir2,
                 layer_name=layer_name,
-                filename_svg=filename,
-                triptych_html=triptych_html,
+                filename_svg=f,
                 layer_class=html_class_from_layer_id(layer_id),
+                previous_page=triptych_htmls[i-1],
+                next_page=triptych_htmls[n],
+                index=i+1
             )
 
-            main_html.write(out_html)
+            triptych_out_html.write(t_out)
 
-            with open(triptych_html_path, "w") as triptych_out_html:
+            out_html = "\n".join(
+                re.sub("status [1-9][0-9]", "", line)
+                for line in stdout.splitlines()
+                if layer_name_orig in line
+            )
 
-                if i+1 >= len(triptych_htmls):
-                    n = 0
-                else:
-                    n = i+1
+            processed = process_diff(out_html, layer_name_orig)
+            processed += custom_page.twopane
 
-                t_out = custom_page.triptychHTML.format(
-                    hash1=diff_dir1,
-                    hash2=diff_dir2,
-                    layer_name=layer_name,
-                    filename_svg=filename,
-                    layer_class=html_class_from_layer_id(layer_id),
-                    previous_page=triptych_htmls[i-1],
-                    next_page=triptych_htmls[n]
-                )
-
-                triptych_out_html.write(t_out)
-
-                out_html = "\n".join(
-                    re.sub("status [1-9][0-9]", "", line)
-                    for line in stdout.splitlines()
-                    if layer_name_orig in line
-                )
-
-                processed = process_diff(out_html, layer_name_orig)
-                processed += custom_page.twopane
-
-                triptych_out_html.write(processed)
+            triptych_out_html.write(processed)
 
     main_html.write(custom_page.tail)
 
