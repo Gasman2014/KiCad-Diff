@@ -123,7 +123,7 @@ outfile = """
                 <img class="{layer_class}" src="../{hash1}/{filename_svg}" height="200">
             </a>
         </a>
-        <div class="desc">{layer_name}</div>
+        <div class="desc">{index} - {layer_name}</div>
     </div>
 </div>
 """
@@ -197,7 +197,7 @@ triptychHTML = """
                 </g>
             </svg>
         </div>
-        <div style="background: rgba(255, 0, 0, 0.0); z-index: 10; position: absolute;" class="subtitle">{layer_name}</div>
+        <div style="background: rgba(255, 0, 0, 0.0); z-index: 10; position: absolute;" class="subtitle">{index}. {layer_name}</div>
     </div>
 
     <div id="sbs-container" style="position:relative; width: 100%; border:1px solid #555; background-color: #222; text-align: center; display: flex;">
