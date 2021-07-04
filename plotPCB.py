@@ -1,72 +1,50 @@
 #!/usr/bin/env python3
 
-'''
-Plot layers of Kicad PCB board into .svg files
-'''
+"""
+Plot layers of kicad_pcb into .svg files
+"""
 
 import argparse
+import os
 import sys
 
 import platform
-if platform.system() == 'Darwin':
-    sys.path.insert(0,"/Applications/Kicad/kicad.app/Contents/Frameworks/python/site-packages/")
 
-from pcbnew import LoadBoard, PLOT_CONTROLLER, PLOT_FORMAT_SVG, FromMM, GetBuildVersion
-from pcbnew import \
-    F_Cu, \
-    In1_Cu, \
-    In2_Cu, \
-    In3_Cu, \
-    In4_Cu, \
-    B_Cu, \
-    F_Adhes, \
-    B_Adhes, \
-    F_Paste, \
-    B_Paste, \
-    F_SilkS, \
-    B_SilkS, \
-    F_Mask, \
-    B_Mask, \
-    Dwgs_User, \
-    Cmts_User, \
-    Eco1_User, \
-    Eco2_User, \
-    Edge_Cuts, \
-    Margin, \
-    F_CrtYd, \
-    B_CrtYd, \
-    F_Fab, \
-    B_Fab
+if platform.system() == "Darwin":
+    sys.path.insert(
+        0, "/Applications/Kicad/kicad.app/Contents/Frameworks/python/site-packages/"
+    )
 
-pcbnew_version = GetBuildVersion()
+import pcbnew as pn
+
+pcbnew_version = pn.GetBuildVersion()
 version_major = int(pcbnew_version.strip("()").split(".")[0])
 version_minor = int(pcbnew_version.strip("()").split(".")[1])
 version_patch = int(pcbnew_version.strip("()").split(".")[2].split("-")[0])
 
-def processBoard(boardName, plotDir, quiet=0):
-    '''Load board and initialize plot controller'''
 
-    board = LoadBoard(boardName)
+def processBoard(board_path, plot_dir, quiet=0):
+    """Load board and initialize plot controller"""
+
+    board = pn.LoadBoard(board_path)
+
+    board_name, _ = os.path.splitext(board_path)
+
     boardbox = board.ComputeBoundingBox()
     boardxl = boardbox.GetX()
     boardyl = boardbox.GetY()
     boardwidth = boardbox.GetWidth()
     boardheight = boardbox.GetHeight()
 
-    if not quiet:
-        print("Board dimensions:", boardxl, boardyl, boardwidth, boardheight)
-
-    pctl = PLOT_CONTROLLER(board)
+    pctl = pn.PLOT_CONTROLLER(board)
     pctl.SetColorMode(True)
 
     popt = pctl.GetPlotOptions()
-    popt.SetOutputDirectory(plotDir)
+    popt.SetOutputDirectory(plot_dir)
     popt.SetPlotFrameRef(False)
 
     if (version_major > 5) or (version_major == 5) and (version_minor == 99):
-        popt.SetWidthAdjust(FromMM(0.15))
-    else:
-        popt.SetLineWidth(FromMM(0.15))
+        popt.SetWidthAdjust(pn.FromMM(0.15))
 
     popt.SetAutoScale(False)
     popt.SetScale(2)
@@ -75,50 +53,62 @@ def processBoard(boardName, plotDir, quiet=0):
     popt.SetExcludeEdgeLayer(False)
     popt.SetUseAuxOrigin(True)
 
-    layers = [
-        ("F_Cu",      F_Cu,      "Top copper"),
-        ("In1_Cu",    In1_Cu,    "Inner1 copper"),
-        ("In2_Cu",    In2_Cu,    "Inner2 copper"),
-        ("In3_Cu",    In3_Cu,    "Inner3 copper"),
-        ("In4_Cu",    In4_Cu,    "Inner4 copper"),
-        ("B_Cu",      B_Cu,      "Bottom copper"),
-        ("F_Adhes",   F_Adhes,   "Adhesive top"),
-        ("B_Adhes",   B_Adhes,   "Adhesive bottom"),
-        ("F_Paste",   F_Paste,   "Paste top"),
-        ("B_Paste",   B_Paste,   "Paste bottom"),
-        ("F_SilkS",   F_SilkS,   "Silk top"),
-        ("B_SilkS",   B_SilkS,   "Silk top"),
-        ("F_Mask",    F_Mask,    "Mask top"),
-        ("B_Mask",    B_Mask,    "Mask bottom"),
-        ("Dwgs_User", Dwgs_User, "User drawings"),
-        ("Cmts_User", Cmts_User, "User comments"),
-        ("Eco1_User", Eco1_User, "Eng change order 1"),
-        ("Eco2_User", Eco2_User, "Eng change order 1"),
-        ("Edge_Cuts", Edge_Cuts, "Edges"),
-        ("Margin",    Margin,    "Margin"),
-        ("F_CrtYd",   F_CrtYd,   "Courtyard top"),
-        ("B_CrtYd",   B_CrtYd,   "Courtyard bottom"),
-        ("F_Fab",     F_Fab,     "Fab top"),
-        ("B_Fab",     B_Fab,     "Fab bottom")
-    ]
+    enabled_layers = board.GetEnabledLayers()
+    layer_ids = list(enabled_layers.Seq())
 
-    for i, layer_info in enumerate(layers):
-        pctl.SetLayer(layer_info[1])
-        pctl.OpenPlotfile(layer_info[0], PLOT_FORMAT_SVG, layer_info[2])
-        layer_name = board.GetLayerName(layer_info[1]).replace(".", "_")
-        if not quiet:
-            print(i, layer_name, layer_info)
-        if layer_info[0] != layer_name:
-            pctl.OpenPlotfile(layer_name, PLOT_FORMAT_SVG, layer_info[2])
+    layer_names = None
+    for layer_id in layer_ids:
+        layer_names = board.GetLayerName(layer_id)
+    max_string = max(layer_names, key=len)
+
+    if not quiet:
+        print("\n{} {} {} {}".format("#".rjust(2), "ID", "Name".ljust(10), "Filename"))
+
+    for i, layer_id in enumerate(layer_ids):
+
+        pctl.SetLayer(layer_id)
+
+        layer_name = board.GetLayerName(layer_id).replace(".", "_")
+        plot_sufix = str(layer_id).zfill(2) + "-" + layer_name
+        layer_filename = os.path.join(plot_dir, board_name + "-" + plot_sufix + ".svg")
+
+        pctl.OpenPlotfile(plot_sufix, pn.PLOT_FORMAT_SVG, layer_name)
         pctl.PlotLayer()
 
-    return (boardxl, boardyl, boardwidth, boardheight)
+        if not quiet:
+            print(
+                "{:2d} {:2d} {} {}".format(
+                    i + 1, layer_id, layer_name.ljust(10), layer_filename
+                )
+            )
+
+
+def list_layers(board_path):
+
+    board = pn.LoadBoard(board_path)
+    pctl = pn.PLOT_CONTROLLER(board)
+
+    print(" #", "ID", "Name")
+
+    enabled_layers = board.GetEnabledLayers()
+    layer_ids = list(enabled_layers.Seq())
+
+    for i, layer_id in enumerate(layer_ids):
+        layer_name = board.GetLayerName(layer_id)
+        print("{:2d} {:2d} {}".format(i + 1, layer_id, layer_name))
+
+    exit(0)
 
 
 def parse_cli_args():
-    parser = argparse.ArgumentParser(description='Plot PCB Layers')
-    parser.add_argument('-o', "--output_folder", type=str, default="./", help="Output folder")
-    parser.add_argument('-q', "--quiet", action='store_true', help="Disable output")
+    parser = argparse.ArgumentParser(description="Plot PCB Layers")
+    parser.add_argument(
+        "-o", "--output_folder", type=str, default="./", help="Output folder"
+    )
+    parser.add_argument("-q", "--quiet", action="store_true", help="Run quietly")
+    parser.add_argument(
+        "-l", "--list", action="store_true", help="List used layers and exit"
+    )
     parser.add_argument("kicad_pcb", nargs=1, help="Kicad PCB")
     args = parser.parse_args()
     return args
@@ -127,13 +117,23 @@ def parse_cli_args():
 if __name__ == "__main__":
 
     args = parse_cli_args()
+    board_path = args.kicad_pcb[0]
 
-    boardName = args.kicad_pcb[0]
+    if not os.path.exists(board_path):
+        print("Error: Board {} is missing".format(board_path))
+        exit(1)
+
+    if args.list:
+        list_layers(board_path)
 
     if args.output_folder:
-        plotDir = args.output_folder
+        plot_dir = args.output_folder
 
     if not args.quiet:
-        print("pcbnew {}.{}.{}".format(version_major, version_minor, version_patch))
+        print(
+            "Board made with PCBNew {}.{}.{}".format(
+                version_major, version_minor, version_patch
+            )
+        )
 
-    processBoard(boardName, plotDir, args.quiet)
+    processBoard(board_path, plot_dir, args.quiet)

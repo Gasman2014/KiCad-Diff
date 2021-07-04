@@ -1,7 +1,7 @@
 # KiCad-Diff
 
 This is a python program with a Tk interface for comparing KiCad PCB revisions.
-  
+
 The diffing strategy has been changed for this version and SVGs are generated directly rather than doing renderings in ImageMagick as in previous versions. This has made the rendering possible for all layers in a few seconds (compared to 20-60s+ depending on resolution and number of layers selected in previous version). The SVG images are layered together with a different feColorMatrix filter applied to each diff. This highlights areas where features have been added or removed.
 
 The output is presented as a gallery of images of each layer. Each layer pair can be compared and the combined view highlights clearly where the layers differ from each other.
@@ -10,11 +10,18 @@ The diff output can be scrolled and zoomed in and out for closer inspection. The
 
 ## Instructions
 
-### General
-- Ensure that you have Python3 installed. Why? https://www.pythonclock.org 
-- The terminal should give you some useful information on progress. Please include a copy of this if you have any issues.
-- Hit `Ctrl+C` to terminate the webserver.
+### Dependencies
 
+- Ensure that you have Python3 installed. Why? https://www.pythonclock.org
+- Python Libraries from Kicad 5.*
+- For python dependencies check the `requitements.txt`
+
+To install KiCad-Diff dependencies:
+
+```
+cd KiCad-Diff
+pip3 install -r requirements.txt
+```
 
 ## Usage
 
@@ -26,6 +33,8 @@ This can be done easely with:
 cd KiCad-Diff
 source env.sh
 ```
+
+The terminal should give you some useful information on progress. Please include a copy of the terminal output if you have any issues.
 
 ### Comandline help
 
@@ -58,36 +67,25 @@ optional arguments:
 ### Usage example
 
 ```
-# Forcing an specific SCM when both are available (Precedence: Git > Fossil > SVN)
-kidiff ../scms-samples/led-board-git-fossil/led_test.kicad_pcb --scm fossil
-
 # With a Git repo
-kidiff ../scms-samples/led-board-git/led_test.kicad_pcb             
+kidiff led_test.kicad_pcb
+
+# Forcing an specific SCM when more than one is available (Precedence: Git > Fossil > SVN)
+kidiff led_test.kicad_pcb --scm fossil
 
 # With a Git repo, passing Commit 1 and 2 on the command line
-kidiff ../scms-samples/led-board-svn/led_test.kicad_pcb -a r1 -b r3
+kidiff led_test.kicad_pcb -a r1 -b r3
 
 ```
 
 ## Debugging
 
-There should be some output in the launch terminal. Please copy this and include it in any issues posted. If the program is not working, please check that you can run the `plotPCB.py` routine directly by invoking it from the command line and passing it two arguments (1) The name of a `*.kicad_pcb` file and (2) a test directory for the plots to end up in;
+There should be some output in the launch terminal. Please copy this and include it in any issues posted. If the program is not working, please check that you can run the `plotpcb` routine directly by invoking it from the command line and passing the name of the `*.kicad_pcb` file.
 
 ```
-plotPCB.py board.kicad_pcb output_folder
+plotpcb board.kicad_pcb
 ```
 
-<!-- NEXT Steps was removed. It is better to put this on Wiki -->
-<!-- ## Next Steps
-
-  1. Improvement in parsing and meaning of text diffs.
-  2. Place all template text/css text in external files.
-  3. Improve display of artifacts in diff choice window.
-  4. Consider changing GUI elements to wxPython.
-  5. Adjust for three pane output to have white outer border & pan-zoom control, not filter color.
-  6. Improve three pane output layout, perhaps with diff tree on LHS and not underneath.
-  7. Consider adding 'Preferences' for this program.
- -->
 
 # Screenshots
 

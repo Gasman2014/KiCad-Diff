@@ -3,8 +3,24 @@
 import os
 import pygubu
 
-from tkinter import ttk, Tk, LabelFrame, Label, Variable, IntVar, Listbox, \
-    SINGLE, N, END, W, VERTICAL, LEFT, END, CENTER, Radiobutton
+from tkinter import (
+    ttk,
+    Tk,
+    LabelFrame,
+    Label,
+    Variable,
+    IntVar,
+    Listbox,
+    SINGLE,
+    N,
+    END,
+    W,
+    VERTICAL,
+    LEFT,
+    END,
+    CENTER,
+    Radiobutton,
+)
 
 
 PROJECT_PATH = os.path.dirname(__file__)
@@ -23,11 +39,11 @@ class KidiffApp:
         self.builder = builder = pygubu.Builder()
         builder.add_resource_path(PROJECT_PATH)
         builder.add_from_file(PROJECT_UI)
-        self.main_window = builder.get_object('main_window')
+        self.main_window = builder.get_object("main_window")
         builder.connect_callbacks(self)
 
         self.main_window.bind("<Escape>", self.on_escape_key)
-        self.main_window.bind('<Return>', self.get_selected_commits)
+        self.main_window.bind("<Return>", self.get_selected_commits)
 
         self.set_repo_info()
         self.set_repo_path()
@@ -62,20 +78,22 @@ class KidiffApp:
 
     def set_repo_info(self):
         scm_info = "{} Repository".format(self.scm.upper())
-        self.labelframe_1 = self.builder.get_object('labelframe_1')
-        self.labelframe_1['text'] = scm_info
+        self.labelframe_1 = self.builder.get_object("labelframe_1")
+        self.labelframe_1["text"] = scm_info
 
     def set_repo_path(self):
 
-        if self.kicad_project_path == '.':
+        if self.kicad_project_path == ".":
             board_path = self.prjctPath + "/" + self.prjctName
         else:
-            board_path = self.prjctPath + "/" + self.kicad_project_path + "/" + self.prjctName
+            board_path = (
+                self.prjctPath + "/" + self.kicad_project_path + "/" + self.prjctName
+            )
 
         board_path = board_path.replace("//", "/")
 
-        self.board_path = self.builder.get_object('board_path')
-        self.board_path['text'] = board_path
+        self.board_path = self.builder.get_object("board_path")
+        self.board_path["text"] = board_path
 
     def get_text_from_select_rows(self, event=None):
         self.commit1 = self.listbox_1.get(self.listbox_1.curselection())
@@ -89,11 +107,11 @@ class KidiffApp:
 
     def fill_artifacts(self):
 
-        self.listbox_1 = self.builder.get_object('listbox_1')
-        self.listbox_2 = self.builder.get_object('listbox_2')
+        self.listbox_1 = self.builder.get_object("listbox_1")
+        self.listbox_2 = self.builder.get_object("listbox_2")
 
-        self.listbox_1.bind('<<ListboxSelect>>', self.update_commit1)
-        self.listbox_2.bind('<<ListboxSelect>>', self.update_commit2)
+        self.listbox_1.bind("<<ListboxSelect>>", self.update_commit1)
+        self.listbox_2.bind("<<ListboxSelect>>", self.update_commit2)
 
         # Fill artifacts
         for i, line in enumerate(self.artifacts):
@@ -102,23 +120,27 @@ class KidiffApp:
 
             # Alternate row colors
             if i % 2:
-                self.listbox_1.itemconfigure(i, background='#ececec', foreground='#000000')
-                self.listbox_2.itemconfigure(i, background='#ececec', foreground='#000000')
+                self.listbox_1.itemconfigure(
+                    i, background="#ececec", foreground="#000000"
+                )
+                self.listbox_2.itemconfigure(
+                    i, background="#ececec", foreground="#000000"
+                )
 
         # Commit set on first commit by default
         if len(self.artifacts) >= 1:
 
-            self.listbox_1.select_set(0) # This only sets focus
+            self.listbox_1.select_set(0)  # This only sets focus
             self.listbox_1.event_generate("<<ListboxSelect>>")
             self.commit1 = self.listbox_1.get(self.listbox_1.curselection())
 
             # Commit set on the second commit by default
             if len(self.artifacts) >= 2:
-                self.listbox_2.select_set(1) # This only sets focus
+                self.listbox_2.select_set(1)  # This only sets focus
                 self.listbox_2.event_generate("<<ListboxSelect>>")
                 self.commit2 = self.listbox_2.get(self.listbox_2.curselection())
             else:
-                self.listbox_2.select_set(0) # This only sets focus
+                self.listbox_2.select_set(0)  # This only sets focus
                 self.listbox_2.event_generate("<<ListboxSelect>>")
                 self.commit2 = self.listbox_2.get(self.listbox_2.curselection())
 

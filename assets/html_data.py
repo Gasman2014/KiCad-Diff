@@ -1,8 +1,7 @@
-
 # HTML Data
 # Intermediate approach before something better
 
-indexHead = '''
+indexHead = """
 <!DOCTYPE HTML>
 <html lang="en">
 <head>
@@ -10,7 +9,7 @@ indexHead = '''
     <link rel="icon" href="http://127.0.0.1:9092/favicon.ico" type="image/x-icon" />
     <link rel="shortcut icon" href="favicon.ico" type="image/x-icon" />
     <link rel="stylesheet" type="text/css" href="style.css" media="screen" />
-    <title>{TITLE}</title>
+    <title>{board_title}</title>
 </head>
 
 <div class="responsivefull">
@@ -18,37 +17,37 @@ indexHead = '''
         <tbody>
             <tr>
                 <td colspan="3" rowspan="3" width="45%">
-                    <div class="title"> Title: {TITLE} </div>
-                    <div class="details"> Company: {COMPANY} </div>
+                    <div class="title"> Board: {board_title} </div>
+                    <div class="details"> Company: {board_company} </div>
                 </td>
                 <td width="25%">
                     <div class="versions">Thickness (mm)</div>
                 </td>
                 <td width="15%">
-                    <div class="versions green">{THICK1}</div>
+                    <div class="versions green">{thickness1}</div>
                 </td>
                 <td width="15%">
-                    <div class="versions red">{THICK2}</div>
+                    <div class="versions red">{thickness2}</div>
                 </td>
             </tr>
             <td width="25%">
                 <div class="versions">Modules</div>
             </td>
             <td width="15%">
-                <div class="versions green">{MODULES1}</div>
+                <div class="versions green">{modules1}</div>
             </td>
             <td width="15%">
-                <div class="versions red">{MODULES2}</div>
+                <div class="versions red">{modules2}</div>
             </td>
             <tr>
                 <td width="25%">
                     <div class="versions">Drawings</div>
                 </td>
                 <td width="15%">
-                    <div class="versions green">{DRAWINGS1}</div>
+                    <div class="versions green">{drawings1}</div>
                 </td>
                 <td width="15%">
-                    <div class="versions red">{DRAWINGS2}</div>
+                    <div class="versions red">{drawings2}</div>
                 </td>
             </tr>
             <tr>
@@ -56,19 +55,19 @@ indexHead = '''
                     <div class="versions">Version</div>
                 </td>
                 <td width="15%">
-                    <div class="versions green">{diffDir1}</div>
+                    <div class="versions green">{hash1}</div>
                 </td>
                 <td width="15%">
-                    <div class="versions red">{diffDir2}</div>
+                    <div class="versions red">{hash2}</div>
                 </td>
                 <td width="25%">
                     <div class="versions">Nets</div>
                 </td>
                 <td width="15%">
-                    <div class="versions green">{NETS1}</div>
+                    <div class="versions green">{nets1}</div>
                 </td>
                 <td width="15%">
-                    <div class="versions red">{NETS2}</div>
+                    <div class="versions red">{nets2}</div>
                 </td>
             </tr>
             <tr>
@@ -76,19 +75,19 @@ indexHead = '''
                     <div class="versions">Date</div>
                 </td>
                 <td width="15%">
-                    <div class="versions">{D1DATE}</div>
+                    <div class="versions green">{date1}</div>
                 </td>
                 <td width="15%">
-                    <div class="versions">{D2DATE}</div>
+                    <div class="versions red">{date2}</div>
                 </td>
                 <td width="25%">
                     <div class="versions">Tracks</div>
                 </td>
                 <td width="15%">
-                    <div class="versions green">{TRACKS1}</div>
+                    <div class="versions green">{tracks1}</div>
                 </td>
                 <td width="15%">
-                    <div class="versions red">{TRACKS2}</div>
+                    <div class="versions red">{tracks2}</div>
                 </td>
             </tr>
             <tr>
@@ -96,44 +95,46 @@ indexHead = '''
                     <div class="versions">Time</div>
                 </td>
                 <td width="15%">
-                    <div class="versions">{D1TIME}</div>
+                    <div class="versions green">{time1}</div>
                 </td>
                 <td width="15%">
-                    <div class="versions">{D2TIME}</div>
+                    <div class="versions red">{time2}</div>
                 </td>
                 <td width="25%">
                     <div class="versions">Zones</div>
                 </td>
                 <td width="15%">
-                    <div class="versions green">{ZONES1}</div>
+                    <div class="versions green">{zones1}</div>
                 </td>
                 <td width="15%">
-                    <div class="versions red">{ZONES2}</div>
+                    <div class="versions red">{zones2}</div>
                 </td>
             </tr>
         </tbody>
     </table>
 </div>
-'''
+"""
 
-outfile = '''
+outfile = """
 <div class="responsive">
     <div class="gallery">
-        <a target="_blank" href=../{diff1}/{layername}>
-            <a href=./triptych/{prj}-{layer}.html>
-                <img class="{layer}" src=../{diff1}/{layername} height="200">
+        <a target="_blank" href=../{hash1}/{filename_svg}>
+            <a href=./triptych/{triptych_html}>
+                <img class="{layer_class}" src=../{hash1}/{filename_svg} height="200">
             </a>
         </a>
-        <div class="desc">{layer}</div>
+        <div class="desc">{layer_name}</div>
     </div>
 </div>
-'''
+"""
 
-triptychHTML = '''
+triptychHTML = """
 <!DOCTYPE HTML>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
+    <link rel="icon" href="http://127.0.0.1:9092/favicon.ico" type="image/x-icon" />
+    <link rel="shortcut icon" href="../favicon.ico" type="image/x-icon" />
     <link rel="stylesheet" type="text/css" href="../style.css" media="screen" />
     <style>
         div.responsive {{
@@ -157,10 +158,10 @@ triptychHTML = '''
                                     values="1   0   0   0   0
                                             0   1   0   1   0
                                             0   0   1   1   0
-                                            0   0   0   1   0 " />
+                                            0   0   0   1   0" />
                             </filter>
                         </defs>
-                        <image x="0" y="0" height="100%" width="100%" filter="url(#f1)" xlink:href="../../{diff1}/{layername}" />
+                        <image x="0" y="0" height="100%" width="100%" filter="url(#f1)" xlink:href="../../{hash1}/{filename_svg}" />
                     </svg>
                     <svg id="compo2">
                         <defs>
@@ -169,25 +170,24 @@ triptychHTML = '''
                                     values="1   0   0   1   0
                                             0   1   0   0   0
                                             0   0   1   0   0
-                                            0   0   0   .5   0" />
+                                            0   0   0  .5   0" />
                             </filter>
                         </defs>
-                        <image x="0" y="0" height="100%" width="100%" filter="url(#f2)" xlink:href="../../{diff2}/{layername}" />
+                        <image x="0" y="0" height="100%" width="100%" filter="url(#f2)" xlink:href="../../{hash2}/{filename_svg}" />
                     </svg>
                 </g>
             </svg>
         </div>
-        <div style="background: rgba(255, 0, 0, 0.0); z-index: 10; position: absolute;" class="title">{prj}</div>
-        <div style="background: rgba(255, 0, 0, 0.0); z-index: 10; position: absolute;" class="subtitle">{layer}</div>
+        <div style="background: rgba(255, 0, 0, 0.0); z-index: 10; position: absolute;" class="subtitle">{layer_name}</div>
     </div>
 
     <div id="sbs-container" style="position:relative; width: 100%; border:1px solid #555; background-color: #222; text-align: center; display: flex;">
 
         <div id="image1-container" style="border: 1px solid #555; width: 50%; height: 250px">
             <div style="width: 100%; height: 250px">
-                <svg id="svg-img2-id" xmlns="http://www.w3.org/2000/svg" style="display: inline; width: 100%; min-width: 100%; max-width: 100%; height: 100%; min-height: 100%; max-height: 100%;" version="1.1">
+                <svg id="svg-img1-id" xmlns="http://www.w3.org/2000/svg" style="display: inline; width: 100%; min-width: 100%; max-width: 100%; height: 100%; min-height: 100%; max-height: 100%;" version="1.1">
                     <svg id="image_1">
-                        <image x="0" y="0" height="100%" width="100%" xlink:href="../../{diff1}/{layername}" class="{layer}"/>
+                        <image x="0" y="0" height="100%" width="100%" xlink:href="../../{hash1}/{filename_svg}" class="{layer_class}"/>
                     </svg>
                 </svg>
             </div>
@@ -197,16 +197,16 @@ triptychHTML = '''
             <div style="width: 100%; height: 250px">
                 <svg id="svg-img2-id" xmlns="http://www.w3.org/2000/svg" style="display: inline; width: 100%; min-width: 100%; max-width: 100%; height: 100%; min-height: 100%; max-height: 100%;" version="1.1">
                     <svg id="image_2">
-                       <image x="0" y="0" height="100%" width="100%" xlink:href="../../{diff2}/{layername}" class="{layer}"/>
+                       <image x="0" y="0" height="100%" width="100%" xlink:href="../../{hash2}/{filename_svg}" class="{layer_class}"/>
                     </svg>
                 </svg>
             </div>
         </div>
 
     </div>
-'''
+"""
 
-twopane='''
+twopane = """
 <script>
     window.onload = function() {
 
@@ -271,9 +271,9 @@ twopane='''
 
 </body>
 </html>
-'''
+"""
 
-tail = '''
+tail = """
 <div class="clearfix"></div>
 <div style="padding:6px;"></div>
-'''
+"""
