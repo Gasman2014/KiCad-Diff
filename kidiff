@@ -504,7 +504,8 @@ def assemble_html(
                 previous_page=triptych_htmls[i-1],
                 next_page=triptych_htmls[n],
                 index=i+1,
-                homebase=kicad_project_path + "/web/"
+                homebase=kicad_project_path + "/web/",
+                board_title=board_title,
             )
 
             triptych_out_html.write(t_out)
