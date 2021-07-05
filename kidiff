@@ -10,6 +10,7 @@ import shutil
 import re
 import signal
 import sys
+import fnmatch
 
 from tkinter import filedialog, Tk, Toplevel, TclError, messagebox
 from tkUI import runGUI
@@ -130,8 +131,8 @@ def make_svg(d1, d2, board_file, kicad_project_path, prjct_path):
 
     print("")
     print("Setting paths")
-    print("Diff1: ", diff1)
-    print("Diff2: ", diff2)
+    print("diff1: ", diff1)
+    print("diff2: ", diff2)
 
     if not os.path.exists(d1_svg):
         os.makedirs(d1_svg)
@@ -144,8 +145,8 @@ def make_svg(d1, d2, board_file, kicad_project_path, prjct_path):
 
     print("")
     print("Plot Commands:")
-    print(plot1_cmd)
-    print(plot2_cmd)
+    print(' '.join(plot1_cmd))
+    print(' '.join(plot2_cmd))
 
     stdout, stderr = settings.run_cmd(prjct_path, plot1_cmd)
     plot_dims1 = stdout.splitlines()
@@ -208,32 +209,29 @@ def make_support_files(board_file, kicad_project_path, prjct_path, svg_dir1, svg
     )
 
     project_name, _ = os.path.splitext(board_file)
+    svg_files1 = sorted(fnmatch.filter(os.listdir(source_dir1), project_name + '-[0-9][0-9]-*.svg'))
+    svg_files2 = sorted(fnmatch.filter(os.listdir(source_dir2), project_name + '-[0-9][0-9]-*.svg'))
     layers = dict()
 
-    for i, f in enumerate(sorted(os.listdir(source_dir1))):
-        filename = os.fsdecode(f)
-        if filename.endswith(".svg"):
-            file_name, _ = os.path.splitext(filename)
-            project_name, _ = os.path.splitext(board_file)
-            layer_id = int(file_name.replace(project_name + "-", "")[0:2])
-            layer_name = file_name.replace(project_name + "-", "")[3:]
-            layers[layer_id] = (file_name, None)
+    for i, f in enumerate(svg_files1):
+        file_name, _ = os.path.splitext(os.fsdecode(f))
+        project_name, _ = os.path.splitext(board_file)
+        layer_id = int(file_name.replace(project_name + "-", "")[0:2])
+        layer_name = file_name.replace(project_name + "-", "")[3:]
+        layers[layer_id] = (file_name, None)
 
-    for i, f in enumerate(sorted(os.listdir(source_dir2))):
-        filename = os.fsdecode(f)
-        if filename.endswith(".svg"):
-            file_name, _ = os.path.splitext(filename)
-            project_name, _ = os.path.splitext(board_file)
-            layer_id = int(file_name.replace(project_name + "-", "")[0:2])
-            layer_name = file_name.replace(project_name + "-", "")[3:]
-            if layers[layer_id]:
-                layer = layers[layer_id]
-                layers[layer_id] = (layer[0], file_name)
-            else:
-                layers[layer_id] = (None, file_name)
+    for i, f in enumerate(svg_files2):
+        file_name, _ = os.path.splitext(os.fsdecode(f))
+        project_name, _ = os.path.splitext(board_file)
+        layer_id = int(file_name.replace(project_name + "-", "")[0:2])
+        layer_name = file_name.replace(project_name + "-", "")[3:]
+        if layers[layer_id]:
+            layer = layers[layer_id]
+            layers[layer_id] = (layer[0], file_name)
+        else:
+            layers[layer_id] = (None, file_name)
 
     for i in sorted(layers.keys()):
-        # print(i, layers[i])
         if layers[i][0] == None:
             missing_svg = os.path.join(source_dir1, layers[i][1] + ".svg")
             print("Creating blank", missing_svg)
@@ -285,6 +283,11 @@ def html_class_from_layer_id(layer_id):
     # KEEP THIS LIST ORDERED
     # Use this to select the right class (color) on css
     # https://docs.kicad.org/doxygen/layers__id__colors__and__visibility_8h_source.html
+
+    # Cycle layer colors in inner layers
+    if (layer_id >= 8) and (layer_id <= 30):
+        layer_id = layer_id % 8
+
     layer_name = [
         "F_Cu",
         "In1_Cu",
@@ -349,14 +352,10 @@ def html_class_from_layer_id(layer_id):
     ]
 
     # Reuse some colors
-
-    if (layer_id >= 8) and (layer_id <= 30):
-        class_name = "In8_Cu"
+    if (layer_id >= 50):
+        class_name = "User"
     else:
-        if (layer_id >= 50) and (layer_id <= 59):
-            class_name = "User"
-        else:
-            class_name = layer_name[layer_id]
+        class_name = layer_name[layer_id]
 
     return class_name
 
@@ -461,57 +460,66 @@ def assemble_html(
     diff_cmd2 = [settings.diffProg, "--suppress-common-lines", diff2, diff1]
     stdout, stderr = settings.run_cmd(prjct_path, diff_cmd2)
 
-    for f in sorted(os.listdir(source_dir)):
+    project_name, _ = os.path.splitext(board_file)
+    svg_files = sorted(fnmatch.filter(os.listdir(source_dir), project_name + '-[0-9][0-9]-*.svg'))
+    triptych_htmls = [svg_file.replace('.svg', '.html') for svg_file in svg_files]
 
-        filename = os.fsdecode(f)
+    for i, f in enumerate(svg_files):
 
-        if filename.endswith(".svg"):
+        file_name, _ = os.path.splitext(os.fsdecode(f))
+        layer_id = int(file_name.replace(project_name + "-", "")[0:2])
+        layer_name = file_name.replace(project_name + "-", "")[3:]
+        layer_name_orig = layer_name.replace(
+            "_", "."
+        )  # not sure this is good and works all the time
 
-            file_name, _ = os.path.splitext(filename)
-            project_name, _ = os.path.splitext(board_file)
+        triptych_html = file_name + ".html"
+        triptych_html_path = os.path.join(triptych_dir, triptych_html)
 
-            layer_id = int(file_name.replace(project_name + "-", "")[0:2])
-            layer_name = file_name.replace(project_name + "-", "")[3:]
-            layer_name_orig = layer_name.replace(
-                "_", "."
-            )  # not sure this is good and works all the time
+        out_html = custom_page.outfile.format(
+            hash1=diff_dir1,
+            hash2=diff_dir2,
+            layer_name=layer_name,
+            filename_svg=f,
+            triptych_html=triptych_html,
+            layer_class=html_class_from_layer_id(layer_id),
+            index=i+1,
+        )
 
-            triptych_html = file_name + ".html"
-            triptych_html_path = os.path.join(triptych_dir, triptych_html)
+        main_html.write(out_html)
 
-            out_html = custom_page.outfile.format(
+        with open(triptych_html_path, "w") as triptych_out_html:
+
+            if i+1 >= len(triptych_htmls):
+                n = 0
+            else:
+                n = i+1
+
+            t_out = custom_page.triptychHTML.format(
                 hash1=diff_dir1,
                 hash2=diff_dir2,
                 layer_name=layer_name,
-                filename_svg=filename,
-                triptych_html=triptych_html,
+                filename_svg=f,
                 layer_class=html_class_from_layer_id(layer_id),
+                previous_page=triptych_htmls[i-1],
+                next_page=triptych_htmls[n],
+                index=i+1,
+                homebase=kicad_project_path + "/web/",
+                board_title=board_title,
             )
 
-            main_html.write(out_html)
+            triptych_out_html.write(t_out)
 
-            with open(triptych_html_path, "w") as triptych_out_html:
+            out_html = "\n".join(
+                re.sub("status [1-9][0-9]", "", line)
+                for line in stdout.splitlines()
+                if layer_name_orig in line
+            )
 
-                t_out = custom_page.triptychHTML.format(
-                    hash1=diff_dir1,
-                    hash2=diff_dir2,
-                    layer_name=layer_name,
-                    filename_svg=filename,
-                    layer_class=html_class_from_layer_id(layer_id),
-                )
+            processed = process_diff(out_html, layer_name_orig)
+            processed += custom_page.twopane
 
-                triptych_out_html.write(t_out)
-
-                out_html = "\n".join(
-                    re.sub("status [1-9][0-9]", "", line)
-                    for line in stdout.splitlines()
-                    if layer_name_orig in line
-                )
-
-                processed = process_diff(out_html, layer_name_orig)
-                processed += custom_page.twopane
-
-                triptych_out_html.write(processed)
+            triptych_out_html.write(processed)
 
     main_html.write(custom_page.tail)
 
@@ -755,6 +763,15 @@ if __name__ == "__main__":
     else:
         kicad_project_path = os.path.dirname(os.path.realpath(args.kicad_pcb))
         board_file = os.path.basename(os.path.realpath(args.kicad_pcb))
+
+        if not os.path.exists(args.kicad_pcb):
+            print("Kicad file {} does not exit".format(args.kicad_pcb))
+            exit(1)
+
+        _, extension = os.path.splitext(args.kicad_pcb)
+        if extension != ".kicad_pcb":
+            print("The file {} seems not to be a Kicad PCB".format(args.kicad_pcb))
+            exit(1)
 
     project_scms = check_project_scms(kicad_project_path)
 

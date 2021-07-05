@@ -24,7 +24,7 @@ class scm(generic_scm):
             artifact2 = "local"
 
         # Using this to fix the path when there is no subproject
-        prj_path = os.path.join(kicad_project_path, "/")
+        prj_path = kicad_project_path + "/"
         if kicad_project_path == ".":
             prj_path = ""
 
@@ -34,7 +34,7 @@ class scm(generic_scm):
 
             print("")
             print("Getting Boards")
-            print(cmd)
+            print(' '.join(cmd))
 
             stdout, stderr = settings.run_cmd(prjct_path, cmd)
             changed = ".kicad_pcb" in stdout
@@ -73,9 +73,9 @@ class scm(generic_scm):
                 "-r",
                 artifact1,
             ]
-            print("Fossil artifact2: ", fossilArtifact1)
+            print("Fossil artifact1: ", ' '.join(fossilArtifact1))
         else:
-            print("Fossil artifact2: ", diff1)
+            print("Fossil artifact1: ", diff1)
 
         if not diff2 == prjct_name:
             fossilArtifact2 = [
@@ -85,15 +85,17 @@ class scm(generic_scm):
                 "-r",
                 artifact2,
             ]
-            print("Fossil artifact2: ", fossilArtifact2)
+            print("Fossil artifact2: ", ' '.join(fossilArtifact2))
         else:
             print("Fossil artifact2: ", diff2)
 
         print("")
         print("Checking datetime")
+
         if not diff1 == prjct_name:
             fossilDateTime1 = ["fossil", "info", artifact1]
-            print(fossilDateTime1)
+            print(' '.join(fossilDateTime1))
+
         else:
             artifact1 = prjct_name
             modTimesinceEpoc = os.path.getmtime(prjct_name)
@@ -102,7 +104,7 @@ class scm(generic_scm):
 
         if not diff2 == prjct_name:
             fossilDateTime2 = ["fossil", "info", artifact2]
-            print(fossilDateTime2)
+            print(' '.join(fossilDateTime2))
         else:
             artifact2 = prjct_name
             modTimesinceEpoc = os.path.getmtime(prjct_name)
