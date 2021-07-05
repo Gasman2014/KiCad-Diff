@@ -25,7 +25,7 @@ class scm(generic_scm):
             artifact2 = "local"
 
         # Using this to fix the path when there is no subproject
-        prj_path = os.path.join(kicad_project_path, "/")
+        prj_path = kicad_project_path + "/"
         if kicad_project_path == ".":
             prj_path = ""
 
@@ -42,7 +42,7 @@ class scm(generic_scm):
 
             print("")
             print("Getting Boards")
-            print(cmd)
+            print(' '.join(cmd))
 
             stdout, stderr = settings.run_cmd(prjct_path, cmd)
             changed, *boardName = stdout
@@ -70,13 +70,13 @@ class scm(generic_scm):
 
         if not diff1 == prjct_name:
             svnArtifact1 = ["svn", "cat", "-r", artifact1, svnPath]
-            print("SVN artifact1: ", svnArtifact1)
+            print("SVN artifact1: ", ' '.join(svnArtifact1))
         else:
             print("SVN artifact1: ", diff1)
 
         if not diff2 == prjct_name:
             svnArtifact2 = ["svn", "cat", "-r", artifact2, svnPath]
-            print("SVN artifact2: ", svnArtifact2)
+            print("SVN artifact2: ", ' '.join(svnArtifact2))
 
         else:
             print("SVN artifact2: ", diff2)
@@ -100,11 +100,11 @@ class scm(generic_scm):
 
         if not diff1 == prjct_name:
             svnDateTime1 = ["svn", "log", "-r", artifact1]
-            print(svnDateTime1)
+            print(' '.join(svnDateTime1))
 
         if not diff2 == prjct_name:
             svnDateTime2 = ["svn", "log", "-r", artifact2]
-            print(svnDateTime2)
+            print(' '.join(svnDateTime2))
 
         if not diff1 == prjct_name:
             stdout, stderr = settings.run_cmd(prjct_path, svnDateTime1)

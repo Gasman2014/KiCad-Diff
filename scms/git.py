@@ -23,7 +23,7 @@ class scm(generic_scm):
             artifact2 = "local"
 
         # Using this to fix the path when there is no subproject
-        prj_path = os.path.join(kicad_project_path, "/")
+        prj_path = kicad_project_path + "/"
         if kicad_project_path == ".":
             prj_path = ""
 
@@ -32,7 +32,7 @@ class scm(generic_scm):
 
             print("")
             print("Getting boards")
-            print(cmd)
+            print(' '.join(cmd))
 
             stdout, stderr = settings.run_cmd(prjct_path, cmd)
             changed = (prj_path + prjct_name) in stdout
@@ -60,13 +60,13 @@ class scm(generic_scm):
 
         if not diff1 == prjct_name:
             gitArtifact1 = ["git", "show", artifact1 + ":" + gitPath]
-            print("Git artifact1: ", gitArtifact1)
+            print("Git artifact1: ", ' '.join(gitArtifact1))
         else:
             print("Git artifact1: ", diff1)
 
         if not diff2 == prjct_name:
             gitArtifact2 = ["git", "show", artifact2 + ":" + gitPath]
-            print("Git artifact2: ", gitArtifact2)
+            print("Git artifact2: ", ' '.join(gitArtifact2))
         else:
             print("Git artifact2: ", diff2)
 
@@ -82,18 +82,18 @@ class scm(generic_scm):
             with open(os.path.join(outputDir2, prjct_name), "w") as fout2:
                 fout2.write(stdout)
         else:
-            shutil.copyfile(prjct_name, os.path.join(outputDir1, prjct_name))
+            shutil.copyfile(prjct_name, os.path.join(outputDir2, prjct_name))
 
         print("")
         print("Check datetime")
 
         if not diff1 == prjct_name:
             gitDateTime1 = ["git", "show", "-s", '--format="%ci"', artifact1]
-            print(gitDateTime1)
+            print(' '.join(gitDateTime1))
 
         if not diff2 == prjct_name:
             gitDateTime2 = ["git", "show", "-s", '--format="%ci"', artifact2]
-            print(gitDateTime2)
+            print(' '.join(gitDateTime2))
 
         if not diff1 == prjct_name:
             stdout, stderr = settings.run_cmd(prjct_path, gitDateTime1)
@@ -114,9 +114,6 @@ class scm(generic_scm):
             artifact2 = prjct_name
             modTimesinceEpoc = os.path.getmtime(prjct_name)
             time2 = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(modTimesinceEpoc))
-
-        print("time1", time1)
-        print("time2", time2)
 
         return artifact1, artifact2, time1 + " " + time2
 
