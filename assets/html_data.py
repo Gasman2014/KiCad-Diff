@@ -198,12 +198,13 @@ triptychHTML = """
                 </g>
             </svg>
         </div>
-        <div style="background: rgba(255, 0, 0, 0.0); z-index: 10; position: absolute;" class="subtitle">{index}. {layer_name}</div>
+        <div style="background: rgba(255, 0, 0, 0.0); z-index: 10; position: absolute;" class="subtitle">{board_title} <br> {index}. {layer_name}</div>
     </div>
 
     <div id="sbs-container" style="position:relative; width: 100%; border:1px solid #555; background-color: #222; text-align: center; display: flex;">
 
         <div id="image1-container" style="border: 1px solid #555; width: 50%; height: 250px">
+        <div style="background: rgba(255, 0, 0, 0.0); z-index: 10; position: absolute;" class="subtitle">{hash1}</div>
             <div style="width: 100%; height: 250px">
                 <svg id="svg-img1-id" xmlns="http://www.w3.org/2000/svg"
                     style="display: inline; width: 100%; min-width: 100%; max-width: 100%; height: 100%; min-height: 100%; max-height: 100%;"
@@ -216,6 +217,7 @@ triptychHTML = """
         </div>
 
         <div id="image2-container" style="border: 1px solid #555; width: 50%; height: 250px">
+        <div style="background: rgba(255, 0, 0, 0.0); z-index: 10; position: absolute;" class="subtitle">{hash2}</div>        
             <div style="width: 100%; height: 250px">
                 <svg id="svg-img2-id" xmlns="http://www.w3.org/2000/svg" style="display: inline; width: 100%; min-width: 100%; max-width: 100%;
                     height: 100%; min-height: 100%; max-height: 100%;"
