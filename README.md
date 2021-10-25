@@ -14,7 +14,7 @@ The diff output can be scrolled and zoomed in and out for closer inspection. The
 
 - Ensure that you have Python3 installed. Why? https://www.pythonclock.org
 - Python Libraries from Kicad 5.*
-- For python dependencies check the `requitements.txt`
+- For python dependencies check the `requirements.txt`
 
 To install KiCad-Diff dependencies:
 
