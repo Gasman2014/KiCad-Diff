@@ -26,7 +26,7 @@ pip3 install -r requirements.txt
 ## Usage
 
 Make sure you have SCMs (Git, Fossil and/or SVN) available throught the PATH variable.
-Add the script path to your PATH too so the `kidiff` and `kiplotpcb` will be available.
+Add the script path to your PATH too so the `kidiff` and `plotpcb` will be available.
 This can be done easely with:
 
 ```
