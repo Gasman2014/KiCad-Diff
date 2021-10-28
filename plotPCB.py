@@ -20,8 +20,14 @@ import pcbnew as pn
 pcbnew_version = pn.GetBuildVersion()
 version_major = int(pcbnew_version.strip("()").split(".")[0])
 version_minor = int(pcbnew_version.strip("()").split(".")[1])
-version_patch = int(pcbnew_version.strip("()").split(".")[2].split("-")[0])
 
+try:
+    version_patch = int(pcbnew_version.strip("()").split(".")[2].split("-")[0])
+except:
+    print("\nThe board was made with Kicad version {}".format(pcbnew_version))
+    print("You must use a different API.")
+    print("Please, try sourcing \"env-nightly.sh\" instead.")
+    exit(1)
 
 def processBoard(board_path, plot_dir, quiet=0):
     """Load board and initialize plot controller"""
@@ -49,7 +55,12 @@ def processBoard(board_path, plot_dir, quiet=0):
         popt.SetLineWidth(pn.FromMM(0.15))
 
     popt.SetAutoScale(False)
-    popt.SetScale(2)
+
+    if (version_major > 5) or (version_major == 5) and (version_minor == 99):
+        popt.SetScale(1)
+    else:
+        popt.SetScale(2)
+
     popt.SetMirror(False)
     popt.SetUseGerberAttributes(True)
     popt.SetExcludeEdgeLayer(False)
