@@ -7,6 +7,7 @@ Plot layers of kicad_pcb into .svg files
 import argparse
 import os
 import sys
+import re
 
 import platform
 
@@ -20,13 +21,22 @@ import pcbnew as pn
 pcbnew_version = pn.GetBuildVersion()
 version_major = int(pcbnew_version.strip("()").split(".")[0])
 version_minor = int(pcbnew_version.strip("()").split(".")[1])
-version_patch = int(pcbnew_version.strip("()").split(".")[2].split("-")[0])
+version_patch = int(pcbnew_version.strip("()").split(".")[2].replace("-", "+").split("+")[0])
+extra_version_str = pcbnew_version.replace("{}.{}.{}".format(version_major, version_minor, version_patch), "")
 
 
-def processBoard(board_path, plot_dir, quiet=0):
+def processBoard(board_path, plot_dir, quiet=0, verbose=0):
     """Load board and initialize plot controller"""
 
-    board = pn.LoadBoard(board_path)
+    try:
+        board = pn.LoadBoard(board_path)
+    except:
+        print("Wrong version of the API")
+        print("Try sourcing 'env-nightly.sh' instead.")
+        exit(1)
+
+    board_version = board.GetFileFormatVersionAtLoad()
+    print("\nBoard version: {}".format(board_version))
 
     board_name, _ = os.path.splitext(board_path)
 
@@ -35,6 +45,14 @@ def processBoard(board_path, plot_dir, quiet=0):
     boardyl = boardbox.GetY()
     boardwidth = boardbox.GetWidth()
     boardheight = boardbox.GetHeight()
+
+    if verbose:
+        print()
+        print("    boardxl:", boardxl)
+        print("    boardyl:", boardyl)
+        print(" boardwidth:", boardwidth)
+        print("boardheight:", boardheight)
+        print()
 
     pctl = pn.PLOT_CONTROLLER(board)
     pctl.SetColorMode(True)
@@ -49,7 +67,16 @@ def processBoard(board_path, plot_dir, quiet=0):
         popt.SetLineWidth(pn.FromMM(0.15))
 
     popt.SetAutoScale(False)
-    popt.SetScale(2)
+
+    if board_version >= 20210000:
+        if verbose:
+            print("Using nightly build")
+        popt.SetScale(1)
+    else:
+        if verbose:
+            print("Using current settings")
+        popt.SetScale(2)
+
     popt.SetMirror(False)
     popt.SetUseGerberAttributes(True)
     popt.SetExcludeEdgeLayer(False)
@@ -111,6 +138,9 @@ def parse_cli_args():
     parser.add_argument(
         "-l", "--list", action="store_true", help="List used layers and exit"
     )
+    parser.add_argument(
+        "-v", "--verbose", action="store_true", help="Extra shows information"
+    )
     parser.add_argument("kicad_pcb", nargs=1, help="Kicad PCB")
     args = parser.parse_args()
     return args
@@ -131,11 +161,17 @@ if __name__ == "__main__":
     if args.output_folder:
         plot_dir = args.output_folder
 
-    if not args.quiet:
-        print(
-            "Board made with PCBNew {}.{}.{}".format(
-                version_major, version_minor, version_patch
-            )
-        )
+    if args.verbose:
+        print()
+        print("Kicad version:", pcbnew_version)
+        print("Major version:", version_major)
+        print("Minor version:", version_minor)
+        print("Patch version:", version_patch)
+        print("Extra version:", extra_version_str)
 
-    processBoard(board_path, plot_dir, args.quiet)
+    # if not args.quiet:
+    #     print("\nBoard made with PCBNew {}.{}.{}{}".format(
+    #         version_major, version_minor, version_patch, extra_version_str)
+    #     )
+
+    processBoard(board_path, plot_dir, args.quiet, args.verbose)
