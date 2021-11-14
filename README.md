@@ -25,9 +25,9 @@ pip3 install -r requirements.txt
 
 ## Usage
 
-Make sure you have SCMs (Git, Fossil and/or SVN) available throught the PATH variable.
+Make sure you have SCMs (Git, Fossil and/or SVN) available through the PATH variable.
 Add the script path to your PATH too so the `kidiff` and `plotpcb` will be available.
-This can be done easely with:
+This can be done easily with:
 
 ```
 cd KiCad-Diff
@@ -36,7 +36,7 @@ source env.sh
 
 The terminal should give you some useful information on progress. Please include a copy of the terminal output if you have any issues.
 
-### Comandline help
+### Commandline help
 
 ```
 ➜ ./kidiff -h
@@ -96,7 +96,7 @@ plotpcb board.kicad_pcb
 <img src="/docs/main1.png" width="820" alt="main1">
 <img src="/docs/main2.png" width="820" alt="main2">
 
-### Overlaped Diff
+### Overlapped Diff
 <img src="/docs/diff.png" width="300" alt="fab layer diff">
 
 ### Side-by-Side View

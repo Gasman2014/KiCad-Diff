@@ -250,7 +250,7 @@ def getBoardData(board):
     basic parameters from it.
     Might be safer to split off the top section
     before the modules to avoid the possibility of
-    recyling keywords like 'title'"""
+    recycling keywords like 'title'"""
 
     prms = {
         "title": "",
