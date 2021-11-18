@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Python modules for the new PCBNew
+# Setup for Kicad-Nigtly (>= 5.99) python modules
 
 case ${OSTYPE} in
 
@@ -18,6 +18,4 @@ case ${OSTYPE} in
 
 esac
 
-
-# Binaries
-export PATH=$(pwd):${PATH}
+source ./env.sh
