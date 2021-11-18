@@ -13,7 +13,7 @@ global grepProg
 
 global plot_prog
 
-global plot_dir
+global output_dir
 global web_dir
 
 gitProg = "git"
@@ -24,7 +24,7 @@ grepProg = "grep"
 
 plot_prog = "plotpcb"
 
-plot_dir = "kidiff"
+# output_dir = "kidiff"
 web_dir = "web"
 
 
