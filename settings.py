@@ -24,7 +24,6 @@ grepProg = "grep"
 
 plot_prog = "plotpcb"
 
-# output_dir = "kidiff"
 web_dir = "web"
 
 
