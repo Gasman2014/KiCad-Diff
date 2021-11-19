@@ -46,7 +46,7 @@ def run_cmd(exec_path: str, cmd: List[str]) -> Tuple[str, str]:
     if verbose > 1:
         print("")
         print(bcolors.WARNING + "Path:", exec_path + bcolors.ENDC)
-        print(bcolors.WARNING + " Cmd:", " ".join(cmd) + bcolors.ENDC)
+        print(bcolors.WARNING + " Cmd:", bcolors.OKBLUE + " ".join(cmd) + bcolors.ENDC)
 
     p = Popen(
         cmd,
@@ -60,5 +60,11 @@ def run_cmd(exec_path: str, cmd: List[str]) -> Tuple[str, str]:
 
     stdout, stderr = p.communicate()
     p.wait()
+
+    if verbose > 3:
+        print(bcolors.OKCYAN + stdout + bcolors.ENDC)
+
+    if verbose > 1:
+        print(bcolors.FAIL + stderr + bcolors.ENDC)
 
     return stdout.strip("\n "), stderr
