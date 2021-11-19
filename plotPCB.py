@@ -8,6 +8,7 @@ import argparse
 import os
 import sys
 import re
+import shutil
 
 import platform
 
@@ -28,6 +29,11 @@ extra_version_str = pcbnew_version.replace("{}.{}.{}".format(version_major, vers
 def processBoard(board_path, plot_dir, quiet=0, verbose=0):
     """Load board and initialize plot controller"""
 
+    if plot_dir != "./":
+        shutil.copy(board_path, plot_dir)
+        board_path = os.path.join(os.path.basename(board_path))
+        print("> Changin path:", board_path)
+
     try:
         board = pn.LoadBoard(board_path)
     except:
@@ -37,8 +43,6 @@ def processBoard(board_path, plot_dir, quiet=0, verbose=0):
 
     board_version = board.GetFileFormatVersionAtLoad()
     print("\nBoard version: {}".format(board_version))
-
-    board_name = os.path.basename(board_path)
 
     boardbox = board.ComputeBoundingBox()
     boardxl = boardbox.GetX()
@@ -93,20 +97,27 @@ def processBoard(board_path, plot_dir, quiet=0, verbose=0):
     if not quiet:
         print("\n{} {} {} {}".format("#".rjust(2), "ID", "Name".ljust(len(max_string_len)), "Filename"))
 
+    board_name = os.path.splitext(os.path.basename(board_path))[0]
+
+    if plot_dir == "./":
+        dirname = os.path.dirname(board_path)
+    else:
+        dirname = plot_dir
+
     for i, layer_id in enumerate(layer_ids):
 
         pctl.SetLayer(layer_id)
 
         layer_name = board.GetLayerName(layer_id).replace(".", "_")
         plot_sufix = str(layer_id).zfill(2) + "-" + layer_name
-        layer_filename = os.path.join(board_path + "-" + plot_sufix + ".svg")
+        layer_filename = os.path.join(board_name + "-" + plot_sufix + ".svg")
 
         pctl.OpenPlotfile(plot_sufix, pn.PLOT_FORMAT_SVG, layer_name)
         pctl.PlotLayer()
 
         if not quiet:
             print("{:2d} {:2d} {} {}".format(
-                i + 1, layer_id, layer_name.ljust(len(max_string_len)), layer_filename
+                i + 1, layer_id, layer_name.ljust(len(max_string_len)), os.path.join(dirname, layer_filename)
                 )
             )
 
@@ -165,10 +176,6 @@ if __name__ == "__main__":
             except:
                 print("Could not create", plot_dir)
                 exit(1)
-
-
-    print("board_path:", board_path)
-    print("plot_dir:", plot_dir)
 
     if args.verbose:
         print()
