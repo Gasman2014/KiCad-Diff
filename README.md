@@ -39,8 +39,8 @@ The terminal should give you some useful information on progress. Please include
 ### Commandline help
 
 ```
-➜ ./kidiff -h
-usage: kidiff [-h] [-a COMMIT1] [-b COMMIT2] [-g] [-s SCM] [-d DISPLAY] [-p PORT] [-w] [-v] [PCB_PATH]
+➜ kidiff -h
+usage: kidiff [-h] [-a COMMIT1_HASH] [-b COMMIT2_HASH] [-g] [-s SCM] [-d DISPLAY] [-p PORT] [-w] [-v] [-o OUTPUT_DIR] [PCB_PATH]
 
 Kicad PCB visual diffs.
 
@@ -49,10 +49,10 @@ positional arguments:
 
 optional arguments:
   -h, --help            show this help message and exit
-  -a COMMIT1, --commit1 COMMIT1
-                        Commit 1
-  -b COMMIT2, --commit2 COMMIT2
-                        Commit 2
+  -a COMMIT1_HASH, --commit1-hash COMMIT1_HASH
+                        Commit 1 hash
+  -b COMMIT2_HASH, --commit2-hash COMMIT2_HASH
+                        Commit 2 hash
   -g, --gui             Use gui
   -s SCM, --scm SCM     Select SCM (git, svn, fossil)
   -d DISPLAY, --display DISPLAY
@@ -61,6 +61,8 @@ optional arguments:
   -w, --webserver-disable
                         Does not execute webserver (just generate images)
   -v, --verbose         Increase verbosity (-vvv)
+  -o OUTPUT_DIR, --output-dir OUTPUT_DIR
+                        Set output directory. Default is 'kidiff'.
 
 ```
 
@@ -73,7 +75,7 @@ kidiff led_test.kicad_pcb
 # Forcing an specific SCM when more than one is available (Precedence: Git > Fossil > SVN)
 kidiff led_test.kicad_pcb --scm fossil
 
-# With a Git repo, passing Commit 1 and 2 on the command line
+# With a SVN repo, passing commit 1 and 2 on the command line
 kidiff led_test.kicad_pcb -a r1 -b r3
 
 ```
