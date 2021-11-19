@@ -736,6 +736,9 @@ if __name__ == "__main__":
     signal.signal(signal.SIGINT, signal_handler)
     args = parse_cli_args()
 
+    if args.verbose:
+        settings.verbose = args.verbose
+
     if args.kicad_pcb is None:
         kicad_project_path, board_filename = select_project_gui(args.display)
     else:
@@ -792,7 +795,6 @@ if __name__ == "__main__":
     scm_artifacts = scm.get_artefacts(repo_path, kicad_project_dir, board_filename)
 
     if args.verbose >= 1:
-        settings.verbose = args.verbose
         print("")
         print("Commits list")
         for artifact in scm_artifacts:
