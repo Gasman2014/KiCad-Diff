@@ -9,27 +9,28 @@ from dateutil.parser import isoparse
 
 
 class scm(generic_scm):
+
     @staticmethod
-    def get_boards(diff1, diff2, prjct_name, kicad_project_path, prjct_path):
+    def get_boards(repo_path, kicad_project_dir, board_filename, commit1, commit2):
         """Given two SVN revisions, write out two kicad_pcb files to their respective
         directories (named after the revision number). Returns the date and time of both commits"""
 
-        if not diff1 == prjct_name:
-            artifact1, *tail = diff1.split(" |")
+        if not commit1 == board_filename:
+            artifact1, *tail = commit1.split(" |")
         else:
             artifact1 = "local"
 
-        if not diff2 == prjct_name:
-            artifact2, *tail = diff2.split(" |")
+        if not commit2 == board_filename:
+            artifact2, *tail = commit2.split(" |")
         else:
             artifact2 = "local"
 
         # Using this to fix the path when there is no subproject
-        prj_path = kicad_project_path + "/"
-        if kicad_project_path == ".":
+        prj_path = kicad_project_dir + "/"
+        if kicad_project_dir == ".":
             prj_path = ""
 
-        if (not diff1 == prjct_name) and (not diff2 == prjct_name):
+        if (not commit1 == board_filename) and (not commit2 == board_filename):
 
             cmd = [
                 "svn",
@@ -37,96 +38,76 @@ class scm(generic_scm):
                 "--summarize",
                 "-r",
                 artifact1 + ":" + artifact2,
-                prj_path + prjct_name,
+                prj_path + board_filename,
             ]
 
-            print("")
-            print("Getting Boards")
-            print(' '.join(cmd))
-
-            stdout, stderr = settings.run_cmd(prjct_path, cmd)
+            stdout, stderr = settings.run_cmd(repo_path, cmd)
             changed, *boardName = stdout
 
             if changed != "M":
                 print("\nThere is no difference in .kicad_pcb file in selected commits")
 
         outputDir1 = os.path.join(
-            prjct_path, settings.output_dir, kicad_project_path, artifact1
+            settings.output_dir, artifact1
         )
         if not os.path.exists(outputDir1):
             os.makedirs(outputDir1)
 
         outputDir2 = os.path.join(
-            prjct_path, settings.output_dir, kicad_project_path, artifact2
+            settings.output_dir, artifact2
         )
         if not os.path.exists(outputDir2):
             os.makedirs(outputDir2)
 
-        svnPath = os.path.join(kicad_project_path, "/")
+        svnPath = os.path.join(kicad_project_dir, "/")
 
-        print("")
-        print("Setting artifacts paths")
-        print("svnPath      :", svnPath)
-
-        if not diff1 == prjct_name:
+        if not commit1 == board_filename:
             svnArtifact1 = ["svn", "cat", "-r", artifact1, svnPath]
-            print("SVN artifact1: ", ' '.join(svnArtifact1))
-        else:
-            print("SVN artifact1: ", diff1)
 
-        if not diff2 == prjct_name:
+        if not commit2 == board_filename:
             svnArtifact2 = ["svn", "cat", "-r", artifact2, svnPath]
-            print("SVN artifact2: ", ' '.join(svnArtifact2))
 
-        else:
-            print("SVN artifact2: ", diff2)
-
-        if not diff1 == prjct_name:
-            stdout, stderr = settings.run_cmd(prjct_path, svnArtifact1)
-            with open(os.path.join(outputDir1, prjct_name), "w") as fout1:
+        if not commit1 == board_filename:
+            stdout, stderr = settings.run_cmd(repo_path, svnArtifact1)
+            with open(os.path.join(outputDir1, board_filename), "w") as fout1:
                 fout1.write(stdout)
         else:
-            shutil.copyfile(prjct_name, os.path.join(outputDir1, prjct_name))
+            shutil.copyfile(board_filename, os.path.join(outputDir1, board_filename))
 
-        if not diff2 == prjct_name:
-            stdout, stderr = settings.run_cmd(prjct_path, svnArtifact2)
-            with open(os.path.join(outputDir2, prjct_name), "w") as fout2:
+        if not commit2 == board_filename:
+            stdout, stderr = settings.run_cmd(repo_path, svnArtifact2)
+            with open(os.path.join(outputDir2, board_filename), "w") as fout2:
                 fout2.write(stdout)
         else:
-            shutil.copyfile(prjct_name, os.path.join(outputDir2, prjct_name))
+            shutil.copyfile(board_filename, os.path.join(outputDir2, board_filename))
 
-        print("")
-        print("Check datetime")
-
-        if not diff1 == prjct_name:
+        if not commit1 == board_filename:
             svnDateTime1 = ["svn", "log", "-r", artifact1]
-            print(' '.join(svnDateTime1))
 
-        if not diff2 == prjct_name:
+        if not commit2 == board_filename:
             svnDateTime2 = ["svn", "log", "-r", artifact2]
-            print(' '.join(svnDateTime2))
 
-        if not diff1 == prjct_name:
-            stdout, stderr = settings.run_cmd(prjct_path, svnDateTime1)
+        if not commit1 == board_filename:
+            stdout, stderr = settings.run_cmd(repo_path, svnDateTime1)
             dateTime = stdout
 
             cmt = (dateTime.splitlines()[1]).split("|")
             _, SVNdate1, SVNtime1, SVNutc, *_ = cmt[2].split(" ")
         else:
-            artifact1 = prjct_name
-            modTimesinceEpoc = os.path.getmtime(prjct_name)
+            artifact1 = board_filename
+            modTimesinceEpoc = os.path.getmtime(board_filename)
             SVNdate1 = time.strftime("%Y-%m-%d", time.localtime(modTimesinceEpoc))
             SVNtime1 = time.strftime("%H:%M:%S", time.localtime(modTimesinceEpoc))
 
-        if not diff2 == prjct_name:
-            stdout, stderr = settings.run_cmd(prjct_path, svnDateTime2)
+        if not commit2 == board_filename:
+            stdout, stderr = settings.run_cmd(repo_path, svnDateTime2)
             dateTime = stdout
 
             cmt = (dateTime.splitlines()[1]).split("|")
             _, SVNdate2, SVNtime2, SVNutc, *_ = cmt[2].split(" ")
         else:
-            artifact2 = prjct_name
-            modTimesinceEpoc = os.path.getmtime(prjct_name)
+            artifact2 = board_filename
+            modTimesinceEpoc = os.path.getmtime(board_filename)
             SVNdate2 = time.strftime("%Y-%m-%d", time.localtime(modTimesinceEpoc))
             SVNtime2 = time.strftime("%H:%M:%S", time.localtime(modTimesinceEpoc))
 
@@ -135,7 +116,7 @@ class scm(generic_scm):
         return artifact1, artifact2, times
 
     @staticmethod
-    def get_artefacts(prjct_path, kicad_project_path, board_file):
+    def get_artefacts(repo_path, kicad_project_dir, board_filename):
         """Returns list of revisions from a directory"""
 
         cmd = [
@@ -144,31 +125,28 @@ class scm(generic_scm):
             "--xml",
             "-r",
             "HEAD:0",
-            os.path.join(kicad_project_path, board_file),
+            os.path.join(kicad_project_dir, board_filename),
         ]
-        print("")
-        print("Getting Artifacts")
-        print(cmd)
 
-        stdout, _ = settings.run_cmd(prjct_path, cmd)
+        stdout, _ = settings.run_cmd(repo_path, cmd)
         parser = SvnLogHandler()
         parser.parseString(stdout)
-        artifacts = [board_file] + parser.lines
+        artifacts = [board_filename] + parser.lines
 
         return artifacts
 
     @staticmethod
-    def get_kicad_project_path(prjct_path):
+    def split_repo_path(kicad_project_path):
         """Returns the root folder of the repository"""
 
         cmd = ["svn", "info", "--show-item", "wc-root"]
 
-        stdout, _ = settings.run_cmd(prjct_path, cmd)
-        repo_root_path = stdout.strip()
+        stdout, _ = settings.run_cmd(kicad_project_path, cmd)
+        repo_path = stdout.strip()
 
-        kicad_project_path = os.path.relpath(prjct_path, repo_root_path)
+        kicad_project_dir = os.path.relpath(kicad_project_path, repo_path)
 
-        return repo_root_path, kicad_project_path
+        return repo_path, kicad_project_dir
 
 
 class SvnLogHandler:

@@ -4,18 +4,15 @@ import settings
 
 
 class scm:
+
     @staticmethod
-    def get_board_path(prjct_name, prjct_path):
+    def get_boards(repo_path, kicad_project_dir, board_filename, commit1, commit2):
         pass
 
     @staticmethod
-    def get_boards(diff1, diff2, prjct_name, kicad_project_path, prjct_path):
+    def get_artefacts(repo_path, board_filename):
         pass
 
     @staticmethod
-    def get_artefacts(prjct_path, board_file):
-        pass
-
-    @staticmethod
-    def get_kicad_project_path(prjct_path):
+    def split_repo_path(kicad_project_path):
         pass

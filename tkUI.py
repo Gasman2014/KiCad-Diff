@@ -28,12 +28,12 @@ PROJECT_UI = os.path.join(PROJECT_PATH, "kidiff.ui")
 
 
 class KidiffApp:
-    def __init__(self, artifacts, prjctName, kicad_project_path, prjctPath, scm):
+    def __init__(self, repo_path, kicad_project_dir, board_filename, scm, scm_artifacts):
 
-        self.artifacts = artifacts
-        self.prjctName = prjctName
-        self.kicad_project_path = kicad_project_path
-        self.prjctPath = prjctPath
+        self.scm_artifacts = scm_artifacts
+        self.board_filename = board_filename
+        self.kicad_project_dir = kicad_project_dir
+        self.repo_path = repo_path
         self.scm = scm
 
         self.builder = builder = pygubu.Builder()
@@ -47,7 +47,7 @@ class KidiffApp:
 
         self.set_repo_info()
         self.set_repo_path()
-        self.fill_artifacts()
+        self.fill_scm_artifacts()
 
         self.commit1 = ""
         self.commit2 = ""
@@ -83,14 +83,12 @@ class KidiffApp:
 
     def set_repo_path(self):
 
-        if self.kicad_project_path == ".":
-            board_path = self.prjctPath + "/" + self.prjctName
+        if self.kicad_project_dir == ".":
+            board_path = os.path.join(self.repo_path, self.board_filename)
         else:
             board_path = (
-                self.prjctPath + "/" + self.kicad_project_path + "/" + self.prjctName
+                os.path.join(self.repo_path, self.kicad_project_dir, self.board_filename)
             )
-
-        board_path = board_path.replace("//", "/")
 
         self.board_path = self.builder.get_object("board_path")
         self.board_path["text"] = board_path
@@ -105,7 +103,7 @@ class KidiffApp:
     def update_commit2(self, event):
         self.commit2 = self.listbox_2.get(self.listbox_2.curselection())
 
-    def fill_artifacts(self):
+    def fill_scm_artifacts(self):
 
         self.listbox_1 = self.builder.get_object("listbox_1")
         self.listbox_2 = self.builder.get_object("listbox_2")
@@ -113,8 +111,8 @@ class KidiffApp:
         self.listbox_1.bind("<<ListboxSelect>>", self.update_commit1)
         self.listbox_2.bind("<<ListboxSelect>>", self.update_commit2)
 
-        # Fill artifacts
-        for i, line in enumerate(self.artifacts):
+        # Fill scm_artifacts
+        for i, line in enumerate(self.scm_artifacts):
             self.listbox_1.insert(END, line)
             self.listbox_2.insert(END, line)
 
@@ -128,14 +126,14 @@ class KidiffApp:
                 )
 
         # Commit set on first commit by default
-        if len(self.artifacts) >= 1:
+        if len(self.scm_artifacts) >= 1:
 
             self.listbox_1.select_set(0)  # This only sets focus
             self.listbox_1.event_generate("<<ListboxSelect>>")
             self.commit1 = self.listbox_1.get(self.listbox_1.curselection())
 
             # Commit set on the second commit by default
-            if len(self.artifacts) >= 2:
+            if len(self.scm_artifacts) >= 2:
                 self.listbox_2.select_set(1)  # This only sets focus
                 self.listbox_2.event_generate("<<ListboxSelect>>")
                 self.commit2 = self.listbox_2.get(self.listbox_2.curselection())
@@ -152,8 +150,8 @@ class KidiffApp:
         self.main_window.mainloop()
 
 
-def runGUI(artifacts, prjctName, kicad_project_path, prjctPath, scm):
+def runGUI(repo_path, kicad_project_dir, board_filename, scm, scm_artifacts):
 
-    app = KidiffApp(artifacts, prjctName, kicad_project_path, prjctPath, scm)
+    app = KidiffApp(repo_path, kicad_project_dir, board_filename, scm, scm_artifacts)
     app.run()
     return app.commit1, app.commit2
