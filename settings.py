@@ -59,12 +59,19 @@ def run_cmd(exec_path: str, cmd: List[str]) -> Tuple[str, str]:
     )
 
     stdout, stderr = p.communicate()
-    p.wait()
+    ret = p.wait()
 
     if verbose > 3:
         print(bcolors.OKCYAN + stdout + bcolors.ENDC)
 
-    if verbose > 1:
+    if verbose > 2:
         print(bcolors.FAIL + stderr + bcolors.ENDC)
+
+    if verbose > 1:
+        if ret == 0:
+            print(bcolors.OKGREEN + "Code:", str(ret) + bcolors.ENDC)
+        else:
+            print(bcolors.FAIL + "Code:", str(ret) + bcolors.ENDC)
+
 
     return stdout.strip("\n "), stderr
