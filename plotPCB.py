@@ -13,9 +13,8 @@ import shutil
 import platform
 
 if platform.system() == "Darwin":
-    sys.path.insert(
-        0, "/Applications/Kicad/kicad.app/Contents/Frameworks/python/site-packages/"
-    )
+    sys.path.insert(0, "/Applications/Kicad/kicad.app/Contents/Frameworks/python/site-packages/")
+    sys.path.insert(0, "/Applications/KiCad/kicad.app/Contents/Frameworks/python/site-packages/")
 
 import pcbnew as pn
 
