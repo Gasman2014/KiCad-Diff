@@ -10,7 +10,7 @@ from scms.generic import scm as generic_scm
 class scm(generic_scm):
 
     @staticmethod
-    def get_boards(repo_path, kicad_project_dir, board_filename, commit1, commit2):
+    def get_boards(kicad_pcb_path, repo_path, kicad_project_dir, board_filename, commit1, commit2):
         """Given two Fossil artifacts, write out two kicad_pcb files to their respective
         directories (named after the artifacts). Returns the date and time of both commits"""
 
@@ -76,7 +76,7 @@ class scm(generic_scm):
 
         else:
             artifact1 = board_filename
-            modTimesinceEpoc = os.path.getmtime(board_filename)
+            modTimesinceEpoc = os.path.getmtime(kicad_pcb_path)
             dateDiff1 = time.strftime("%Y-%m-%d", time.localtime(modTimesinceEpoc))
             timeDiff1 = time.strftime("%H:%M:%S", time.localtime(modTimesinceEpoc))
 
@@ -84,7 +84,7 @@ class scm(generic_scm):
             fossilDateTime2 = ["fossil", "info", artifact2]
         else:
             artifact2 = board_filename
-            modTimesinceEpoc = os.path.getmtime(board_filename)
+            modTimesinceEpoc = os.path.getmtime(kicad_pcb_path)
             dateDiff2 = time.strftime("%Y-%m-%d", time.localtime(modTimesinceEpoc))
             timeDiff2 = time.strftime("%H:%M:%S", time.localtime(modTimesinceEpoc))
 
@@ -109,7 +109,7 @@ class scm(generic_scm):
                 *junk1,
             ) = dateTime.split(" ")
         else:
-            shutil.copyfile(board_filename, os.path.join(outputDir1, board_filename))
+            shutil.copyfile(kicad_pcb_path, os.path.join(outputDir1, board_filename))
 
         if not commit2 == board_filename:
             stdout, stderr = settings.run_cmd(repo_path, fossilArtifact2)
@@ -132,7 +132,7 @@ class scm(generic_scm):
                 *junk2,
             ) = dateTime.split(" ")
         else:
-            shutil.copyfile(board_filename, os.path.join(outputDir2, board_filename))
+            shutil.copyfile(kicad_pcb_path, os.path.join(outputDir2, board_filename))
 
         dateTime = dateDiff1 + " " + timeDiff1 + " " + dateDiff2 + " " + timeDiff2
 

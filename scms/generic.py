@@ -6,7 +6,7 @@ import settings
 class scm:
 
     @staticmethod
-    def get_boards(repo_path, kicad_project_dir, board_filename, commit1, commit2):
+    def get_boards(kicad_pcb_path, repo_path, kicad_project_dir, board_filename, commit1, commit2):
         pass
 
     @staticmethod

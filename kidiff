@@ -63,14 +63,15 @@ def select_project_gui(display):
     )
 
     if selected:
-        repo_path, kicad_pcb = os.path.split(selected.name)
+        kicad_board_path = selected.name
+        repo_path, kicad_pcb = os.path.split(kicad_board_path)
     else:
         gui.destroy()
         exit()
 
     gui.destroy()
 
-    return (repo_path, kicad_pcb)
+    return (kicad_board_path, repo_path, kicad_pcb)
 
 
 def get_project_scms(repo_path):
@@ -104,7 +105,7 @@ def get_project_scms(repo_path):
     return scms
 
 
-def make_svg(repo_path, kicad_project_dir, board_filename, commit1, commit2):
+def make_svg(kicad_pcb_path, repo_path, kicad_project_dir, board_filename, commit1, commit2):
     """Hands off required .kicad_pcb files to "plotpcb"
     and generate .svg files. Routine is quick so all
     layers are plotted to svg."""
@@ -122,20 +123,16 @@ def make_svg(repo_path, kicad_project_dir, board_filename, commit1, commit2):
     commit1_output_path = os.path.join(settings.output_dir, commit1_hash)
     commit2_output_path = os.path.join(settings.output_dir, commit2_hash)
 
-    # Commit's board recovered from SCM history
-    commit1_board_path = os.path.join(commit1_output_path, board_filename)
-    commit2_board_path = os.path.join(commit2_output_path, board_filename)
-
     if not os.path.exists(commit1_output_path):
         os.makedirs(commit1_output_path)
 
     if not os.path.exists(commit2_output_path):
         os.makedirs(commit2_output_path)
 
-    plot1_cmd = [settings.plot_prog, commit1_board_path] #, "-o", commit1_output_path]
-    plot2_cmd = [settings.plot_prog, commit2_board_path] #, "-o", commit2_output_path]
+    plot1_cmd = [settings.plot_prog, board_filename]
+    plot2_cmd = [settings.plot_prog, board_filename]
 
-    stdout, stderr = settings.run_cmd(os.path.join(repo_path, kicad_project_dir), plot1_cmd)
+    stdout, stderr = settings.run_cmd(commit1_output_path, plot1_cmd)
     plot1_stdout = stdout.splitlines()
     plot1_stderr = stderr
 
@@ -144,7 +141,7 @@ def make_svg(repo_path, kicad_project_dir, board_filename, commit1, commit2):
         print("Plot1 error: " + plot1_stderr)
         exit(1)
 
-    stdout, stderr = settings.run_cmd(os.path.join(repo_path, kicad_project_dir), plot2_cmd)
+    stdout, stderr = settings.run_cmd(commit2_output_path, plot2_cmd)
     plot2_stdout = stdout.splitlines()
     plot2_stderr = stderr
 
@@ -168,9 +165,8 @@ def generate_assets(repo_path, kicad_project_dir, board_filename, output_dir1, o
     Setup web directories for output
     """
 
-    web_dir = os.path.join(
-        settings.output_dir, settings.web_dir
-    )
+    web_dir = os.path.join(settings.output_dir, settings.web_dir)
+
     web_index = os.path.join(web_dir + "/index.html")
     web_style = os.path.join(web_dir + "/style.css")
     web_favicon = os.path.join(web_dir + "/favicon.ico")
@@ -189,14 +185,8 @@ def generate_assets(repo_path, kicad_project_dir, board_filename, output_dir1, o
     if os.path.exists(web_index):
         os.remove(web_index)
 
-    # Generate blank images if there are layer changes between versions
-
-    source_dir1 = os.path.join(
-        settings.output_dir, output_dir1
-    )
-    source_dir2 = os.path.join(
-        settings.output_dir, output_dir2
-    )
+    source_dir1 = os.path.join(settings.output_dir, output_dir1)
+    source_dir2 = os.path.join(settings.output_dir, output_dir2)
 
     project_name, _ = os.path.splitext(board_filename)
     svg_files1 = sorted(fnmatch.filter(os.listdir(source_dir1), project_name + '-[0-9][0-9]-*.svg'))
@@ -350,29 +340,23 @@ def html_class_from_layer_id(layer_id):
     return class_name
 
 
-def assemble_html(repo_path, kicad_project_dir, board_filename, output_dir1, output_dir2, commit_datetimes):
+def assemble_html(kicad_pcb_path, repo_path, kicad_project_dir, board_filename, output_dir1, output_dir2, commit_datetimes):
     """Write out HTML using template. Iterate through files in diff directories, generating
     thumbnails and three way view (triptych) page.
     """
 
-    web_dir = os.path.join(
-        settings.output_dir, settings.web_dir
-    )
+    web_dir = os.path.join(settings.output_dir, settings.web_dir)
     web_index = os.path.join(web_dir, "index.html")
 
-    board1 = os.path.join(
-        settings.output_dir, output_dir1, board_filename
-    )
-    board2 = os.path.join(
-        settings.output_dir, output_dir2, board_filename
-    )
+    board1_path = os.path.join(settings.output_dir, output_dir1, board_filename)
+    board2_path = os.path.join(settings.output_dir, output_dir2, board_filename)
 
     main_html = open(web_index, "w")
 
     date1, time1, date2, time2 = commit_datetimes.replace('"', "").split(" ")
 
-    board1_info = getBoardData(board1)
-    board2_info = getBoardData(board2)
+    board1_info = getBoardData(board1_path)
+    board2_info = getBoardData(board2_path)
 
     board_title = board1_info.get("title")
     board_company = board1_info.get("company")
@@ -420,33 +404,20 @@ def assemble_html(repo_path, kicad_project_dir, board_filename, output_dir1, out
 
     main_html.write(index)
 
-    source_dir = os.path.join(
-        settings.output_dir, output_dir1
-    )
-    triptych_dir = os.path.join(
-        settings.output_dir, "web", "triptych"
-    )
+    source_dir = os.path.join(settings.output_dir, output_dir1)
+    triptych_dir = os.path.join(settings.output_dir, "web", "triptych")
 
     if not os.path.exists(triptych_dir):
         os.makedirs(triptych_dir)
 
-    diff1 = os.path.join(
-        settings.output_dir, output_dir1, board_filename
-    )
-    diff2 = os.path.join(
-        settings.output_dir, output_dir2, board_filename
-    )
-    output_file = os.path.join(
-        settings.output_dir, "diff.txt"
-    )
+    board1_path = os.path.join(output_dir1, board_filename)
+    board2_path = os.path.join(output_dir2, board_filename)
+    diff_path   = os.path.join(settings.output_dir, "diff.txt")
 
-    stdout, stderr = settings.run_cmd(repo_path, [settings.diffProg, diff2, diff1])
+    stdout, stderr = settings.run_cmd(settings.output_dir, [settings.diffProg, board2_path, board1_path])
 
-    with open(output_file, "a") as fout:
+    with open(diff_path, "a") as fout:
         fout.write(stdout)
-
-    diff_cmd2 = [settings.diffProg, "--suppress-common-lines", diff2, diff1]
-    stdout, stderr = settings.run_cmd(repo_path, diff_cmd2)
 
     project_name, _ = os.path.splitext(board_filename)
     svg_files = sorted(fnmatch.filter(os.listdir(source_dir), project_name + '-[0-9][0-9]-*.svg'))
@@ -457,9 +428,7 @@ def assemble_html(repo_path, kicad_project_dir, board_filename, output_dir1, out
         file_name, _ = os.path.splitext(os.fsdecode(f))
         layer_id = int(file_name.replace(project_name + "-", "")[0:2])
         layer_name = file_name.replace(project_name + "-", "")[3:]
-        layer_name_orig = layer_name.replace(
-            "_", "."
-        )  # not sure this is good and works all the time
+        layer_name_orig = layer_name.replace("_", ".")  # not sure this is good and works all the time
 
         triptych_html = file_name + ".html"
         triptych_html_path = os.path.join(triptych_dir, triptych_html)
@@ -740,9 +709,10 @@ if __name__ == "__main__":
         settings.verbose = args.verbose
 
     if args.kicad_pcb is None:
-        kicad_project_path, board_filename = select_project_gui(args.display)
+        kicad_pcb_path, kicad_project_path, board_filename = select_project_gui(args.display)
     else:
-        kicad_project_path = os.path.dirname(os.path.realpath(args.kicad_pcb))
+        kicad_pcb_path = os.path.realpath(args.kicad_pcb)
+        kicad_project_path = os.path.dirname(kicad_pcb_path)
         board_filename = os.path.basename(os.path.realpath(args.kicad_pcb))
 
         if not os.path.exists(args.kicad_pcb):
@@ -782,10 +752,11 @@ if __name__ == "__main__":
         else "(available: {})".format(", ".join(map(str, project_scms)))
     )
 
-    settings.output_dir = args.output_dir
+    settings.output_dir = os.path.realpath(args.output_dir)
 
     print("")
     print("      SCM Selected:", scm_name, avaialble_scms)
+    print("  Kicad Board Path:", kicad_pcb_path)
     print("Kicad Project Path:", kicad_project_path)
     print("         REPO Path:", repo_path)
     print(" Kicad Project Dir:", kicad_project_dir)
@@ -819,13 +790,13 @@ if __name__ == "__main__":
     print("Commit 1 (a):", commit1)
     print("Commit 2 (b):", commit2)
 
-    commit1, commit2, commit_datetimes = scm.get_boards(repo_path, kicad_project_dir, board_filename, commit1, commit2)
+    commit1, commit2, commit_datetimes = scm.get_boards(kicad_pcb_path, repo_path, kicad_project_dir, board_filename, commit1, commit2)
 
-    output_dir1, output_dir2 = make_svg(repo_path, kicad_project_dir, board_filename, commit1, commit2)
+    output_dir1, output_dir2 = make_svg(kicad_pcb_path, repo_path, kicad_project_dir, board_filename, commit1, commit2)
 
     generate_assets(repo_path, kicad_project_dir, board_filename, output_dir1, output_dir2)
 
-    assemble_html(repo_path, kicad_project_dir, board_filename, output_dir1, output_dir2, commit_datetimes)
+    assemble_html(kicad_pcb_path, repo_path, kicad_project_dir, board_filename, output_dir1, output_dir2, commit_datetimes)
 
     if not args.webserver_disable:
         start_web_server(args.port, kicad_project_dir)

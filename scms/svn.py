@@ -11,7 +11,7 @@ from dateutil.parser import isoparse
 class scm(generic_scm):
 
     @staticmethod
-    def get_boards(repo_path, kicad_project_dir, board_filename, commit1, commit2):
+    def get_boards(kicad_pcb_path, repo_path, kicad_project_dir, board_filename, commit1, commit2):
         """Given two SVN revisions, write out two kicad_pcb files to their respective
         directories (named after the revision number). Returns the date and time of both commits"""
 
@@ -72,14 +72,14 @@ class scm(generic_scm):
             with open(os.path.join(outputDir1, board_filename), "w") as fout1:
                 fout1.write(stdout)
         else:
-            shutil.copyfile(board_filename, os.path.join(outputDir1, board_filename))
+            shutil.copyfile(kicad_pcb_path, os.path.join(outputDir1, board_filename))
 
         if not commit2 == board_filename:
             stdout, stderr = settings.run_cmd(repo_path, svnArtifact2)
             with open(os.path.join(outputDir2, board_filename), "w") as fout2:
                 fout2.write(stdout)
         else:
-            shutil.copyfile(board_filename, os.path.join(outputDir2, board_filename))
+            shutil.copyfile(kicad_pcb_path, os.path.join(outputDir2, board_filename))
 
         if not commit1 == board_filename:
             svnDateTime1 = ["svn", "log", "-r", artifact1]
@@ -95,7 +95,7 @@ class scm(generic_scm):
             _, SVNdate1, SVNtime1, SVNutc, *_ = cmt[2].split(" ")
         else:
             artifact1 = board_filename
-            modTimesinceEpoc = os.path.getmtime(board_filename)
+            modTimesinceEpoc = os.path.getmtime(kicad_pcb_path)
             SVNdate1 = time.strftime("%Y-%m-%d", time.localtime(modTimesinceEpoc))
             SVNtime1 = time.strftime("%H:%M:%S", time.localtime(modTimesinceEpoc))
 
@@ -107,7 +107,7 @@ class scm(generic_scm):
             _, SVNdate2, SVNtime2, SVNutc, *_ = cmt[2].split(" ")
         else:
             artifact2 = board_filename
-            modTimesinceEpoc = os.path.getmtime(board_filename)
+            modTimesinceEpoc = os.path.getmtime(kicad_pcb_path)
             SVNdate2 = time.strftime("%Y-%m-%d", time.localtime(modTimesinceEpoc))
             SVNtime2 = time.strftime("%H:%M:%S", time.localtime(modTimesinceEpoc))
 

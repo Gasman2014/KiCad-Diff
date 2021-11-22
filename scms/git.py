@@ -9,7 +9,7 @@ from scms.generic import scm as generic_scm
 class scm(generic_scm):
 
     @staticmethod
-    def get_boards(repo_path, kicad_project_dir, board_filename, commit1, commit2):
+    def get_boards(kicad_pcb_path, repo_path, kicad_project_dir, board_filename, commit1, commit2):
         """Given two git artifacts, write out two kicad_pcb files to their respective
         directories (named after the artifact). Returns the date and time of both commits"""
 
@@ -62,14 +62,14 @@ class scm(generic_scm):
             with open(os.path.join(outputDir1, board_filename), "w") as fout1:
                 fout1.write(stdout)
         else:
-            shutil.copyfile(board_filename, os.path.join(outputDir1, board_filename))
+            shutil.copyfile(kicad_pcb_path, os.path.join(outputDir1, board_filename))
 
         if not commit2 == board_filename:
             stdout, stderr = settings.run_cmd(repo_path, gitArtifact2)
             with open(os.path.join(outputDir2, board_filename), "w") as fout2:
                 fout2.write(stdout)
         else:
-            shutil.copyfile(board_filename, os.path.join(outputDir2, board_filename))
+            shutil.copyfile(kicad_pcb_path, os.path.join(outputDir2, board_filename))
 
         if not commit1 == board_filename:
             gitDateTime1 = ["git", "show", "-s", '--format="%ci"', artifact1]
@@ -84,7 +84,7 @@ class scm(generic_scm):
             time1 = date1 + " " + time1
         else:
             artifact1 = board_filename
-            modTimesinceEpoc = os.path.getmtime(board_filename)
+            modTimesinceEpoc = os.path.getmtime(kicad_pcb_path)
             time1 = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(modTimesinceEpoc))
 
         if not commit2 == board_filename:
@@ -94,7 +94,7 @@ class scm(generic_scm):
             time2 = date2 + " " + time2
         else:
             artifact2 = board_filename
-            modTimesinceEpoc = os.path.getmtime(board_filename)
+            modTimesinceEpoc = os.path.getmtime(kicad_pcb_path)
             time2 = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(modTimesinceEpoc))
 
         return artifact1, artifact2, time1 + " " + time2
