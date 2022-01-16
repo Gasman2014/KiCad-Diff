@@ -16,6 +16,7 @@ import shlex
 if platform.system() == "Darwin":
     sys.path.insert(0, "/Applications/Kicad/kicad.app/Contents/Frameworks/python/site-packages/")
     sys.path.insert(0, "/Applications/KiCad/kicad.app/Contents/Frameworks/python/site-packages/")
+    sys.path.insert(0, "/Applications/KiCad/KiCad.app/Contents/Frameworks/Python.framework/")
 
 import pcbnew as pn
 
