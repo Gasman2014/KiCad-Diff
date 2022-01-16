@@ -145,7 +145,7 @@ def make_svg(kicad_pcb_path, repo_path, kicad_project_dir, board_filename, commi
     if plot1_stderr != "":
         print(stdout)
         print("Plot1 error: " + plot1_stderr)
-        exit(1)
+        #exit(1)
 
     stdout, stderr = settings.run_cmd(commit2_output_path, plot2_cmd)
     plot2_stdout = stdout.splitlines()
@@ -154,7 +154,7 @@ def make_svg(kicad_pcb_path, repo_path, kicad_project_dir, board_filename, commi
     if plot2_stderr != "":
         print(stdout)
         print("Plot2 error: " + plot2_stderr)
-        exit(1)
+        #exit(1)
 
     if not plot1_stdout or not plot2_stdout:
         print("ERROR: Something happened with plotpcb")
