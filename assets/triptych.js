@@ -115,7 +115,7 @@ window.onkeydown = function(e)
 
     if (keysDown.h || keysDown.H || e.which === 32) {
         keysDown = {};
-        document.location.href = "{homepage}";
+        document.location.href = homepage;
     }
 
     if (keysDown.f || keysDown.F) {
