@@ -260,14 +260,24 @@ a:hover {
 .F_SilkS   { filter: invert(25%) sepia(79%) saturate(2231%) hue-rotate(161deg) brightness(100%) contrast(101%); }   /* #008484*/
 .B_Mask    { filter: invert(76%) sepia(57%) saturate(7473%) hue-rotate(36deg)  brightness(87%)  contrast(104%); }   /* #848400*/
 .F_Mask    { filter: invert(15%) sepia(88%) saturate(3853%) hue-rotate(291deg) brightness(71%)  contrast(114%); }   /* #840084*/
-.Dwgs_User { filter: invert(67%) sepia(93%) saturate(0%)    hue-rotate(282deg) brightness(97%)  contrast(92%);  }   /* #c2c2c2*/
+.Dwgs_User { filter: invert(67%) sepia(93%) saturate(0%)    hue-rotate(282deg) brightness(97%)   contrast(92%); }   /* #c2c2c2*/
 .Cmts_User { filter: invert(14%) sepia(32%) saturate(6064%) hue-rotate(204deg) brightness(152%) contrast(106%); }   /* #003784*/
 .Eco1_User { filter: invert(28%) sepia(88%) saturate(6574%) hue-rotate(126deg) brightness(96%)  contrast(101%); }   /* #008400*/
 .Eco2_User { filter: invert(82%) sepia(23%) saturate(5502%) hue-rotate(15deg)  brightness(95%)  contrast(102%); }   /* #c2c200*/
 .Edge_Cuts { filter: invert(82%) sepia(23%) saturate(5502%) hue-rotate(15deg)  brightness(95%)  contrast(102%); }   /* #c2c200*/
 .Margin    { filter: invert(26%) sepia(82%) saturate(7438%) hue-rotate(293deg) brightness(87%)  contrast(117%); }   /* #c200c2*/
 .B_CrtYd   { filter: invert(61%) sepia(0%)  saturate(63%)   hue-rotate(180deg) brightness(186%)  contrast(89%); }   /* #848484*/
-.F_CrtYd   { filter: invert(67%) sepia(93%) saturate(0%)    hue-rotate(282deg) brightness(97%)  contrast(92%);  }   /* #c2c2c2*/
+.F_CrtYd   { filter: invert(67%) sepia(93%) saturate(0%)    hue-rotate(282deg) brightness(97%)   contrast(92%); }   /* #c2c2c2*/
 .B_Fab     { filter: invert(10%) sepia(99%) saturate(6679%) hue-rotate(246deg) brightness(77%)  contrast(147%); }   /* #0000e6*/
 .F_Fab     { filter: invert(61%) sepia(0%)  saturate(63%)   hue-rotate(180deg) brightness(186%)  contrast(89%); }   /* #848484*/
-.User      { filter: invert(79%) sepia(92%) saturate(322%)  hue-rotate(3deg)   brightness(89%)  contrast(92%);  }   /* #0000e6*/
+.User      { filter: invert(79%) sepia(92%) saturate(322%)  hue-rotate(3deg)   brightness(89%)   contrast(92%); }   /* #0000e6*/
+
+
+table {
+    border-collapse: collapse;
+}
+
+th, td {
+    padding: 3px;
+    border: 1px solid #555555;
+}

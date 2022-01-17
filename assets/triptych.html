@@ -1,0 +1,126 @@
+<!DOCTYPE HTML>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <link rel="icon" href="http://127.0.0.1:9092/favicon.ico" type="image/x-icon" />
+    <link rel="shortcut icon" href="../favicon.ico" type="image/x-icon" />
+    <script integrity="" src="https://code.jquery.com/jquery-3.5.0.js"></script>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+    <script integrity="" src="https://code.iconify.design/1/1.0.7/iconify.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="../style.css" media="screen" />
+    <script src="https://cdn.jsdelivr.net/npm/svg-pan-zoom@3.6.1/dist/svg-pan-zoom.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="triptych.css" media="screen" />
+    <title>{board_title} - {layer_name}</title>
+    <script>
+        var previous_page = "{previous_page}";
+        var next_page = "{next_page}";
+    </script>
+</head>
+<body>
+    <div id="compo-container" style="width: 100%; height: 600px; position: relative;">
+        <div style="position: absolute; width: 100%; height: inherit;">
+            <svg id="svg-compo-diff" xmlns="http://www.w3.org/2000/svg" style="display: inline; width: inherit; min-width: inherit; max-width: inherit; height: inherit; min-height: inherit; max-height: inherit;" version="1.1">
+                <g>
+                    <svg id="compo1">
+                        <defs>
+                        <filter id="f1">
+                        <feColorMatrix id="c1" type="matrix"
+                        values="1   0   0   0   0
+                        0   1   0   1   0
+                        0   0   1   1   0
+                        0   0   0   1   0" />
+                        </filter>
+                        </defs>
+                        <image x="0" y="0" height="100%" width="100%" filter="url(#f1)" xlink:href="../../{hash1}/{filename_svg}" />
+                    </svg>
+                    <svg id="compo2">
+                        <defs>
+                        <filter id="f2">
+                        <feColorMatrix id="c2" type="matrix"
+                        values="1   0   0   1   0
+                        0   1   0   0   0
+                        0   0   1   0   0
+                        0   0   0  .5   0" />
+                        </filter>
+                        </defs>
+                        <image x="0" y="0" height="100%" width="100%" filter="url(#f2)" xlink:href="../../{hash2}/{filename_svg}" />
+                    </svg>
+                </g>
+            </svg>
+        </div>
+        <div style="background: rgba(255, 0, 0, 0.0); z-index: 10; position: absolute; margin-top: 10px">
+            <span class="title">{board_title}</span><br>
+            <span class="subtitle">{index}. {layer_name}</span>
+        </div>
+        <div class="diff-controls" style="background: rgba(255, 0, 0, 0.0); z-index: 10; position: absolute; top:10px; right: 0px; padding-right: 10px">
+            <button title="Zoom In" class="btn btn-dark" id="diff-zoom-in">
+            <span class="iconify" style="width: 18px; height: 18px;" data-icon="akar-icons:zoom-in" data-inline="false"></span>
+            </button>
+            <button title="Zoom Out" class="btn btn-dark" id="diff-zoom-out">
+            <span class="iconify" style="width: 18px; height: 18px;" data-icon="akar-icons:zoom-out" data-inline="false"></span>
+            </button>
+            <button title="Reset Zoom (f)" class="btn btn-dark" id="diff-reset">
+            <span class="iconify" style="width: 18px; height: 18px;" data-icon="carbon:center-to-fit" data-inline="false"></span>
+            </button>
+            <span style='color:red;margin-right:0.1em; display:inline-block;'>&nbsp;</span>
+            <button title="Previows Layer (&#8592;)" class="btn btn-dark" id="previows-layer" onClick="document.location.href = '{previous_page}'">
+            <span class="iconify" style="width: 18px; height: 18px;" data-icon="bi:arrow-left-short" data-inline="false"></span>
+            </button>
+            <button title="Next Layer (&#8594;)" class="btn btn-dark" id="next-layer" onClick="document.location.href = '{next_page}'">
+            <span class="iconify" style="width: 18px; height: 18px;" data-icon="bi:arrow-right-short" data-inline="false"></span>
+            </button>
+            <span style='color:red;margin-right:0.1em; display:inline-block;'>&nbsp;</span>
+            <button title="Home (h)" class="btn btn-dark" id="home" onClick="document.location.href = '{homepage}'">
+            <span class="iconify" style="width: 18px; height: 18px;" data-icon="ci:home-alt-outline" data-inline="false"></span>
+            </button>
+        </div>
+    </div>
+    <div id="sbs-container" style="position:relative; width: 100%; background-color: #222; text-align: center; display: flex;">
+        <div id="image1-container" style="border: 1px solid #555; width: 50%; height: 250px">
+            <div style="background: rgba(255, 0, 0, 0.0); z-index: 10; position: absolute; padding-left: 10px" class="subtitle">{hash1}</div>
+            <div style="width: 100%; height: 250px">
+                <svg id="svg-img1-id" xmlns="http://www.w3.org/2000/svg"
+                    style="display: inline; width: 100%; min-width: 100%; max-width: 100%; height: 100%; min-height: 100%; max-height: 100%;"
+                    version="1.1" class="{layer_class}">
+                    <svg id="hash1_image">
+                        <image x="0" y="0" height="100%" width="100%" xlink:href="../../{hash1}/{filename_svg}"/>
+                    </svg>
+                </svg>
+                <div class="hash1-controls" style="background: rgba(255, 0, 0, 0.0); z-index: 10; position: absolute; top:10px; right: 50%; padding-right: 10px">
+                    <button class="btn btn-dark" id="hash1-zoom-in">
+                    <span class="iconify" style="width: 18px; height: 18px;" data-icon="akar-icons:zoom-in" data-inline="false"></span>
+                    </button>
+                    <button class="btn btn-dark" id="hash1-zoom-out">
+                    <span class="iconify" style="width: 18px; height: 18px;" data-icon="akar-icons:zoom-out" data-inline="false"></span>
+                    </button>
+                    <button class="btn btn-dark" id="hash1-reset">
+                    <span class="iconify" style="width: 18px; height: 18px;" data-icon="carbon:center-to-fit" data-inline="false"></span>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div id="image2-container" style="border: 1px solid #555; width: 50%; height: 250px">
+            <div style="background: rgba(255, 0, 0, 0.0); z-index: 10; position: absolute; padding-left: 10px" class="subtitle">{hash2}</div>
+            <div style="width: 100%; height: 250px">
+                <svg id="svg-img2-id" xmlns="http://www.w3.org/2000/svg" style="display: inline; width: 100%; min-width: 100%; max-width: 100%;
+                    height: 100%; min-height: 100%; max-height: 100%;"
+                    version="1.1"  class="{layer_class}">
+                    <svg id="hash2_image">
+                        <image x="0" y="0" height="100%" width="100%" xlink:href="../../{hash2}/{filename_svg}"/>
+                    </svg>
+                </svg>
+            </div>
+            <div class="hash2-controls" style="background: rgba(255, 0, 0, 0.0); z-index: 10; position: absolute; top:10px; right: 0px; padding-right: 10px">
+                <button class="btn btn-dark" id="hash2-zoom-in">
+                <span class="iconify" style="width: 18px; height: 18px;" data-icon="akar-icons:zoom-in" data-inline="false"></span>
+                </button>
+                <button class="btn btn-dark" id="hash2-zoom-out">
+                <span class="iconify" style="width: 18px; height: 18px;" data-icon="akar-icons:zoom-out" data-inline="false"></span>
+                </button>
+                <button class="btn btn-dark" id="hash2-reset">
+                <span class="iconify" style="width: 18px; height: 18px;" data-icon="carbon:center-to-fit" data-inline="false"></span>
+                </button>
+            </div>
+        </div>
+    </div>

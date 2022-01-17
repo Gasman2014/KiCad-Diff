@@ -1,0 +1,15 @@
+
+div.responsive {
+    padding: 0 6px;
+    float: left;
+    width: 49.99%;
+}
+
+table {
+    border-collapse: collapse;
+}
+
+th, td {
+    padding: 3px;
+    border: 1px solid #555555;
+}

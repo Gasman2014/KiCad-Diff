@@ -172,9 +172,11 @@ def generate_assets(repo_path, kicad_project_dir, board_filename, output_dir1, o
     """
 
     web_dir = os.path.join(settings.output_dir, settings.web_dir)
+    triptych_dir = os.path.join(settings.output_dir, settings.web_dir + "/triptych/")
 
     web_index = os.path.join(web_dir + "/index.html")
     web_style = os.path.join(web_dir + "/style.css")
+    triptych_style = os.path.join(triptych_dir + "triptych.css")
     web_favicon = os.path.join(web_dir + "/favicon.ico")
     blank_svg = os.path.join(assets_folder + "/blank.svg")
 
@@ -182,8 +184,11 @@ def generate_assets(repo_path, kicad_project_dir, board_filename, output_dir1, o
         os.makedirs(web_dir)
         os.makedirs(os.path.join(web_dir, "triptych"))
 
-    stylesheet = os.path.join(assets_folder, "style.css")
-    shutil.copyfile(stylesheet, web_style)
+    mainpage_css = os.path.join(assets_folder, "style.css")
+    shutil.copyfile(mainpage_css, web_style)
+
+    triptych_css = os.path.join(assets_folder, "triptych.css")
+    shutil.copyfile(triptych_css, triptych_style)
 
     favicon = os.path.join(assets_folder, "favicon.ico")
     shutil.copyfile(favicon, web_favicon)
@@ -357,7 +362,7 @@ def assemble_html(kicad_pcb_path, repo_path, kicad_project_dir, board_filename, 
     board1_path = os.path.join(settings.output_dir, output_dir1, board_filename)
     board2_path = os.path.join(settings.output_dir, output_dir2, board_filename)
 
-    main_html = open(web_index, "w")
+    index_html = open(web_index, "w")
 
     date1, time1, date2, time2 = commit_datetimes.replace('"', "").split(" ")
 
@@ -385,7 +390,7 @@ def assemble_html(kicad_pcb_path, repo_path, kicad_project_dir, board_filename, 
     modules2 = board2_info.get("modules")
     nets2 = board2_info.get("nets")
 
-    index = custom_page.indexHead.format(
+    index_header = custom_page.index_header.format(
         board_title=board_title,
         board_company=board_company,
         date1=date1,
@@ -408,7 +413,7 @@ def assemble_html(kicad_pcb_path, repo_path, kicad_project_dir, board_filename, 
         nets2=nets2,
     )
 
-    main_html.write(index)
+    index_html.write(index_header)
 
     source_dir = os.path.join(settings.output_dir, output_dir1)
     triptych_dir = os.path.join(settings.output_dir, "web", "triptych")
@@ -439,7 +444,7 @@ def assemble_html(kicad_pcb_path, repo_path, kicad_project_dir, board_filename, 
         triptych_html = file_name + ".html"
         triptych_html_path = os.path.join(triptych_dir, triptych_html)
 
-        out_html = custom_page.outfile.format(
+        index_gallery_item = custom_page.index_gallery_item.format(
             hash1=output_dir1,
             hash2=output_dir2,
             layer_name=layer_name,
@@ -449,7 +454,7 @@ def assemble_html(kicad_pcb_path, repo_path, kicad_project_dir, board_filename, 
             index=i+1,
         )
 
-        main_html.write(out_html)
+        index_html.write(index_gallery_item)
 
         with open(triptych_html_path, "w") as triptych_out_html:
 
@@ -458,7 +463,7 @@ def assemble_html(kicad_pcb_path, repo_path, kicad_project_dir, board_filename, 
             else:
                 n = i+1
 
-            t_out = custom_page.triptychHTML.format(
+            triptych_data = custom_page.triptych_html.format(
                 hash1=output_dir1,
                 hash2=output_dir2,
                 layer_name=layer_name,
@@ -467,11 +472,11 @@ def assemble_html(kicad_pcb_path, repo_path, kicad_project_dir, board_filename, 
                 previous_page=triptych_htmls[i-1],
                 next_page=triptych_htmls[n],
                 index=i+1,
-                homebase= "web/",
+                homepage="../../../web/",
                 board_title=board_title,
             )
 
-            triptych_out_html.write(t_out)
+            triptych_out_html.write(triptych_data)
 
             out_html = "\n".join(
                 re.sub("status [1-9][0-9]", "", line)
@@ -480,11 +485,11 @@ def assemble_html(kicad_pcb_path, repo_path, kicad_project_dir, board_filename, 
             )
 
             processed = process_diff(out_html, layer_name_orig)
-            processed += custom_page.twopane
+            processed += custom_page.triptych_footer
 
             triptych_out_html.write(processed)
 
-    main_html.write(custom_page.tail)
+    index_html.write(custom_page.index_footer)
 
 
 def process_diff(diff_text, mod):
@@ -554,13 +559,13 @@ def process_diff(diff_text, mod):
     tsl = """
         <div class='responsive'>
             <div class = 'tbl'>
-                <table style="border-color: #555555; width: 100%; height: 2px;" border="2px" cellspacing="2px" cellpadding="3px">
+                <table style="border: 2px solid #555; width: 100%; height: 2px;">
     """
 
     tsr = """
         <div class='responsive'>
             <div class = 'tbr'>
-                <table style="border-color: #555555; width: 100%; height: 2px;" border="2px" cellspacing="2px" cellpadding="3px">
+                <table style="border: 2px solid #555; width: 100%; height: 2px;">
     """
 
     clearfix = """
@@ -570,14 +575,14 @@ def process_diff(diff_text, mod):
 
     for indx, layer_info in enumerate(keywords):
 
-        combined = tbL = tbR = ""
-
+        combined = tbL = tbR = "<tr>"
         for indx2, parameter in enumerate(layer_info[2]):
             tbR = tbR + "<th>" + parameter + "</th>\n"
             tbL = tbL + "<th>" + parameter + "</th>\n"
+        tbR = tbR + "</tr>"
+        tbL = tbL + "</tr>"
 
         for line in diff_text.splitlines():
-
             if re.search(layer_info[0], line) and (mod in line):
                 output = re.sub(layer_info[0], "", line)
                 output = output.replace("(layer " + mod + ")", "")
@@ -595,16 +600,17 @@ def process_diff(diff_text, mod):
 
                 if output[0] == ">":
                     tbL = tbL + "<tr>" + output[1:]
-
                 elif output[0] == "<":
                     tbR = tbR + "<tr>" + output[1:]
 
         combined = (
             tsl + tbL + "</table></div></div>\n" + tsr + tbR + "</table></div></div>\n"
         )
+
         content = top1.format(
             tabn=indx, content=combined, label=layer_info[1], checked=checked
         )
+
         checked = ""
 
         final = final + content
