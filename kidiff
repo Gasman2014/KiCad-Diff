@@ -704,6 +704,9 @@ def parse_cli_args():
     parser.add_argument(
         "-x", "--optimize-svg", action="store_true", help="Optimize generated svg files"
     )
+    parser.add_argument(
+        "-l", "--list-commits", action="store_true", help="List commits and exit"
+    )
 
     args = parser.parse_args()
 
@@ -780,12 +783,15 @@ if __name__ == "__main__":
 
     scm_artifacts = scm.get_artefacts(repo_path, kicad_project_dir, board_filename)
 
-    if args.verbose >= 1:
+    if args.verbose >= 1 or args.list_commits:
         print("")
-        print("Commits list")
+        print("COMMITS LIST")
         for artifact in scm_artifacts:
             if artifact != " ":
                 print(artifact)
+
+    if args.list_commits:
+        exit(1)
 
     if args.commit1_hash is None or args.commit2_hash is None:
 
