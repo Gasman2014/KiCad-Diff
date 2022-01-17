@@ -542,7 +542,7 @@ def process_diff(diff_text, mod):
     combined = ""
     tbL = ""
     tbR = ""
-    checked = "checked"
+    checked = "checked='checked'"
 
     top1 = """
         <input name='tabbed' id='tabbed{tabn}' type='radio' {checked}/>

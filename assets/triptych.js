@@ -127,8 +127,38 @@ window.onkeydown = function(e)
         pan_zoom_hash2.resetZoom();
         pan_zoom_hash2.center();
     }
-};
 
+    if (keysDown.ArrowUp)
+    {
+        keysDown = {};
+
+        tabs = $("input:radio[name='tabbed']");
+        selected_tab = tabs.index(tabs.filter(':checked'));
+
+        new_index = selected_tab + 1;
+        if (new_index >= tabs.length) {
+            new_index = 0;
+        }
+
+        tabs[new_index].checked = true;
+    }
+
+    if (keysDown.ArrowDown)
+    {
+        keysDown = {};
+
+        tabs = $("input:radio[name='tabbed']");
+        selected_tab = tabs.index(tabs.filter(':checked'));
+
+        new_index = selected_tab - 1;
+        if (new_index < 0) {
+            new_index = tabs.length-1;
+        }
+
+        tabs[new_index].checked = true;
+    }
+
+};
 
 window.onload = function()
 {

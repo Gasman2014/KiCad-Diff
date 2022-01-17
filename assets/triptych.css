@@ -1,9 +1,284 @@
 
-div.responsive {
+html {
+    background-color: #222;
+    color: #e2e3e3;
+    margin: 1em;
+}
+
+body {
+    background-color: #2c3031;
+    margin: 0 auto;
+    max-width: 45cm;
+    border: 1pt solid #586e75;
+    padding: 0.5em;
+}
+
+table {
+    border-collapse: collapse;
+    border-spacing: 0;
+    border-color: #555;
+    width: 100%;
+    height: 2px;
+    border: 1px
+}
+
+.tabbed {
+    float: left;
+    width: 100%;
+    padding: 0 6px;
+}
+
+.tabbed>input {
+    display: none;
+}
+
+.tabbed>section>h1 {
+    font: 14px arial, sans-serif;
+    float: left;
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0.5em 0.1em 0;
+    overflow: hidden;
+    font-size: 1em;
+    font-weight: normal;
+}
+
+.tabbed>input:first-child+section>h1 {
+    padding-left: 1em;
+}
+
+.tabbed>section>h1>label {
+    font: 14px arial, sans-serif;
+    display: block;
+    padding: 0.25em 0.75em;
+    border: 1px solid #555;
+    border-bottom: none;
+    border-top-left-radius: 4px;
+    border-top-right-radius: 4px;
+    box-shadow: none;
+    background: rgb(50, 50, 50);
+    cursor: pointer;
+}
+
+.tabbed>section>div {
+    position: relative;
+    z-index: 1;
+    float: right;
+    box-sizing: border-box;
+    width: 100%;
+    margin: 1.95em 0 0 -100%;
+    padding: 0.25em 0.75em;
+    border: 1px solid #555;
+    box-shadow: none;
+    background: rgba(70, 67, 67, 0.185);
+}
+
+.tabbed>input:checked+section>h1 {
+    position: relative;
+    z-index: 2;
+    border-bottom: none;
+}
+
+.tabbed>input:not(:checked)+section>div {
+    display: none;
+}
+
+.tabbed>input:checked+section>h1>label {
+    background: #555;
+}
+
+.tabbed>input:not(:checked)+section>h1>label {
+    background: #222;
+}
+
+a:active,
+a:hover {
+    outline: 0;
+}
+
+.gallery {
+    border: 1px solid #555;
+    background-color: #222;
+    padding: 5px;
+    vertical-align: middle;
+}
+
+.gallery:hover {
+    border: 1px solid #cccccc;
+}
+
+.gallery img {
+    width: 100%;
+    height: auto;
+}
+
+.title {
+    padding-top: 5px;
+    padding-left: 5px;
+    text-align: left;
+    font: 20px arial, sans-serif;
+    color: #dddddd;
+}
+
+.desc {
+    padding: 10px;
+    text-align: center;
+    font: 12px arial, sans-serif;
+}
+
+.subtitle {
+    padding-top: 10px;
+    padding-left: 5px;
+    text-align: left;
+    font: 14px arial, sans-serif;
+    color: #dddddd;
+}
+
+.details {
+    padding-left: 10px;
+    text-align: left;
+    font: 20px arial, sans-serif;
+    color: #dddddd;
+}
+
+.details,
+.versions {
+    padding: 5px;
+    font: 12px arial, sans-serif;
+    padding-bottom: 5px;
+}
+
+
+.differences {
+    font: 12px courier, monospace;
+    padding: 5px;
+}
+
+* {
+    box-sizing: border-box;
+    color: #ddd;
+}
+
+.responsive {
     padding: 0 6px;
     float: left;
-    width: 49.99%;
+    width: 19.99999%;
+    margin: 6px 0;
 }
+
+@media only screen and (max-width:700px) {
+    .responsive {
+        width: 49.98%;
+        margin: 6px 0;
+    }
+}
+
+@media only screen and (max-width:500px) {
+    .responsive {
+        width: 100%;
+        margin: 6px 0;
+    }
+}
+
+.responsivefull {
+    padding: 0 6px;
+    width: 100%;
+    margin: 3px 0;
+}
+
+.clearfix:after {
+    content: "";
+    display: table;
+    clear: both;
+}
+
+.box {
+    float: left;
+    width: 20px;
+    height: 20px;
+    margin: 5px;
+    border: 1px solid rgba(0, 0, 0, .2);
+}
+
+.red {
+    background: #961818;
+}
+
+.green {
+    background: #44808aa8;
+}
+
+.added {
+    color: #5eb6c4;
+    text-align: left;
+}
+
+.removed {
+    color: #ba312d;
+    text-align: right;
+}
+
+.tbr td {
+    color:#ba312d;
+    padding: 10px;
+    font: 12px arial,sans-serif;
+    padding-bottom: 5px;
+}
+
+.tbl td {
+    color: #5eb6c4;
+    padding: 10px;
+    font: 12px arial, sans-serif;
+    padding-bottom: 5px;
+}
+
+.tbr th {
+    text-align: left;
+    background: #832320;
+    padding: 10px;
+    font: 12px arial, sans-serif;
+    font-weight: bold;
+    padding-bottom: 5px;
+}
+
+.tbl th {
+    text-align: left;
+    background: #44808aa8;
+    padding: 10px;
+    font: 12px arial, sans-serif;
+    font-weight: bold;
+    padding-bottom: 5px;
+}
+
+.F_Cu      { filter: invert(9%)  sepia(62%) saturate(7115%) hue-rotate(359deg) brightness(85%)  contrast(110%); }   /* #840000*/
+.In1_Cu    { filter: invert(82%) sepia(23%) saturate(5502%) hue-rotate(15deg)  brightness(95%)  contrast(102%); }   /* #c2c200*/
+.In2_Cu    { filter: invert(26%) sepia(82%) saturate(7438%) hue-rotate(293deg) brightness(87%)  contrast(117%); }   /* #c200c2*/
+.In3_Cu    { filter: invert(17%) sepia(36%) saturate(6242%) hue-rotate(350deg) brightness(96%)  contrast(128%); }   /* #c20000*/
+.In4_Cu    { filter: invert(25%) sepia(79%) saturate(2231%) hue-rotate(161deg) brightness(100%) contrast(101%); }   /* #008484*/
+.In5_Cu    { filter: invert(28%) sepia(88%) saturate(6574%) hue-rotate(126deg) brightness(96%)  contrast(101%); }   /* #008400*/
+.In6_Cu    { filter: invert(8%)  sepia(97%) saturate(3557%) hue-rotate(236deg) brightness(150%) contrast(126%); }   /* #000084*/
+.In7_Cu    { filter: invert(61%) sepia(0%)  saturate(63%)   hue-rotate(180deg) brightness(186%)  contrast(89%); }   /* #848484*/
+.In8_Cu    { filter: invert(15%) sepia(88%) saturate(3853%) hue-rotate(291deg) brightness(71%)  contrast(114%); }   /* #840084*/
+.B_Cu      { filter: invert(28%) sepia(88%) saturate(6574%) hue-rotate(126deg) brightness(96%)  contrast(101%); }   /* #008400*/
+.B_Adhes   { filter: invert(8%)  sepia(97%) saturate(3557%) hue-rotate(236deg) brightness(150%) contrast(126%); }   /* #000084*/
+.F_Adhes   { filter: invert(15%) sepia(88%) saturate(3853%) hue-rotate(291deg) brightness(71%)  contrast(114%); }   /* #840084*/
+.B_Paste   { filter: invert(63%) sepia(46%) saturate(6432%) hue-rotate(145deg) brightness(104%) contrast(100%); }   /* #00c2c2*/
+.F_Paste   { filter: invert(9%)  sepia(62%) saturate(7115%) hue-rotate(359deg) brightness(85%)  contrast(110%); }   /* #840000*/
+.B_SilkS   { filter: invert(15%) sepia(88%) saturate(3853%) hue-rotate(291deg) brightness(71%)  contrast(114%); }   /* #840084*/
+.F_SilkS   { filter: invert(25%) sepia(79%) saturate(2231%) hue-rotate(161deg) brightness(100%) contrast(101%); }   /* #008484*/
+.B_Mask    { filter: invert(76%) sepia(57%) saturate(7473%) hue-rotate(36deg)  brightness(87%)  contrast(104%); }   /* #848400*/
+.F_Mask    { filter: invert(15%) sepia(88%) saturate(3853%) hue-rotate(291deg) brightness(71%)  contrast(114%); }   /* #840084*/
+.Dwgs_User { filter: invert(67%) sepia(93%) saturate(0%)    hue-rotate(282deg) brightness(97%)   contrast(92%); }   /* #c2c2c2*/
+.Cmts_User { filter: invert(14%) sepia(32%) saturate(6064%) hue-rotate(204deg) brightness(152%) contrast(106%); }   /* #003784*/
+.Eco1_User { filter: invert(28%) sepia(88%) saturate(6574%) hue-rotate(126deg) brightness(96%)  contrast(101%); }   /* #008400*/
+.Eco2_User { filter: invert(82%) sepia(23%) saturate(5502%) hue-rotate(15deg)  brightness(95%)  contrast(102%); }   /* #c2c200*/
+.Edge_Cuts { filter: invert(82%) sepia(23%) saturate(5502%) hue-rotate(15deg)  brightness(95%)  contrast(102%); }   /* #c2c200*/
+.Margin    { filter: invert(26%) sepia(82%) saturate(7438%) hue-rotate(293deg) brightness(87%)  contrast(117%); }   /* #c200c2*/
+.B_CrtYd   { filter: invert(61%) sepia(0%)  saturate(63%)   hue-rotate(180deg) brightness(186%)  contrast(89%); }   /* #848484*/
+.F_CrtYd   { filter: invert(67%) sepia(93%) saturate(0%)    hue-rotate(282deg) brightness(97%)   contrast(92%); }   /* #c2c2c2*/
+.B_Fab     { filter: invert(10%) sepia(99%) saturate(6679%) hue-rotate(246deg) brightness(77%)  contrast(147%); }   /* #0000e6*/
+.F_Fab     { filter: invert(61%) sepia(0%)  saturate(63%)   hue-rotate(180deg) brightness(186%)  contrast(89%); }   /* #848484*/
+.User      { filter: invert(79%) sepia(92%) saturate(322%)  hue-rotate(3deg)   brightness(89%)   contrast(92%); }   /* #0000e6*/
 
 table {
     border-collapse: collapse;
@@ -11,5 +286,11 @@ table {
 
 th, td {
     padding: 3px;
-    border: 1px solid #555555;
+    border: 1px solid #555;
+}
+
+div.responsive {
+    padding: 0 6px;
+    float: left;
+    width: 49.99%;
 }
