@@ -1,0 +1,35 @@
+{
+  "$schema": "https://go.kicad.org/pcm/schemas/v1",
+  "name": "KiCad Diff",
+  "description": "Kicad PCB Visual Diff.",
+  "description_full": "Visual diff for Kicad layouts for projects versioned with Git, SVN or Fossil",
+  "identifier": "com.github.Gasman2014.KiCad-Diff",
+  "type": "plugin",
+  "author": {
+    "name": "John (Gasman2014)",
+    "contact": {
+      "web": "https://github.com/Gasman2014"
+    }
+  },
+  "maintainer": {
+    "name": "Leandro Heck",
+    "contact": {
+      "web": "https://github.com/leoheck/kidiff"
+    }
+  },
+  "license": "MIT",
+  "resources": {
+    "homepage": "https://github.com/Gasman2014/KiCad-Diff"
+  },
+  "versions": [
+    {
+      "version": "1.0.0",
+      "status": "stable",
+      "kicad_version": "6.00",
+      "download_sha256": "a49d3341760128e6f588e858d06bbfc406dfc3f8e6d18abc138e1d80cc6149f2",
+      "download_size": 2318,
+      "download_url": "https://github.com/Gasman2014/KiCad-Diff/archive/refs/tags/1.0.0.zip",
+      "install_size": 7551
+    }
+  ]
+}
