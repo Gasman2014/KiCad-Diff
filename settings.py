@@ -26,7 +26,7 @@ svnProg = "svn"
 diffProg = "diff"
 grepProg = "grep"
 
-plot_prog = "plotpcb"
+plot_prog = "plot_kicad_pcb"
 
 web_dir = "web"
 
