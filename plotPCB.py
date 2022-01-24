@@ -38,6 +38,8 @@ def processBoard(board_path, plot_dir, quiet=1, verbose=0, plot_frame=0):
         print("> Changin path:", board_path)
 
     try:
+        # LoadBoard gives me this
+        # ../src/common/stdpbase.cpp(62): assert "traits" failed in Get(): create wxApp before calling this
         board = pn.LoadBoard(board_path)
     except:
         print("Wrong version of the API")
@@ -137,15 +139,15 @@ def processBoard(board_path, plot_dir, quiet=1, verbose=0, plot_frame=0):
         if pctl.OpenPlotfile(filename_sufix, pn.PLOT_FORMAT_SVG, layer_name):
             pctl.PlotLayer()
 
+        # Fix svg file on Kicad 6
         if (version_major > 5) or ((version_major == 5) and (version_minor == 99)):
-
             if os.path.exists(svg_path):
                 cmd = shlex.split("fix_svg_perl {}".format(svg_path))
                 process = subprocess.Popen(cmd)
                 stdout, stderr = process.communicate()
                 if process.returncode > 0:
+                    print(" ".join(cmd))
                     if stdout:
-                        print(" ".join(cmd))
                         print(stdout.decode('utf-8'))
                     if stderr:
                         print(stderr.decode('utf-8'))
