@@ -13,6 +13,8 @@ import platform
 import subprocess
 import shlex
 
+import time
+
 if platform.system() == "Darwin":
     sys.path.insert(0, "/Applications/Kicad/kicad.app/Contents/Frameworks/python/site-packages/")
     sys.path.insert(0, "/Applications/KiCad/kicad.app/Contents/Frameworks/python/site-packages/")
@@ -74,14 +76,14 @@ def processBoard(board_path, plot_dir, quiet=1, verbose=0, optimize_svg=0):
     popt.SetSubtractMaskFromSilk(False)
     popt.SetPlotReference(True)
     popt.SetPlotValue(True)
-    popt.SetPlotInvisibleText(True)
+    popt.SetPlotInvisibleText(False)
 
     # PcbNew >= 5.99
     if (version_major > 5) or ((version_major == 5) and (version_minor == 99)):
         print("Kicad v6")
-        popt.SetPlotFrameRef(True)
+        popt.SetPlotFrameRef(False) # Was True, but it looks like false is nice
         popt.SetWidthAdjust(pn.FromMM(0.15))
-        popt.SetScale(1)
+        popt.SetScale(2)
 
     # PcbNew < 5.99
     else:
@@ -124,10 +126,12 @@ def processBoard(board_path, plot_dir, quiet=1, verbose=0, optimize_svg=0):
 
     for i, layer_id in enumerate(layer_ids):
 
+        print("\n\n========================================================\n")
+
         layer_name = board.GetLayerName(layer_id).replace(".", "_")
         filename_sufix = str(layer_id).zfill(2) + "-" + layer_name
         layer_filename = os.path.join(board_name + "-" + filename_sufix + ".svg")
-
+        
         pctl.SetLayer(layer_id)
         svg_path = pctl.GetPlotFileName()
 
@@ -135,10 +139,33 @@ def processBoard(board_path, plot_dir, quiet=1, verbose=0, optimize_svg=0):
             pctl.PlotLayer()
 
         if optimize_svg:
-            cmd = shlex.split("scour {0} --enable-viewboxing --enable-id-stripping --enable-comment-stripping --shorten-ids --indent=none".format(layer_filename))
-            # cmd = shlex.split("svgo -i {0} --final-newline".format(layer_filename))
-            process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+            cmd = shlex.split("fix_svg_perl {}".format(svg_path))
+            print(" ".join(cmd))
+            process = subprocess.Popen(cmd)
             stdout, stderr = process.communicate()
+            # print("RETURN CODE:", process.returncode)
+            if stdout:
+                print(stdout.decode('utf-8'))
+            if stderr:
+                print(stderr.decode('utf-8'))
+
+            # cmd = shlex.split("rsvg-convert -a -w 500 -f svg {} -o {}".format(layer_filename, tmp_layer_filename))
+            # print(" ".join(cmd))
+            # process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+            # stdout, stderr = process.communicate()
+            # print("RETURN CODE:", process.returncode)
+            # if stdout:
+            #     print(stdout.decode('utf-8'))
+            # if stderr:
+            #     print(stderr.decode('utf-8'))
+
+            # if os.path.exists(tmp_layer_filename):
+            #     print("File exists:", tmp_layer_filename)
+            #     shutil.move(tmp_layer_filename, layer_filename)
+            # else:
+            #     print("File does not exist:", tmp_layer_filename)
+
 
         if not quiet:
             print("{:2d} {:2d} {} {}".format(

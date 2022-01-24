@@ -1,0 +1,7 @@
+#!/bin/bash
+
+svg=$1
+
+echo $svg
+
+perl -i -pe 's{(?<![\d#])(\d{5,}(?:\.\d+)?)(?!\d)}{sprintf("%.1f", $1/1000);}ge' "$svg"
