@@ -98,7 +98,7 @@ def get_project_scms(repo_path):
     return scms
 
 
-def make_svg(kicad_pcb_path, repo_path, kicad_project_dir, board_filename, commit1, commit2, optimize_svg):
+def make_svg(kicad_pcb_path, repo_path, kicad_project_dir, board_filename, commit1, commit2, plot_page_frame, optimize_svg):
     """Hands off required .kicad_pcb files to "plotpcb"
     and generate .svg files. Routine is quick so all
     layers are plotted to svg."""
@@ -125,7 +125,14 @@ def make_svg(kicad_pcb_path, repo_path, kicad_project_dir, board_filename, commi
     plot1_cmd = [settings.plot_prog, board_filename]
     plot2_cmd = [settings.plot_prog, board_filename]
 
-    optimize_svg_flag=None
+    if plot_page_frame or optimize_svg:
+        print()
+
+    if plot_page_frame:
+        print("Plotting the page with frame")
+        plot1_cmd.append("-f")
+        plot2_cmd.append("-f")
+
     if optimize_svg:
         print("SVG optimization enabled (takes time)")
         plot1_cmd.append("-x")
@@ -696,6 +703,9 @@ def parse_cli_args():
     parser.add_argument(
         "-l", "--list-commits", action="store_true", help="List commits and exit"
     )
+    parser.add_argument(
+        "-f", "--frame", action="store_true", help="Plot whole page frame"
+    )
 
     args = parser.parse_args()
 
@@ -801,7 +811,7 @@ if __name__ == "__main__":
 
     commit1, commit2, commit_datetimes = scm.get_boards(kicad_pcb_path, repo_path, kicad_project_dir, board_filename, commit1, commit2)
 
-    output_dir1, output_dir2 = make_svg(kicad_pcb_path, repo_path, kicad_project_dir, board_filename, commit1, commit2, args.optimize_svg)
+    output_dir1, output_dir2 = make_svg(kicad_pcb_path, repo_path, kicad_project_dir, board_filename, commit1, commit2, args.frame, args.optimize_svg)
 
     generate_assets(repo_path, kicad_project_dir, board_filename, output_dir1, output_dir2)
 

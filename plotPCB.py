@@ -29,7 +29,7 @@ version_patch = int(pcbnew_version.strip("()").split(".")[2].replace("-", "+").s
 extra_version_str = pcbnew_version.replace("{}.{}.{}".format(version_major, version_minor, version_patch), "")
 
 
-def processBoard(board_path, plot_dir, quiet=1, verbose=0, optimize_svg=0):
+def processBoard(board_path, plot_dir, quiet=1, verbose=0, plot_frame=0, optimize_svg=0):
     """Load board and initialize plot controller"""
 
     if plot_dir != "./":
@@ -78,12 +78,16 @@ def processBoard(board_path, plot_dir, quiet=1, verbose=0, optimize_svg=0):
     popt.SetPlotValue(True)
     popt.SetPlotInvisibleText(False)
 
+    if plot_frame:
+        popt.SetPlotFrameRef(True)
+    else:
+        popt.SetPlotFrameRef(False)
+
     # PcbNew >= 5.99
     if (version_major > 5) or ((version_major == 5) and (version_minor == 99)):
         print("Kicad v6")
-        popt.SetPlotFrameRef(False) # Was True, but it looks like false is nice
         popt.SetWidthAdjust(pn.FromMM(0.15))
-        popt.SetScale(2)
+        popt.SetScale(1)
 
     # PcbNew < 5.99
     else:
@@ -126,8 +130,6 @@ def processBoard(board_path, plot_dir, quiet=1, verbose=0, optimize_svg=0):
 
     for i, layer_id in enumerate(layer_ids):
 
-        print("\n\n========================================================\n")
-
         layer_name = board.GetLayerName(layer_id).replace(".", "_")
         filename_sufix = str(layer_id).zfill(2) + "-" + layer_name
         layer_filename = os.path.join(board_name + "-" + filename_sufix + ".svg")
@@ -140,32 +142,16 @@ def processBoard(board_path, plot_dir, quiet=1, verbose=0, optimize_svg=0):
 
         if optimize_svg:
 
-            cmd = shlex.split("fix_svg_perl {}".format(svg_path))
-            print(" ".join(cmd))
-            process = subprocess.Popen(cmd)
-            stdout, stderr = process.communicate()
-            # print("RETURN CODE:", process.returncode)
-            if stdout:
-                print(stdout.decode('utf-8'))
-            if stderr:
-                print(stderr.decode('utf-8'))
-
-            # cmd = shlex.split("rsvg-convert -a -w 500 -f svg {} -o {}".format(layer_filename, tmp_layer_filename))
-            # print(" ".join(cmd))
-            # process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
-            # stdout, stderr = process.communicate()
-            # print("RETURN CODE:", process.returncode)
-            # if stdout:
-            #     print(stdout.decode('utf-8'))
-            # if stderr:
-            #     print(stderr.decode('utf-8'))
-
-            # if os.path.exists(tmp_layer_filename):
-            #     print("File exists:", tmp_layer_filename)
-            #     shutil.move(tmp_layer_filename, layer_filename)
-            # else:
-            #     print("File does not exist:", tmp_layer_filename)
-
+            if os.path.exists(svg_path):
+                cmd = shlex.split("fix_svg_perl {}".format(svg_path))
+                process = subprocess.Popen(cmd)
+                stdout, stderr = process.communicate()
+                if process.returncode > 0:
+                    if stdout:
+                        print(" ".join(cmd))
+                        print(stdout.decode('utf-8'))
+                    if stderr:
+                        print(stderr.decode('utf-8'))
 
         if not quiet:
             print("{:2d} {:2d} {} {}".format(
@@ -204,6 +190,9 @@ def parse_cli_args():
         "-v", "--verbose", action="store_true", help="Extra shows information"
     )
     parser.add_argument(
+        "-f", "--frame", action="store_true", help="Plot whole page frame, default is just the board"
+    )
+    parser.add_argument(
         "-x", "--optimize-svg", action="store_true", help="Optimize generated svg files"
     )
     parser.add_argument("kicad_pcb", nargs=1, help="Kicad PCB")
@@ -240,4 +229,4 @@ if __name__ == "__main__":
         print("Patch version:", version_patch)
         print("Extra version:", extra_version_str)
 
-    processBoard(board_path, plot_dir, args.quiet, args.verbose, args.optimize_svg)
+    processBoard(board_path, plot_dir, args.quiet, args.verbose, args.frame, args.optimize_svg)
