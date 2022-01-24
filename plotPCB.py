@@ -29,7 +29,7 @@ version_patch = int(pcbnew_version.strip("()").split(".")[2].replace("-", "+").s
 extra_version_str = pcbnew_version.replace("{}.{}.{}".format(version_major, version_minor, version_patch), "")
 
 
-def processBoard(board_path, plot_dir, quiet=1, verbose=0, plot_frame=0, optimize_svg=0):
+def processBoard(board_path, plot_dir, quiet=1, verbose=0, plot_frame=0):
     """Load board and initialize plot controller"""
 
     if plot_dir != "./":
@@ -115,9 +115,6 @@ def processBoard(board_path, plot_dir, quiet=1, verbose=0, plot_frame=0, optimiz
         layer_names.append(board.GetLayerName(layer_id))
     max_string_len = max(layer_names, key=len)
 
-    if optimize_svg:
-        print("SVG optimization enabled")
-
     if not quiet:
         print("\n{} {} {} {}".format("#".rjust(2), "ID", "Name".ljust(len(max_string_len)), "Filename"))
 
@@ -140,7 +137,7 @@ def processBoard(board_path, plot_dir, quiet=1, verbose=0, plot_frame=0, optimiz
         if pctl.OpenPlotfile(filename_sufix, pn.PLOT_FORMAT_SVG, layer_name):
             pctl.PlotLayer()
 
-        if optimize_svg:
+        if (version_major > 5) or ((version_major == 5) and (version_minor == 99)):
 
             if os.path.exists(svg_path):
                 cmd = shlex.split("fix_svg_perl {}".format(svg_path))
@@ -192,9 +189,6 @@ def parse_cli_args():
     parser.add_argument(
         "-f", "--frame", action="store_true", help="Plot whole page frame, default is just the board"
     )
-    parser.add_argument(
-        "-x", "--optimize-svg", action="store_true", help="Optimize generated svg files"
-    )
     parser.add_argument("kicad_pcb", nargs=1, help="Kicad PCB")
     args = parser.parse_args()
     return args
@@ -229,4 +223,4 @@ if __name__ == "__main__":
         print("Patch version:", version_patch)
         print("Extra version:", extra_version_str)
 
-    processBoard(board_path, plot_dir, args.quiet, args.verbose, args.frame, args.optimize_svg)
+    processBoard(board_path, plot_dir, args.quiet, args.verbose, args.frame)
