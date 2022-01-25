@@ -35,7 +35,7 @@ def processBoard(board_path, plot_dir, quiet=1, verbose=0, plot_frame=0):
     if plot_dir != "./":
         shutil.copy(board_path, plot_dir)
         board_path = os.path.join(os.path.basename(board_path))
-        print("> Changin path:", board_path)
+        print("> Changing path:", board_path)
 
     try:
         # LoadBoard gives me this
@@ -80,16 +80,17 @@ def processBoard(board_path, plot_dir, quiet=1, verbose=0, plot_frame=0):
     popt.SetPlotValue(True)
     popt.SetPlotInvisibleText(False)
 
-    if plot_frame:
-        popt.SetPlotFrameRef(True)
-    else:
-        popt.SetPlotFrameRef(False)
-
     # PcbNew >= 5.99
     if (version_major > 5) or ((version_major == 5) and (version_minor == 99)):
         print("Kicad v6")
         popt.SetWidthAdjust(pn.FromMM(0.15))
-        popt.SetScale(1)
+
+        if plot_frame:
+            popt.SetPlotFrameRef(True)
+            popt.SetScale(1)
+        else:
+            popt.SetPlotFrameRef(False)
+            popt.SetScale(2)
 
     # PcbNew < 5.99
     else:
