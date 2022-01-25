@@ -1,4 +1,10 @@
 
+html {
+    background-color: #222;
+    color: #e2e3e3;
+    margin: 1em;
+}
+
 body {
     background-color: #2c3031;
     margin: 0 auto;
@@ -10,16 +16,10 @@ body {
 table {
     border-collapse: collapse;
     border-spacing: 0;
-    border-color: #555555;
+    border-color: #555;
     width: 100%;
     height: 2px;
     border: 1px
-}
-
-html {
-    background-color: #222222;
-    color: #e2e3e3;
-    margin: 1em;
 }
 
 .tabbed {
@@ -51,7 +51,7 @@ html {
     font: 14px arial, sans-serif;
     display: block;
     padding: 0.25em 0.75em;
-    border: 1px solid #555555;
+    border: 1px solid #555;
     border-bottom: none;
     border-top-left-radius: 4px;
     border-top-right-radius: 4px;
@@ -68,7 +68,7 @@ html {
     width: 100%;
     margin: 1.95em 0 0 -100%;
     padding: 0.25em 0.75em;
-    border: 1px solid #555555;
+    border: 1px solid #555;
     box-shadow: none;
     background: rgba(70, 67, 67, 0.185);
 }
@@ -83,13 +83,21 @@ html {
     display: none;
 }
 
+.tabbed>input:checked+section>h1>label {
+    background: #555;
+}
+
+.tabbed>input:not(:checked)+section>h1>label {
+    background: #222;
+}
+
 a:active,
 a:hover {
     outline: 0;
 }
 
 .gallery {
-    border: 1px solid #555555;
+    border: 1px solid #555;
     background-color: #222;
     padding: 5px;
     vertical-align: middle;
@@ -193,7 +201,7 @@ a:hover {
 }
 
 .red {
-    background: #832320;
+    background: #961818;
 }
 
 .green {
@@ -272,12 +280,17 @@ a:hover {
 .F_Fab     { filter: invert(61%) sepia(0%)  saturate(63%)   hue-rotate(180deg) brightness(186%)  contrast(89%); }   /* #848484*/
 .User      { filter: invert(79%) sepia(92%) saturate(322%)  hue-rotate(3deg)   brightness(89%)   contrast(92%); }   /* #0000e6*/
 
-
 table {
     border-collapse: collapse;
 }
 
 th, td {
     padding: 3px;
-    border: 1px solid #555555;
+    border: 1px solid #555;
+}
+
+div.responsive {
+    padding: 0 6px;
+    float: left;
+    width: 49.99%;
 }

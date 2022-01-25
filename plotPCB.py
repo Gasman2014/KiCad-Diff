@@ -9,12 +9,14 @@ import os
 import sys
 import re
 import shutil
-
 import platform
+import subprocess
+import shlex
 
 if platform.system() == "Darwin":
     sys.path.insert(0, "/Applications/Kicad/kicad.app/Contents/Frameworks/python/site-packages/")
     sys.path.insert(0, "/Applications/KiCad/kicad.app/Contents/Frameworks/python/site-packages/")
+    sys.path.insert(0, "/Applications/KiCad/KiCad.app/Contents/Frameworks/Python.framework/")
 
 import pcbnew as pn
 
@@ -25,7 +27,7 @@ version_patch = int(pcbnew_version.strip("()").split(".")[2].replace("-", "+").s
 extra_version_str = pcbnew_version.replace("{}.{}.{}".format(version_major, version_minor, version_patch), "")
 
 
-def processBoard(board_path, plot_dir, quiet=0, verbose=0):
+def processBoard(board_path, plot_dir, quiet=1, verbose=0, optimize_svg=0):
     """Load board and initialize plot controller"""
 
     if plot_dir != "./":
@@ -41,7 +43,7 @@ def processBoard(board_path, plot_dir, quiet=0, verbose=0):
         exit(1)
 
     board_version = board.GetFileFormatVersionAtLoad()
-    print("\nBoard version: {}".format(board_version))
+    print("\nBoard {}".format(board_version))
 
     boardbox = board.ComputeBoundingBox()
     boardxl = boardbox.GetX()
@@ -60,30 +62,44 @@ def processBoard(board_path, plot_dir, quiet=0, verbose=0):
     pctl = pn.PLOT_CONTROLLER(board)
     pctl.SetColorMode(True)
 
+    # https://gitlab.com/kicad/code/kicad/-/blob/master/pcbnew/pcb_plot_params.h#L305
     popt = pctl.GetPlotOptions()
     popt.SetOutputDirectory(plot_dir)
-    popt.SetPlotFrameRef(False)
-
-    if (version_major > 5) or (version_major == 5) and (version_minor == 99):
-        popt.SetWidthAdjust(pn.FromMM(0.15))
-    else:
-        popt.SetLineWidth(pn.FromMM(0.15))
 
     popt.SetAutoScale(False)
-
-    if board_version >= 20210000:
-        if verbose:
-            print("Using nightly build")
-        popt.SetScale(1)
-    else:
-        if verbose:
-            print("Using current settings")
-        popt.SetScale(2)
-
+    popt.SetUseAuxOrigin(False)
     popt.SetMirror(False)
     popt.SetUseGerberAttributes(True)
     popt.SetExcludeEdgeLayer(False)
-    popt.SetUseAuxOrigin(True)
+    popt.SetSubtractMaskFromSilk(False)
+    popt.SetPlotReference(True)
+    popt.SetPlotValue(True)
+    popt.SetPlotInvisibleText(True)
+
+    # PcbNew >= 5.99
+    if (version_major > 5) or ((version_major == 5) and (version_minor == 99)):
+        print("Kicad v6")
+        popt.SetPlotFrameRef(True)
+        popt.SetWidthAdjust(pn.FromMM(0.15))
+        popt.SetScale(1)
+
+    # PcbNew < 5.99
+    else:
+        print("Kicad v5")
+        popt.SetPlotFrameRef(False) # We want this True, but it breaks Kicad 5.1.*
+        popt.SetLineWidth(pn.FromMM(0.15))
+        popt.SetScale(2)
+
+    # Board made with Kicad >= 5.99
+    if board_version >= 20210000:
+        if verbose:
+            print("Board made with Kicad v6")
+
+    # Board made with Kicad >= 5.99
+    else:
+        if verbose:
+            print("Board made with Kicad v5")
+
 
     enabled_layers = board.GetEnabledLayers()
     layer_ids = list(enabled_layers.Seq())
@@ -92,6 +108,9 @@ def processBoard(board_path, plot_dir, quiet=0, verbose=0):
     for layer_id in layer_ids:
         layer_names.append(board.GetLayerName(layer_id))
     max_string_len = max(layer_names, key=len)
+
+    if optimize_svg:
+        print("SVG optimization enabled")
 
     if not quiet:
         print("\n{} {} {} {}".format("#".rjust(2), "ID", "Name".ljust(len(max_string_len)), "Filename"))
@@ -105,20 +124,27 @@ def processBoard(board_path, plot_dir, quiet=0, verbose=0):
 
     for i, layer_id in enumerate(layer_ids):
 
-        pctl.SetLayer(layer_id)
-
         layer_name = board.GetLayerName(layer_id).replace(".", "_")
-        plot_sufix = str(layer_id).zfill(2) + "-" + layer_name
-        layer_filename = os.path.join(board_name + "-" + plot_sufix + ".svg")
+        filename_sufix = str(layer_id).zfill(2) + "-" + layer_name
+        layer_filename = os.path.join(board_name + "-" + filename_sufix + ".svg")
 
-        pctl.OpenPlotfile(plot_sufix, pn.PLOT_FORMAT_SVG, layer_name)
-        pctl.PlotLayer()
+        pctl.SetLayer(layer_id)
+        svg_path = pctl.GetPlotFileName()
+
+        if pctl.OpenPlotfile(filename_sufix, pn.PLOT_FORMAT_SVG, layer_name):
+            pctl.PlotLayer()
+
+        if optimize_svg:
+            cmd = shlex.split("scour {0} --enable-viewboxing --enable-id-stripping --enable-comment-stripping --shorten-ids --indent=none".format(layer_filename))
+            # cmd = shlex.split("svgo -i {0} --final-newline".format(layer_filename))
+            process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            stdout, stderr = process.communicate()
 
         if not quiet:
             print("{:2d} {:2d} {} {}".format(
-                i + 1, layer_id, layer_name.ljust(len(max_string_len)), os.path.join(dirname, layer_filename)
-                )
-            )
+                i + 1, layer_id,
+                layer_name.ljust(len(max_string_len)),
+                os.path.join(dirname, layer_filename)))
 
 
 def list_layers(board_path):
@@ -149,6 +175,9 @@ def parse_cli_args():
     )
     parser.add_argument(
         "-v", "--verbose", action="store_true", help="Extra shows information"
+    )
+    parser.add_argument(
+        "-x", "--optimize-svg", action="store_true", help="Optimize generated svg files"
     )
     parser.add_argument("kicad_pcb", nargs=1, help="Kicad PCB")
     args = parser.parse_args()
@@ -184,4 +213,4 @@ if __name__ == "__main__":
         print("Patch version:", version_patch)
         print("Extra version:", extra_version_str)
 
-    processBoard(board_path, plot_dir, args.quiet, args.verbose)
+    processBoard(board_path, plot_dir, args.quiet, args.verbose, args.optimize_svg)
