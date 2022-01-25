@@ -684,7 +684,7 @@ def parse_cli_args():
         "kicad_pcb", metavar="PCB_PATH", nargs="?", help="Kicad PCB path"
     )
     parser.add_argument(
-        "-o", "--output-dir", type=str, default="kidiff", help="Set output directory. Default is 'kidiff'.")
+        "-o", "--output-dir", type=str, default=".kidiff", help="Set output directory. Default is '.kidiff'.")
     parser.add_argument(
         "-l", "--list-commits", action="store_true", help="List commits and exit"
     )
