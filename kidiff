@@ -807,4 +807,8 @@ if __name__ == "__main__":
     assemble_html(kicad_pcb_path, repo_path, kicad_project_dir, board_filename, output_dir1, output_dir2, commit_datetimes)
 
     if not args.webserver_disable:
-        start_web_server(args.port, kicad_project_dir)
+        try:
+            start_web_server(args.port, kicad_project_dir)
+        except:
+            print("\nPort {} already in use.".format(args.port))
+            print("Kill previews server or change the port with '-p PORT_NUMBER'")
