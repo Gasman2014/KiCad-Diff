@@ -2,12 +2,14 @@
 
 svg="$1"
 
+# Fix for Firefox
 # Scale numbers
 # This is still dumb, it should not be applied everywhere
-perl -i -pe 's{(?<![\d#])(\d{5,}(?:\.\d+)?)(?!\d)}{sprintf("%.1f", $1/1000);}ge' "$svg"
+perl -i -pe 's{(?<![\d#])(\d{5,}(?:\.\d+)?)(?!\d)}{sprintf("%.1f", $1/10000);}ge' "$svg"
 
-# Fix numbers with double floating poing
+# Fix back numbers with double floating point that were damaged
 sed -i "s/\.\([0-9]\+\)\.[0-9]\+/.\1/g" "$svg"
 
-# rsvg-convert -a -w 500 -f svg $svg > .tmp.svg
-# mv .tmp.svg $svg
+# This is needed to fix vias
+rsvg-convert -a -w 500 -f svg $svg > .tmp.svg
+mv .tmp.svg $svg
