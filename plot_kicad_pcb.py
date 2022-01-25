@@ -85,13 +85,6 @@ def processBoard(board_path, plot_dir, quiet=1, verbose=0, plot_frame=0):
         print("Kicad v6")
         popt.SetWidthAdjust(pn.FromMM(0.15))
 
-        if plot_frame:
-            popt.SetPlotFrameRef(True)
-            popt.SetScale(1)
-        else:
-            popt.SetPlotFrameRef(False)
-            popt.SetScale(2)
-
     # PcbNew < 5.99
     else:
         print("Kicad v5")
@@ -136,9 +129,9 @@ def processBoard(board_path, plot_dir, quiet=1, verbose=0, plot_frame=0):
         
         pctl.SetLayer(layer_id)
         svg_path = pctl.GetPlotFileName()
-
-        if pctl.OpenPlotfile(filename_sufix, pn.PLOT_FORMAT_SVG, layer_name):
-            pctl.PlotLayer()
+        pctl.OpenPlotfile(filename_sufix, pn.PLOT_FORMAT_SVG, layer_name)
+        pctl.PlotLayer()
+        pctl.ClosePlot()
 
         # Fix svg file on Kicad 6
         if (version_major > 5) or ((version_major == 5) and (version_minor == 99)):
