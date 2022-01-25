@@ -754,7 +754,11 @@ if __name__ == "__main__":
         else "(available: {})".format(", ".join(map(str, project_scms)))
     )
 
-    settings.output_dir = os.path.realpath(args.output_dir)
+    if args.output_dir == ".kidiff":
+        kicad_pcb_dir = os.path.dirname(kicad_pcb_path)
+        settings.output_dir = os.path.join(kicad_pcb_dir, args.output_dir)
+    else:
+        settings.output_dir = os.path.realpath(args.output_dir)
 
     print("")
     print("      SCM Selected:", scm_name, avaialble_scms)
