@@ -123,47 +123,47 @@ plot_kicad_pcb board.kicad_pcb
 # Screenshots
 
 ### wxWidget GUI
-<center>
+<p align="center">
   <img src="/docs/gui.png" width="550" alt="gui">
-</center>
+</p>
 
 
 ### Main View
-<center>
+<p align="center">
   <img src="/docs/main1.png" width="820" alt="main1">
-</center>
+</p>
 
-<center>
+<p align="center">
   <img src="/docs/main2.png" width="820" alt="main2">
-</center>
+</p>
 
 
 ### Overlapped Diff (F.Fab layer)
-<center>
+<p align="center">
   <img src="/docs/diff.png" width="300" alt="fab layer diff">
-</center>
+</p>
 
 
 ### Top Layer (F.Cu)
-<center>
+<p align="center">
   <img src="/docs/cu.png" width="350" alt="Cu difference view">
-</center>
+</p>
 
 
 ### Comparison Side-by-Side View
-<center>
-  <img src="/docs/pair.png" width="700" alt="fab layer side by side">
-</center>
+<p align="center">
+  <img src="/docs/pair.png" width="650" alt="fab layer side by side">
+</p>
 
 
 ### 3 Panel views together
-<center>
+<p align="center">
   <img src="/docs/composite.png" width="500" alt="Cu layer - 3 pane view">
-</center>
+</p>
 
 
 ### Attributes Diff
-<center>
+<p align="center">
   <img src="/docs/text.png" width="850" alt="Text Diff">
-</center>
+</p>
 
