@@ -129,18 +129,15 @@ plot_kicad_pcb board.kicad_pcb
   <br>
 </p>
 
+
 <p align="center">
   <img src="/docs/main1.png" width="820" alt="main1">
+  <img src="/docs/main2.png" width="820" alt="main2">
   <br>
   Main View
   <br>
 </p>
 
-<p align="center">
-  <img src="/docs/main2.png" width="820" alt="main2">
-  <br>
-</p>
-<br>
 
 <p align="center">
   <img src="/docs/diff.png" width="300" alt="fab layer diff">
@@ -149,12 +146,14 @@ plot_kicad_pcb board.kicad_pcb
   <br>
 </p>
 
+
 <p align="center">
   <img src="/docs/cu.png" width="350" alt="Cu difference view">
   <br>
   Top Layer (F.Cu)
   <br>
 </p>
+
 
 <p align="center">
   <img src="/docs/pair.png" width="650" alt="fab layer side by side">
@@ -163,12 +162,14 @@ plot_kicad_pcb board.kicad_pcb
   <br>
 </p>
 
+
 <p align="center">
   <img src="/docs/composite.png" width="500" alt="Cu layer - 3 pane view">
   <br>
   Triptych view
   <br>
 </p>
+
 
 <p align="center">
   <img src="/docs/text.png" width="850" alt="Text Diff">
