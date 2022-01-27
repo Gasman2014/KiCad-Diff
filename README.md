@@ -123,7 +123,7 @@ plot_kicad_pcb board.kicad_pcb
 # Screenshots
 
 <p align="center">
-  <img src="/docs/gui.png" width="550" alt="Commits Selection GUI">
+  <img src="/docs/gui.png" width="600" alt="Commits Selection GUI">
   <br>
   Commits Selection
   <br>
@@ -131,14 +131,14 @@ plot_kicad_pcb board.kicad_pcb
 
 
 <p align="center">
-  <img src="/docs/gallery.png" width="820" alt="Gallery view">
+  <img src="/docs/gallery.png" width="850" alt="Gallery view">
   <br>
   Gallery View
   <br>
 </p>
 
 <p align="center">
-  <img src="/docs/triptych.png.png" width="820" alt="Triptych view">
+  <img src="/docs/triptych.png" width="850" alt="Triptych view">
   <br>
   Triptych view
   <br>
