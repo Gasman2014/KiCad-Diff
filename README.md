@@ -123,23 +123,47 @@ plot_kicad_pcb board.kicad_pcb
 # Screenshots
 
 ### wxWidget GUI
-<img align="center" src="/docs/gui.png" width="550" alt="gui">
+<center>
+  <img src="/docs/gui.png" width="550" alt="gui">
+</center>
+
 
 ### Main View
-<img align="center" src="/docs/main1.png" width="820" alt="main1">
-<img align="center" src="/docs/main2.png" width="820" alt="main2">
+<center>
+  <img src="/docs/main1.png" width="820" alt="main1">
+</center>
+
+<center>
+  <img src="/docs/main2.png" width="820" alt="main2">
+</center>
+
 
 ### Overlapped Diff (F.Fab layer)
-<img align="center" src="/docs/diff.png" width="400" alt="fab layer diff">
+<center>
+  <img src="/docs/diff.png" width="300" alt="fab layer diff">
+</center>
+
 
 ### Top Layer (F.Cu)
-<img align="center" src="/docs/cu.png" width="350" alt="Cu difference view">
+<center>
+  <img src="/docs/cu.png" width="350" alt="Cu difference view">
+</center>
+
 
 ### Comparison Side-by-Side View
-<img align="center" src="/docs/pair.png" width="700" alt="fab layer side by side">
+<center>
+  <img src="/docs/pair.png" width="700" alt="fab layer side by side">
+</center>
+
 
 ### 3 Panel views together
-<img align="center" src="/docs/composite.png" width="500" alt="Cu layer - 3 pane view">
+<center>
+  <img src="/docs/composite.png" width="500" alt="Cu layer - 3 pane view">
+</center>
+
 
 ### Attributes Diff
-<img align="center" src="/docs/text.png" width="850" alt="Text Diff">
+<center>
+  <img src="/docs/text.png" width="850" alt="Text Diff">
+</center>
+
