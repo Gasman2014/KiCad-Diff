@@ -66,7 +66,7 @@ source env.sh
 
 The terminal should give you some useful information on progress. Please include a copy of the terminal output if you have any issues.
 
-### Commandline help
+### Command line help
 
 ```
 usage: kidiff [-h] [-a COMMIT1_HASH] [-b COMMIT2_HASH] [-g] [-s SCM] [-d DISPLAY] [-p PORT] [-w] [-v] [-o OUTPUT_DIR] [-l] [-f] [PCB_PATH]
@@ -122,24 +122,24 @@ plot_kicad_pcb board.kicad_pcb
 
 # Screenshots
 
-### GUI
-<img src="/docs/gui.png" width="550" alt="gui">
+### wxWidget GUI
+<img align="center" src="/docs/gui.png" width="550" alt="gui">
 
 ### Main View
-<img src="/docs/main1.png" width="820" alt="main1">
-<img src="/docs/main2.png" width="820" alt="main2">
+<img align="center" src="/docs/main1.png" width="820" alt="main1">
+<img align="center" src="/docs/main2.png" width="820" alt="main2">
 
-### Overlapped Diff
-<img src="/docs/diff.png" width="300" alt="fab layer diff">
+### Overlapped Diff (F.Fab layer)
+<img align="center" src="/docs/diff.png" width="400" alt="fab layer diff">
 
-### Side-by-Side View
-<img src="/docs/pair.png" width="600" alt="fab layer side by side">
+### Top Layer (F.Cu)
+<img align="center" src="/docs/cu.png" width="350" alt="Cu difference view">
 
-### F_Cu Layer
-<img src="/docs/cu.png" width="500" alt="Cu difference view">
+### Comparison Side-by-Side View
+<img align="center" src="/docs/pair.png" width="700" alt="fab layer side by side">
 
-### F_Cu Layer 3 Pane View
-<img src="/docs/composite.png" width="500" alt="Cu layer - 3 pane view">
+### 3 Panel views together
+<img align="center" src="/docs/composite.png" width="500" alt="Cu layer - 3 pane view">
 
 ### Attributes Diff
-<img src="/docs/text.png" width="850" alt="Text Diff">
+<img align="center" src="/docs/text.png" width="850" alt="Text Diff">
