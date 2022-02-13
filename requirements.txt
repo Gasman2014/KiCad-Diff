@@ -1,4 +1,3 @@
-AwesomeTkinter==2021.1.7
 dateutils==0.6.12
 Pillow>=8.2.0
 python_dateutil==2.8.1
