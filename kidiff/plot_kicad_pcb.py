@@ -135,7 +135,7 @@ def processBoard(board_path, plot_dir, quiet=1, verbose=0, plot_frame=0):
         # Fix svg file on Kicad 6
         if (version_major > 5) or ((version_major == 5) and (version_minor == 99)):
             if os.path.exists(svg_path):
-                cmd = shlex.split("kicad6_svg_fix {}".format(svg_path))
+                cmd = shlex.split('kicad6_svg_fix "{}"'.format(svg_path))
                 process = subprocess.Popen(cmd)
                 stdout, stderr = process.communicate()
                 if process.returncode > 0:
