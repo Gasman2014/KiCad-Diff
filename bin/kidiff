@@ -35,15 +35,22 @@ case ${OSTYPE} in
 		SCRIPT=$(readlink_osx "$0")
 		SCRIPTPATH=$(dirname "${SCRIPT}")
 
+		# Kicad 5
 		kicad_app_path=/Applications/Kicad/kicad.app/
 		if [[ ! -d ${kicad_app_path} ]]; then
+
+			# Kicad 6
 			kicad_app_path=/Applications/KiCad/KiCad.app/
 		fi
 
+		# Kicad 5
 		if [[ -f ${kicad_app_path}/Contents/Frameworks/Python.framework/Versions/Current/bin/python ]]; then
 			${kicad_app_path}/Contents/Frameworks/Python.framework/Versions/Current/bin/python "${SCRIPTPATH}/../kidiff/kidiff.py" "$@"
+
+		# Kicad 6
 		else
-			${kicad_app_path}/Contents/Frameworks/Python.framework/Versions/Current/bin/python3 "${SCRIPTPATH}/../kidiff/kidiff.py" "$@"
+			#${kicad_app_path}/Contents/Frameworks/Python.framework/Versions/Current/bin/python3 "${SCRIPTPATH}/../kidiff/kidiff.py" "$@"
+			/usr/bin/env python3 "${SCRIPTPATH}/../kidiff/kidiff.py" "$@"
 		fi
 		;;
 
