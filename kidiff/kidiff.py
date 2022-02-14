@@ -66,8 +66,8 @@ def launch_wxdialog(icon_path, repo_path, kicad_project_dir, board_filename, scm
         dialog = wxdialog(icon_path, repo_path, kicad_project_dir, board_filename, scm_name, scm_artifacts)
         commit1 = dialog.commit1
         commit2 = dialog.commit2
-        # dialog.Destroy()
-        # dialog.Close(True)
+        dialog.Destroy()
+        app.Destroy()
         return (commit1, commit2)
 
 

@@ -42,7 +42,8 @@ class wxdialog(wx.Frame):
         if res == wx.ID_CANCEL:
             exit(1)
 
-        # dialog.Destroy()
+    def onClose(self, event):
+        self.Close()
 
 
 if __name__ == '__main__':
