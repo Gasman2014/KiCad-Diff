@@ -6,6 +6,7 @@ from kidiff_dialog import MyDialog
 import os
 
 class wxdialog(wx.Frame):
+
     def __init__(self, icon_path=None, repo_path=None, kicad_project_dir=None, board_filename=None, scm_name=None, scm_artifacts=None):
         super().__init__(parent=None, title='KiDiff - Select Commits for Comparison')
         dialog = MyDialog(self)
@@ -31,17 +32,17 @@ class wxdialog(wx.Frame):
         dialog.commits_list_2.Select(1)
 
         res = dialog.ShowModal()
+
         if res == wx.ID_OK:
             selected_commit_1 = dialog.commits_list_1.GetFirstSelected()
             selected_commit_2 = dialog.commits_list_2.GetFirstSelected()
             self.commit1 = scm_artifacts[selected_commit_1]
             self.commit2 = scm_artifacts[selected_commit_2]
-            # print("commits_list_1:", self.commit1)
-            # print("commits_list_2:", self.commit2)
+
         if res == wx.ID_CANCEL:
             exit(1)
 
-        dialog.Destroy()
+        # dialog.Destroy()
 
 
 if __name__ == '__main__':

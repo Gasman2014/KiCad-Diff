@@ -64,7 +64,11 @@ def launch_filepicker():
 def launch_wxdialog(icon_path, repo_path, kicad_project_dir, board_filename, scm_name, scm_artifacts):
         app = wx.App(False)
         dialog = wxdialog(icon_path, repo_path, kicad_project_dir, board_filename, scm_name, scm_artifacts)
-        return dialog.commit1, dialog.commit2
+        commit1 = dialog.commit1
+        commit2 = dialog.commit2
+        # dialog.Destroy()
+        # dialog.Close(True)
+        return (commit1, commit2)
 
 
 def get_project_scms(repo_path):
@@ -691,6 +695,9 @@ def parse_cli_args():
     parser.add_argument(
         "-f", "--frame", action="store_true", help="Plot whole page frame"
     )
+    parser.add_argument(
+        "-r", "--remove", action="store_true", help="Delete previews created folder"
+    )
 
     args = parser.parse_args()
 
@@ -759,6 +766,12 @@ if __name__ == "__main__":
         settings.output_dir = os.path.join(kicad_pcb_dir, args.output_dir)
     else:
         settings.output_dir = os.path.realpath(args.output_dir)
+
+    if args.remove:
+        try:
+            shutil.rmtree(settings.output_dir)
+        except OSError as e:
+            pass
 
     print("")
     print("      SCM Selected:", scm_name, avaialble_scms)
