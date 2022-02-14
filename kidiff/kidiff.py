@@ -131,7 +131,7 @@ def make_svg(kicad_pcb_path, repo_path, kicad_project_dir, board_filename, commi
         plot2_cmd.append("-f")
 
     stdout, stderr = settings.run_cmd(commit1_output_path, plot1_cmd)
-    plot1_stdout = stdout.splitlines()
+    plot1_stdout = stdout
     plot1_stderr = stderr
 
     if plot1_stderr != "":
@@ -139,12 +139,12 @@ def make_svg(kicad_pcb_path, repo_path, kicad_project_dir, board_filename, commi
         print(plot1_stderr)
 
     stdout, stderr = settings.run_cmd(commit2_output_path, plot2_cmd)
-    plot2_stdout = stdout.splitlines()
+    plot2_stdout = stdout
     plot2_stderr = stderr
 
     if plot2_stderr != "":
-        print(plot1_stdout)
-        print(plot1_stderr)
+        print(plot2_stdout)
+        print(plot2_stderr)
 
     if not plot1_stdout or not plot2_stdout:
         print("ERROR: Something happened with plotpcb")
