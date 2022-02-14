@@ -46,8 +46,18 @@ def processBoard(board_path, plot_dir, quiet=1, verbose=0, plot_frame=0):
         print("Try sourcing 'env-nightly.sh' instead.")
         exit(1)
 
+    print("")
+    print("Kicad (PCBNew API) version {}".format(pcbnew_version))
+
     board_version = board.GetFileFormatVersionAtLoad()
-    print("\nBoard {}".format(board_version))
+
+    # Board made with Kicad >= 5.99
+    if board_version >= 20210000:
+        board_made_with = "(created with Kicad 6)"
+    else:
+        board_made_with = "(created with Kicad 5)"
+
+    print("Board version {} {}".format(board_version, board_made_with))
 
     boardbox = board.ComputeBoundingBox()
     boardxl = boardbox.GetX()
@@ -80,28 +90,17 @@ def processBoard(board_path, plot_dir, quiet=1, verbose=0, plot_frame=0):
     popt.SetPlotValue(True)
     popt.SetPlotInvisibleText(False)
 
+    popt.SetPlotFrameRef(plot_frame)
+
     # PcbNew >= 5.99
     if (version_major > 5) or ((version_major == 5) and (version_minor == 99)):
-        print("Kicad v6")
         popt.SetWidthAdjust(pn.FromMM(0.15))
 
     # PcbNew < 5.99
     else:
-        print("Kicad v5")
-        popt.SetPlotFrameRef(False) # We want this True, but it breaks Kicad 5.1.*
+        popt.SetPlotFrameRef(False) # We want this True, but it breaks with Kicad 5.*
         popt.SetLineWidth(pn.FromMM(0.15))
         popt.SetScale(2)
-
-    # Board made with Kicad >= 5.99
-    if board_version >= 20210000:
-        if verbose:
-            print("Board made with Kicad v6")
-
-    # Board made with Kicad >= 5.99
-    else:
-        if verbose:
-            print("Board made with Kicad v5")
-
 
     enabled_layers = board.GetEnabledLayers()
     layer_ids = list(enabled_layers.Seq())
@@ -152,20 +151,29 @@ def processBoard(board_path, plot_dir, quiet=1, verbose=0, plot_frame=0):
                 layer_name.ljust(len(max_string_len)),
                 os.path.join(dirname, layer_filename)))
 
+    print("")
+
 
 def list_layers(board_path):
 
     board = pn.LoadBoard(board_path)
     pctl = pn.PLOT_CONTROLLER(board)
 
-    print("\n{} {} {}".format("#".rjust(2), "ID", "Name"))
+    print("\n{} {} {}".format("#".rjust(2), "ID", "Name", "Layer"))
 
     enabled_layers = board.GetEnabledLayers()
     layer_ids = list(enabled_layers.Seq())
 
     for i, layer_id in enumerate(layer_ids):
         layer_name = board.GetLayerName(layer_id)
-        print("{:2d} {:2d} {}".format(i + 1, layer_id, layer_name))
+        std_layer_name = board.GetStandardLayerName(layer_id)
+        if layer_name == std_layer_name:
+            std_layer_name = ""
+        else:
+            std_layer_name = "(" + std_layer_name + ")"
+        print("{:2d} {:2d} {} {}".format(i + 1, layer_id, layer_name, std_layer_name))
+
+    print("")
 
     exit(0)
 
