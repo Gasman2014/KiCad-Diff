@@ -13,7 +13,7 @@ import sys
 import fnmatch
 
 import wx
-from kidiff_wxgui import wxdialog
+from kidiff_gui import commits_dialog
 
 import webbrowser
 import http.server
@@ -61,13 +61,14 @@ def launch_filepicker():
     return (kicad_board_path, repo_path, kicad_pcb)
 
 
-def launch_wxdialog(icon_path, repo_path, kicad_project_dir, board_filename, scm_name, scm_artifacts):
+def launch_commits_dialog(icon_path, repo_path, kicad_project_dir, board_filename, scm_name, scm_artifacts):
+
         app = wx.App(False)
-        dialog = wxdialog(icon_path, repo_path, kicad_project_dir, board_filename, scm_name, scm_artifacts)
+        dialog = commits_dialog(icon_path, repo_path, kicad_project_dir, board_filename, scm_name, scm_artifacts)
         commit1 = dialog.commit1
         commit2 = dialog.commit2
         dialog.Destroy()
-        app.Destroy()
+        del app
         return (commit1, commit2)
 
 
@@ -795,7 +796,7 @@ if __name__ == "__main__":
         exit(1)
 
     if args.commit1_hash is None or args.commit2_hash is None:
-        commit1, commit2 = launch_wxdialog(icon_path, repo_path, kicad_project_dir, board_filename, scm_name, scm_artifacts)
+        commit1, commit2 = launch_commits_dialog(icon_path, repo_path, kicad_project_dir, board_filename, scm_name, scm_artifacts)
 
         if not commit1 or not commit2:
             print("\nERROR: You must select both commits.")

@@ -1,15 +1,15 @@
 #!/usr/bin/env python3
 
 import wx
-from kidiff_gui import CommitsDialog
+from kidiff_wxglade import CommitsDialog
 
 import os
 
-class wxdialog(wx.Frame):
+class commits_dialog(wx.Frame):
 
     def __init__(self, icon_path=None, repo_path=None, kicad_project_dir=None, board_filename=None, scm_name=None, scm_artifacts=None):
 
-        super().__init__(parent=None)
+        super().__init__(parent=None, id=-1)
         dialog = CommitsDialog(self)
 
         _icon = wx.NullIcon
@@ -54,3 +54,5 @@ if __name__ == '__main__':
     icon_path = os.path.join(script_path, "assets/favicon.ico")
 
     dialog = wxdialog(icon_path, "repo_path/", ".", "board.kicad_pcb", "SCM", ["Commit 1", "Commit 2", "Commit 3"])
+    
+    del app
