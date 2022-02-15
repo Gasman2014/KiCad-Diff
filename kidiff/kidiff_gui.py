@@ -10,6 +10,7 @@ class commits_dialog(wx.Frame):
     def __init__(self, icon_path=None, repo_path=None, kicad_project_dir=None, board_filename=None, scm_name=None, scm_artifacts=None):
 
         super().__init__(parent=None, id=-1)
+
         dialog = CommitsDialog(self)
 
         _icon = wx.NullIcon
@@ -28,8 +29,9 @@ class commits_dialog(wx.Frame):
             dialog.commits_list_2.SetItem(i, 1, artifact)
 
         dialog.commits_list_1.Focus(0)
-        dialog.commits_list_2.Focus(1)
         dialog.commits_list_1.Select(0)
+
+        dialog.commits_list_2.Focus(1)
         dialog.commits_list_2.Select(1)
 
         res = dialog.ShowModal()
@@ -43,8 +45,7 @@ class commits_dialog(wx.Frame):
         if res == wx.ID_CANCEL:
             exit(1)
 
-        self.Destroy()
-
+        dialog.Destroy()
 
 if __name__ == '__main__':
 
@@ -53,6 +54,7 @@ if __name__ == '__main__':
     script_path = os.path.abspath(os.path.dirname(__file__))
     icon_path = os.path.join(script_path, "assets/favicon.ico")
 
-    dialog = wxdialog(icon_path, "repo_path/", ".", "board.kicad_pcb", "SCM", ["Commit 1", "Commit 2", "Commit 3"])
-    
+    dialog = commits_dialog(icon_path, "repo_path/", ".", "board.kicad_pcb", "SCM", ["Commit 1", "Commit 2", "Commit 3"])
+
     del app
+
