@@ -11,6 +11,7 @@ import re
 import signal
 import sys
 import fnmatch
+import platform
 
 import wx
 from kidiff_gui import commits_dialog
@@ -41,13 +42,19 @@ def launch_filepicker():
 
     app = wx.App()
 
-    frame = wx.Frame(None, -1, 'win.py')
+    frame = wx.Frame(None, -1, "")
     frame.SetSize(0,0,200,50)
 
+    if platform.system() == 'Darwin':
+        import pexpect
+        wx.SystemOptions.SetOption(u"osx.openfiledialog.always-show-types","1")
+
     openFileDialog = wx.FileDialog(
-        frame, "Open Kicad PCB", "", "",
-        "Kicad PCB (*.kicad_pcb)|*.kicad_pcb",
-            wx.FD_OPEN | wx.FD_FILE_MUST_EXIST)
+            frame, message="Select Kicad PCB",
+            defaultDir="",
+            defaultFile="",
+            wildcard="Kicad PCB (*.kicad_pcb)|*.kicad_pcb",
+            style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST)
 
     dialog = openFileDialog.ShowModal()
 
@@ -56,6 +63,7 @@ def launch_filepicker():
 
     kicad_board_path = openFileDialog.GetPath()
     repo_path, kicad_pcb = os.path.split(kicad_board_path)
+
     openFileDialog.Destroy()
 
     return (kicad_board_path, repo_path, kicad_pcb)
@@ -64,11 +72,12 @@ def launch_filepicker():
 def launch_commits_dialog(icon_path, repo_path, kicad_project_dir, board_filename, scm_name, scm_artifacts):
 
         app = wx.App(False)
+
         dialog = commits_dialog(icon_path, repo_path, kicad_project_dir, board_filename, scm_name, scm_artifacts)
+
         commit1 = dialog.commit1
         commit2 = dialog.commit2
-        dialog.Destroy()
-        del app
+
         return (commit1, commit2)
 
 
@@ -631,21 +640,6 @@ class WebServerHandler(http.server.SimpleHTTPRequestHandler):
 
     def log_message(self, format, *args):
         return
-
-
-# class Select(Toplevel):
-#     def __init__(self, parent=None):
-#         Toplevel.__init__(self, parent)
-#         # self.wm_title("Settings")
-#         Toplevel.withdraw(self)
-#         Toplevel.update(self)
-#             message="Select the board file (*.kicad_pcb) file under version control",
-#             detail="Available: \n\n" + scm,
-#         )
-#         self.update()
-
-#         if action == "cancel":
-#             self.quit()
 
 
 def start_web_server(port, kicad_project_path):
