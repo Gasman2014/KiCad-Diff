@@ -175,7 +175,9 @@ def generate_assets(repo_path, kicad_project_dir, board_filename, output_dir1, o
 
     if not os.path.exists(web_dir):
         os.makedirs(web_dir)
-        os.makedirs(os.path.join(web_dir, "triptych"))
+
+    if not os.path.exists(triptych_dir):
+        os.makedirs(triptych_dir)
 
     mainpage_css = os.path.join(assets_folder, "style.css")
     shutil.copyfile(mainpage_css, web_style)
