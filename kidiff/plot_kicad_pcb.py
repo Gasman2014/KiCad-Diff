@@ -29,11 +29,11 @@ if hasattr(pn, 'GetBuildVersion'):
     version_patch = int(pcbnew_version.strip("()").split(".")[2].replace("-", "+").split("+")[0])
     extra_version_str = pcbnew_version.replace("{}.{}.{}".format(version_major, version_minor, version_patch), "")
 else:
-    pcbnew_version = 5
-    version_major = 0
+    pcbnew_version = "5.x.x (Unknown)"
+    version_major = 5
     version_minor = 0
     version_patch = 0
-    extra_version_str = "(unknown)"
+    extra_version_str = ""
 
 
 def processBoard(board_path, plot_dir, quiet=1, verbose=0, plot_frame=0):
@@ -96,16 +96,15 @@ def processBoard(board_path, plot_dir, quiet=1, verbose=0, plot_frame=0):
     popt.SetPlotReference(True)
     popt.SetPlotValue(True)
     popt.SetPlotInvisibleText(False)
-
     popt.SetPlotFrameRef(plot_frame)
 
     # PcbNew >= 5.99
-    if (version_major > 5) or ((version_major == 5) and (version_minor == 99)):
+    if (version_major >= 6) or ((version_major == 5) and (version_minor == 99)):
         popt.SetWidthAdjust(pn.FromMM(0.15))
 
     # PcbNew < 5.99
     else:
-        popt.SetPlotFrameRef(False) # We want this True, but it breaks with Kicad 5.*
+        popt.SetPlotFrameRef(False) # This breaks with Kicad 5.*
         popt.SetLineWidth(pn.FromMM(0.15))
         popt.SetScale(2)
 
@@ -132,7 +131,7 @@ def processBoard(board_path, plot_dir, quiet=1, verbose=0, plot_frame=0):
         layer_name = board.GetLayerName(layer_id).replace(".", "_")
         filename_sufix = str(layer_id).zfill(2) + "-" + layer_name
         layer_filename = os.path.join(board_name + "-" + filename_sufix + ".svg")
-        
+
         pctl.SetLayer(layer_id)
         svg_path = pctl.GetPlotFileName()
         pctl.OpenPlotfile(filename_sufix, pn.PLOT_FORMAT_SVG, layer_name)
