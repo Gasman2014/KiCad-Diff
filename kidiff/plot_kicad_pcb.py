@@ -22,11 +22,18 @@ if platform.system() == "Darwin":
 
 import pcbnew as pn
 
-pcbnew_version = pn.GetBuildVersion()
-version_major = int(pcbnew_version.strip("()").split(".")[0])
-version_minor = int(pcbnew_version.strip("()").split(".")[1])
-version_patch = int(pcbnew_version.strip("()").split(".")[2].replace("-", "+").split("+")[0])
-extra_version_str = pcbnew_version.replace("{}.{}.{}".format(version_major, version_minor, version_patch), "")
+if hasattr(pn, 'GetBuildVersion'):
+    pcbnew_version = pn.GetBuildVersion()
+    version_major = int(pcbnew_version.strip("()").split(".")[0])
+    version_minor = int(pcbnew_version.strip("()").split(".")[1])
+    version_patch = int(pcbnew_version.strip("()").split(".")[2].replace("-", "+").split("+")[0])
+    extra_version_str = pcbnew_version.replace("{}.{}.{}".format(version_major, version_minor, version_patch), "")
+else:
+    pcbnew_version = 5
+    version_major = 0
+    version_minor = 0
+    version_patch = 0
+    extra_version_str = "(unknown)"
 
 
 def processBoard(board_path, plot_dir, quiet=1, verbose=0, plot_frame=0):
