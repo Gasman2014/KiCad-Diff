@@ -36,7 +36,7 @@ else:
     extra_version_str = ""
 
 
-def processBoard(board_path, plot_dir, quiet=1, verbose=0, plot_frame=0):
+def processBoard(board_path, plot_dir, quiet=1, verbose=0, plot_frame=0, id_only=0):
     """Load board and initialize plot controller"""
 
     if plot_dir != "./":
@@ -127,14 +127,22 @@ def processBoard(board_path, plot_dir, quiet=1, verbose=0, plot_frame=0):
         dirname = plot_dir
 
     # WORKAROUND: Duplicate last item since it is not being created
-    for i, layer_id in enumerate(layer_ids + [layer_ids[-1]]):
-    # for i, layer_id in enumerate(layer_ids):
+    layer_ids = layer_ids + [layer_ids[-1]]
+
+    for i, layer_id in enumerate(layer_ids):
 
         layer_name = board.GetLayerName(layer_id).replace(".", "_")
-        filename_sufix = str(layer_id).zfill(2) + "-" + layer_name
+        std_layer_name = board.GetStandardLayerName(layer_id).replace(".", "_")
+
+        if not id_only:
+            filename_sufix = str(layer_id).zfill(2) + "-" + layer_name
+        else:
+            filename_sufix = str(layer_id).zfill(2)
+
         layer_filename = os.path.join(board_name + "-" + filename_sufix + ".svg")
 
         pctl.SetLayer(layer_id)
+
         svg_path = pctl.GetPlotFileName()
         pctl.OpenPlotfile(filename_sufix, pn.PLOT_FORMAT_SVG, layer_name)
         pctl.PlotLayer()
@@ -154,11 +162,16 @@ def processBoard(board_path, plot_dir, quiet=1, verbose=0, plot_frame=0):
                         print(stderr.decode('utf-8'))
 
         # WORKAROUND: Hide duplicated print since it is duplicated
-        if (not quiet) and (i < len(layer_ids)):
-            print("{:2d} {:2d} {} {}".format(
+        if (not quiet) and (i < len(layer_ids)-1):
+            if layer_name == std_layer_name:
+                std_layer_name = ""
+            else:
+                std_layer_name = "(" + std_layer_name + ")"
+            print("{:2d} {:2d} {} {} {}".format(
                 i + 1, layer_id,
                 layer_name.ljust(len(max_string_len)),
-                os.path.join(dirname, layer_filename)))
+                os.path.join(dirname, layer_filename),
+                std_layer_name))
 
     print("")
 
@@ -202,6 +215,9 @@ def parse_cli_args():
     parser.add_argument(
         "-f", "--frame", action="store_true", help="Plot whole page frame, default is just the board"
     )
+    parser.add_argument(
+        "-n", "--numbers", action="store_true", help="Remove layer names from files, use the id only."
+    )
     parser.add_argument("kicad_pcb", nargs=1, help="Kicad PCB")
     args = parser.parse_args()
     return args
@@ -236,4 +252,4 @@ if __name__ == "__main__":
         print("Patch version:", version_patch)
         print("Extra version:", extra_version_str)
 
-    processBoard(board_path, plot_dir, args.quiet, args.verbose, args.frame)
+    processBoard(board_path, plot_dir, args.quiet, args.verbose, args.frame, args.numbers)

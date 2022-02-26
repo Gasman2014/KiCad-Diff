@@ -112,7 +112,7 @@ def get_project_scms(repo_path):
     return scms
 
 
-def make_svg(kicad_pcb_path, repo_path, kicad_project_dir, board_filename, commit1, commit2, plot_page_frame):
+def make_svg(kicad_pcb_path, repo_path, kicad_project_dir, board_filename, commit1, commit2, plot_page_frame, filename_with_ids_only=0):
     """Hands off required .kicad_pcb files to "plotpcb"
     and generate .svg files. Routine is quick so all
     layers are plotted to svg."""
@@ -140,9 +140,14 @@ def make_svg(kicad_pcb_path, repo_path, kicad_project_dir, board_filename, commi
     plot2_cmd = [settings.plot_prog, board_filename]
 
     if plot_page_frame:
-        print("\nPlotting the page with frame")
+        print("Plotting the page with frame")
         plot1_cmd.append("-f")
         plot2_cmd.append("-f")
+
+    if filename_with_ids_only:
+        print("Generate output files with layer id only")
+        plot1_cmd.append("-n")
+        plot2_cmd.append("-n")
 
     stdout, stderr = settings.run_cmd(commit1_output_path, plot1_cmd)
     plot1_stdout = stdout
@@ -703,7 +708,9 @@ def parse_cli_args():
     parser.add_argument(
         "-r", "--remove", action="store_true", help="Delete previews created folder"
     )
-
+    parser.add_argument(
+        "-n", "--numbers", action="store_true", help="Remove layer names from files, use the id only."
+    )
     args = parser.parse_args()
 
     if args.verbose >= 3:
@@ -818,7 +825,7 @@ if __name__ == "__main__":
 
     commit1, commit2, commit_datetimes = scm.get_boards(kicad_pcb_path, repo_path, kicad_project_dir, board_filename, commit1, commit2)
 
-    output_dir1, output_dir2 = make_svg(kicad_pcb_path, repo_path, kicad_project_dir, board_filename, commit1, commit2, args.frame)
+    output_dir1, output_dir2 = make_svg(kicad_pcb_path, repo_path, kicad_project_dir, board_filename, commit1, commit2, args.frame, args.numbers)
 
     generate_assets(repo_path, kicad_project_dir, board_filename, output_dir1, output_dir2)
 
