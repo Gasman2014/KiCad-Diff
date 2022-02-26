@@ -213,17 +213,25 @@ def generate_assets(repo_path, kicad_project_dir, board_filename, output_dir1, o
         project_name, _ = os.path.splitext(board_filename)
         layer_id = int(file_name.replace(project_name + "-", "")[0:2])
         layer_name = file_name.replace(project_name + "-", "")[3:]
+
         layers[layer_id] = (file_name, None)
+
+        try:
+            layer = layers[layer_id]
+            layers[layer_id] = (layer[0], file_name)
+        except:
+            layers[layer_id] = (None, file_name)
 
     for i, f in enumerate(svg_files2):
         file_name, _ = os.path.splitext(os.fsdecode(f))
         project_name, _ = os.path.splitext(board_filename)
         layer_id = int(file_name.replace(project_name + "-", "")[0:2])
         layer_name = file_name.replace(project_name + "-", "")[3:]
-        if layers[layer_id]:
+
+        try:
             layer = layers[layer_id]
             layers[layer_id] = (layer[0], file_name)
-        else:
+        except:
             layers[layer_id] = (None, file_name)
 
     for i in sorted(layers.keys()):
