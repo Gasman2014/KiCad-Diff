@@ -126,7 +126,9 @@ def processBoard(board_path, plot_dir, quiet=1, verbose=0, plot_frame=0):
     else:
         dirname = plot_dir
 
-    for i, layer_id in enumerate(layer_ids):
+    # WORKAROUND: Duplicate last item since it is not being created
+    for i, layer_id in enumerate(layer_ids + [layer_ids[-1]]):
+    # for i, layer_id in enumerate(layer_ids):
 
         layer_name = board.GetLayerName(layer_id).replace(".", "_")
         filename_sufix = str(layer_id).zfill(2) + "-" + layer_name
@@ -151,7 +153,8 @@ def processBoard(board_path, plot_dir, quiet=1, verbose=0, plot_frame=0):
                     if stderr:
                         print(stderr.decode('utf-8'))
 
-        if not quiet:
+        # WORKAROUND: Hide duplicated print since it is duplicated
+        if (not quiet) and (i < len(layer_ids)):
             print("{:2d} {:2d} {} {}".format(
                 i + 1, layer_id,
                 layer_name.ljust(len(max_string_len)),
