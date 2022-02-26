@@ -40,7 +40,7 @@ sudo apt install python3-wxgtk4.0
 #### Kicad 6 Workaround
 
 The new version of Kicad is generating svg files that do not work well on browsers (Google-Chrome, Firefox and Safari)
-The `kicad6_svg_fix` script is a quick fix while we don't receive an improved version from Kicad team.
+The `kicad_svg_tweaks` script is a quick fix while we don't receive an improved version from Kicad team.
 This requires the `rsvg-convert` tool.
 
 To install it on macOS
