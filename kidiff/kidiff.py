@@ -13,6 +13,10 @@ import sys
 import fnmatch
 import platform
 
+# Test, needed for wx sometimes for macos (this is just a test, a better solution is comming it this works)
+if platform.system() == "Darwin":
+    sys.path.insert(0, "/usr/local/lib/python3.9/site-packages/")
+
 import wx
 from kidiff_gui import commits_dialog
 
