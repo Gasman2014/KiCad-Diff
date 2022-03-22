@@ -13,10 +13,6 @@ import sys
 import fnmatch
 import platform
 
-# Test, needed for wx sometimes for macos (this is just a test, a better solution is comming it this works)
-if platform.system() == "Darwin":
-    sys.path.insert(0, "/usr/local/lib/python3.9/site-packages/")
-
 import wx
 from kidiff_gui import commits_dialog
 
@@ -243,16 +239,16 @@ def generate_assets(repo_path, kicad_project_dir, board_filename, output_dir1, o
         except:
             layers[layer_id] = (None, file_name)
 
-    for i in sorted(layers.keys()):
-        if layers[i][0] == None:
-            missing_svg = os.path.join(source_dir1, layers[i][1] + ".svg")
-            print("Creating blank", missing_svg)
-            shutil.copyfile(blank_svg, missing_svg)
+    # for i in sorted(layers.keys()):
+        # if layers[i][0] == None:
+            # missing_svg = os.path.join(source_dir1, layers[i][1] + ".svg")
+            # print("Creating blank", missing_svg)
+            # shutil.copyfile(blank_svg, missing_svg)
 
-        if layers[i][1] == None:
-            missing_svg = os.path.join(source_dir2, layers[i][0] + ".svg")
-            shutil.copyfile(blank_svg, missing_svg)
-            print("Creating blank", missing_svg)
+        # if layers[i][1] == None:
+            # missing_svg = os.path.join(source_dir2, layers[i][0] + ".svg")
+            # shutil.copyfile(blank_svg, missing_svg)
+            # print("Creating blank", missing_svg)
 
     return
 
