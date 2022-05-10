@@ -97,6 +97,7 @@ def processBoard(board_path, plot_dir, quiet=1, verbose=0, plot_frame=0, id_only
     popt.SetPlotValue(True)
     popt.SetPlotInvisibleText(False)
     popt.SetPlotFrameRef(plot_frame)
+    popt.SetSvgPrecision(aPrecision=2, aUseInch=False)
 
     # PcbNew >= 5.99
     if (version_major >= 6) or ((version_major == 5) and (version_minor == 99)):
@@ -149,17 +150,17 @@ def processBoard(board_path, plot_dir, quiet=1, verbose=0, plot_frame=0, id_only
         pctl.ClosePlot()
 
         # Fix svg file on Kicad 6
-        if (version_major > 5) or ((version_major == 5) and (version_minor == 99)):
-            if os.path.exists(svg_path):
-                cmd = shlex.split('kicad_svg_tweaks "{}"'.format(svg_path))
-                process = subprocess.Popen(cmd)
-                stdout, stderr = process.communicate()
-                if process.returncode > 0:
-                    print(" ".join(cmd))
-                    if stdout:
-                        print(stdout.decode('utf-8'))
-                    if stderr:
-                        print(stderr.decode('utf-8'))
+        # if (version_major > 5) or ((version_major == 5) and (version_minor == 99)):
+        #     if os.path.exists(svg_path):
+        #         cmd = shlex.split('kicad_svg_tweaks "{}"'.format(svg_path))
+        #         process = subprocess.Popen(cmd)
+        #         stdout, stderr = process.communicate()
+        #         if process.returncode > 0:
+        #             print(" ".join(cmd))
+        #             if stdout:
+        #                 print(stdout.decode('utf-8'))
+        #             if stderr:
+        #                 print(stderr.decode('utf-8'))
 
         # WORKAROUND: Hide duplicated print since it is duplicated
         if (not quiet) and (i < len(layer_ids)-1):
