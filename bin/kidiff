@@ -1,7 +1,11 @@
 #!/bin/bash
 
 # Wrapper for the plot_kicad_pcb.py script
-# It should work on Linux, Mac and possibly on Windows
+# It should work on Linux, macOS and on Windows
+
+# macOS users: If Kicad is installed on a non default place, 
+# then set the following variables with the path and the version
+# KICAD_CUSTOM_PATH, KICAD_CUSTOM_VERSION
 
 readlink_osx()
 {
@@ -30,31 +34,41 @@ readlink_osx()
 
 case ${OSTYPE} in
 
-	# MaxOS
+	# macOS
 	darwin*)
 		SCRIPT=$(readlink_osx "$0")
 		SCRIPTPATH=$(dirname "${SCRIPT}")
 
-		# Kicad 5
-		kicad_app_path=/Applications/Kicad/kicad.app/
-		if [[ ! -d ${kicad_app_path} ]]; then
-
-			# Kicad 6
-			kicad_app_path=/Applications/KiCad/KiCad.app/
-		fi
-
-		# Kicad 5
-		if [[ -f ${kicad_app_path}/Contents/Frameworks/Python.framework/Versions/Current/bin/python ]]; then
-			${kicad_app_path}/Contents/Frameworks/Python.framework/Versions/Current/bin/python "${SCRIPTPATH}/../kidiff/kidiff.py" "$@"
-
-		# Kicad 6
+		if [[ -z "${KICAD_CUSTOM_PATH}" ]]; then
+			# Kicad 6 (this version has priority)
+			KICAD_VERSION=6
+			KICAD_PATH=/Applications/KiCad/KiCad.app/
+			if [[ ! -d ${KICAD_PATH} ]]; then
+				# Kicad 5
+				KICAD_VERSION=5
+				KICAD_PATH=/Applications/Kicad/kicad.app/
+				if [[ ! -d "${KICAD_PATH}" ]]; then
+					echo "Kicad (path) is missing"
+					exit 1
+				fi
+			fi
 		else
-			#${kicad_app_path}/Contents/Frameworks/Python.framework/Versions/Current/bin/python3 "${SCRIPTPATH}/../kidiff/kidiff.py" "$@"
-			/usr/bin/env python3 "${SCRIPTPATH}/../kidiff/kidiff.py" "$@"
+			KICAD_VERSION="${KICAD_CUSTOM_VERSION}"
+			KICAD_PATH="${KICAD_CUSTOM_PATH}"
 		fi
+
+		case ${KICAD_VERSION} in
+			5*) ${KICAD_PATH}/Contents/Frameworks/Python.framework/Versions/Current/bin/python  "${SCRIPTPATH}/../kidiff/kidiff.py" "$@" ;;
+			6*) ${KICAD_PATH}/Contents/Frameworks/Python.framework/Versions/Current/bin/python3 "${SCRIPTPATH}/../kidiff/kidiff.py" "$@" ;;
+			*) 
+				echo "KICAD_CUSTOM_VERSION not set"
+				exit 1
+				;;
+				# /usr/bin/env python3 "${SCRIPTPATH}/../kidiff/kidiff.py" "$@"
+		esac
 		;;
 
-	# Linux
+	# Linux and Windows
 	*)
 		SCRIPT=$(readlink -f "$0")
 		SCRIPTPATH=$(dirname "${SCRIPT}")
