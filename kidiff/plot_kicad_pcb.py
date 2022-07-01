@@ -97,13 +97,16 @@ def processBoard(board_path, plot_dir, quiet=1, verbose=0, plot_frame=0, id_only
     popt.SetPlotValue(True)
     popt.SetPlotInvisibleText(False)
     popt.SetPlotFrameRef(plot_frame)
-    popt.SetSvgPrecision(aPrecision=2, aUseInch=False)
 
-    # PcbNew >= 5.99
+    # Kicad >= 6.0.3
+    if ((version_major >= 6) and (version_minor >= 0) and (version_patch >= 3)):
+        popt.SetSvgPrecision(aPrecision=2, aUseInch=False)
+
+    # Kicad >= 5.99
     if (version_major >= 6) or ((version_major == 5) and (version_minor == 99)):
         popt.SetWidthAdjust(pn.FromMM(0.15))
 
-    # PcbNew < 5.99
+    # Kicad < 5.99
     else:
         popt.SetPlotFrameRef(False) # This breaks with Kicad 5.*
         popt.SetLineWidth(pn.FromMM(0.15))
