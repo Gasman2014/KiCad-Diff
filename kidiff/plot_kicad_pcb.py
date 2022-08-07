@@ -97,6 +97,7 @@ def processBoard(board_path, plot_dir, quiet=1, verbose=0, plot_frame=0, id_only
     popt.SetPlotValue(True)
     popt.SetPlotInvisibleText(False)
     popt.SetPlotFrameRef(plot_frame)
+    popt.SetDrillMarksType(pn.PCB_PLOT_PARAMS.NO_DRILL_SHAPE)
 
     # Kicad >= 6.0.3
     if ((version_major >= 6) and (version_minor >= 0) and (version_patch >= 3)):
