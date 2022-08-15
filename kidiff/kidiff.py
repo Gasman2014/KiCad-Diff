@@ -11,9 +11,10 @@ import re
 import signal
 import sys
 import fnmatch
+import platform
 
-from tkinter import filedialog, Tk, Toplevel, TclError, messagebox
-from tkUI import runGUI
+import wx
+from kidiff_gui import commits_dialog
 
 import webbrowser
 import http.server
@@ -32,46 +33,52 @@ import assets.html_data as custom_page
 socketserver.TCPServer.allow_reuse_address = True
 script_path = os.path.dirname(os.path.realpath(__file__))
 assets_folder = os.path.join(script_path, "assets")
+icon_path = os.path.join(assets_folder, "favicon.ico")
 
 Handler = http.server.SimpleHTTPRequestHandler
 
 
-def select_project_gui(display):
-    """File select dialogue. Opens Tk File browser and
-    selector set for .kicad_pcb files. Returns path and file name
-    """
-    gui = Tk(display)
-    gui.withdraw()
-    gui.update()
+def launch_filepicker():
 
-    try:
-        # call a dummy dialog with an impossible option to initialize the file
-        # dialog without really getting a dialog window; this will throw a
-        # TclError, so we need a try...except :
-        try:
-            gui.call("tk_getOpenFile", "-foobarbaz")
-        except TclError:
-            pass
-        gui.call("set", "::tk::dialog::file::showHiddenVar", "0")
-    except Exception:
-        pass
+    app = wx.App()
 
-    selected = filedialog.askopenfile(
-        initialdir=os.getcwd(),
-        title="Select the Kicad board",
-        filetypes=(("KiCad PCB files", "*.kicad_pcb"), ("all files", "*.*")),
-    )
+    frame = wx.Frame(None, -1, "")
+    frame.SetSize(0,0,200,50)
 
-    if selected:
-        kicad_board_path = selected.name
-        repo_path, kicad_pcb = os.path.split(kicad_board_path)
-    else:
-        gui.destroy()
-        exit()
+    if platform.system() == 'Darwin':
+        import pexpect
+        wx.SystemOptions.SetOption(u"osx.openfiledialog.always-show-types","1")
 
-    gui.destroy()
+    openFileDialog = wx.FileDialog(
+            frame, message="Select Kicad PCB",
+            defaultDir="",
+            defaultFile="",
+            wildcard="Kicad PCB (*.kicad_pcb)|*.kicad_pcb",
+            style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST)
+
+    dialog = openFileDialog.ShowModal()
+
+    if dialog == wx.ID_CANCEL:
+        exit(1)
+
+    kicad_board_path = openFileDialog.GetPath()
+    repo_path, kicad_pcb = os.path.split(kicad_board_path)
+
+    openFileDialog.Destroy()
 
     return (kicad_board_path, repo_path, kicad_pcb)
+
+
+def launch_commits_dialog(icon_path, repo_path, kicad_project_dir, board_filename, scm_name, scm_artifacts):
+
+        app = wx.App(False)
+
+        dialog = commits_dialog(icon_path, repo_path, kicad_project_dir, board_filename, scm_name, scm_artifacts)
+
+        commit1 = dialog.commit1
+        commit2 = dialog.commit2
+
+        return (commit1, commit2)
 
 
 def get_project_scms(repo_path):
@@ -105,7 +112,7 @@ def get_project_scms(repo_path):
     return scms
 
 
-def make_svg(kicad_pcb_path, repo_path, kicad_project_dir, board_filename, commit1, commit2, optimize_svg):
+def make_svg(kicad_pcb_path, repo_path, kicad_project_dir, board_filename, commit1, commit2, plot_page_frame, filename_with_ids_only=0):
     """Hands off required .kicad_pcb files to "plotpcb"
     and generate .svg files. Routine is quick so all
     layers are plotted to svg."""
@@ -132,35 +139,35 @@ def make_svg(kicad_pcb_path, repo_path, kicad_project_dir, board_filename, commi
     plot1_cmd = [settings.plot_prog, board_filename]
     plot2_cmd = [settings.plot_prog, board_filename]
 
-    optimize_svg_flag=None
-    if optimize_svg:
-        print("SVG optimization enabled (takes time)")
-        plot1_cmd.append("-x")
-        plot2_cmd.append("-x")
+    if plot_page_frame:
+        print("Plotting the page with frame")
+        plot1_cmd.append("-f")
+        plot2_cmd.append("-f")
+
+    if filename_with_ids_only:
+        print("Generate output files with layer id only")
+        plot1_cmd.append("-n")
+        plot2_cmd.append("-n")
 
     stdout, stderr = settings.run_cmd(commit1_output_path, plot1_cmd)
-    plot1_stdout = stdout.splitlines()
+    plot1_stdout = stdout
     plot1_stderr = stderr
 
     if plot1_stderr != "":
-        print(stdout)
-        print("Plot1 error: " + plot1_stderr)
-        #exit(1)
+        print(plot1_stdout)
+        print(plot1_stderr)
 
     stdout, stderr = settings.run_cmd(commit2_output_path, plot2_cmd)
-    plot2_stdout = stdout.splitlines()
+    plot2_stdout = stdout
     plot2_stderr = stderr
 
     if plot2_stderr != "":
-        print(stdout)
-        print("Plot2 error: " + plot2_stderr)
-        #exit(1)
+        print(plot2_stdout)
+        print(plot2_stderr)
 
     if not plot1_stdout or not plot2_stdout:
         print("ERROR: Something happened with plotpcb")
         exit(1)
-
-    # exit(1)
 
     return commit1_hash, commit2_hash
 
@@ -182,7 +189,9 @@ def generate_assets(repo_path, kicad_project_dir, board_filename, output_dir1, o
 
     if not os.path.exists(web_dir):
         os.makedirs(web_dir)
-        os.makedirs(os.path.join(web_dir, "triptych"))
+
+    if not os.path.exists(triptych_dir):
+        os.makedirs(triptych_dir)
 
     mainpage_css = os.path.join(assets_folder, "style.css")
     shutil.copyfile(mainpage_css, web_style)
@@ -209,29 +218,37 @@ def generate_assets(repo_path, kicad_project_dir, board_filename, output_dir1, o
         project_name, _ = os.path.splitext(board_filename)
         layer_id = int(file_name.replace(project_name + "-", "")[0:2])
         layer_name = file_name.replace(project_name + "-", "")[3:]
+
         layers[layer_id] = (file_name, None)
+
+        try:
+            layer = layers[layer_id]
+            layers[layer_id] = (layer[0], file_name)
+        except:
+            layers[layer_id] = (None, file_name)
 
     for i, f in enumerate(svg_files2):
         file_name, _ = os.path.splitext(os.fsdecode(f))
         project_name, _ = os.path.splitext(board_filename)
         layer_id = int(file_name.replace(project_name + "-", "")[0:2])
         layer_name = file_name.replace(project_name + "-", "")[3:]
-        if layers[layer_id]:
+
+        try:
             layer = layers[layer_id]
             layers[layer_id] = (layer[0], file_name)
-        else:
+        except:
             layers[layer_id] = (None, file_name)
 
-    for i in sorted(layers.keys()):
-        if layers[i][0] == None:
-            missing_svg = os.path.join(source_dir1, layers[i][1] + ".svg")
-            print("Creating blank", missing_svg)
-            shutil.copyfile(blank_svg, missing_svg)
+    # for i in sorted(layers.keys()):
+        # if layers[i][0] == None:
+            # missing_svg = os.path.join(source_dir1, layers[i][1] + ".svg")
+            # print("Creating blank", missing_svg)
+            # shutil.copyfile(blank_svg, missing_svg)
 
-        if layers[i][1] == None:
-            missing_svg = os.path.join(source_dir2, layers[i][0] + ".svg")
-            shutil.copyfile(blank_svg, missing_svg)
-            print("Creating blank", missing_svg)
+        # if layers[i][1] == None:
+            # missing_svg = os.path.join(source_dir2, layers[i][0] + ".svg")
+            # shutil.copyfile(blank_svg, missing_svg)
+            # print("Creating blank", missing_svg)
 
     return
 
@@ -638,25 +655,6 @@ class WebServerHandler(http.server.SimpleHTTPRequestHandler):
         return
 
 
-class Select(Toplevel):
-    def __init__(self, parent=None):
-        Toplevel.__init__(self, parent)
-        # self.wm_title("Settings")
-        Toplevel.withdraw(self)
-        Toplevel.update(self)
-
-        action = messagebox.askokcancel(
-            self,
-            message="Select the board file (*.kicad_pcb) file under version control",
-            detail="Available: \n\n" + scm,
-        )
-
-        self.update()
-
-        if action == "cancel":
-            self.quit()
-
-
 def start_web_server(port, kicad_project_path):
     with socketserver.TCPServer(("", port), WebServerHandler) as httpd:
         url = "http://127.0.0.1:{port}/web/index.html".format(port=str(port))
@@ -700,14 +698,19 @@ def parse_cli_args():
         "kicad_pcb", metavar="PCB_PATH", nargs="?", help="Kicad PCB path"
     )
     parser.add_argument(
-        "-o", "--output-dir", type=str, default="kidiff", help="Set output directory. Default is 'kidiff'.")
-    parser.add_argument(
-        "-x", "--optimize-svg", action="store_true", help="Optimize generated svg files"
-    )
+        "-o", "--output-dir", type=str, default=".kidiff", help="Set output directory. Default is '.kidiff'.")
     parser.add_argument(
         "-l", "--list-commits", action="store_true", help="List commits and exit"
     )
-
+    parser.add_argument(
+        "-f", "--frame", action="store_true", help="Plot whole page frame"
+    )
+    parser.add_argument(
+        "-r", "--remove", action="store_true", help="Delete previews created folder"
+    )
+    parser.add_argument(
+        "-n", "--numbers", action="store_true", help="Remove layer names from files, use the id only."
+    )
     args = parser.parse_args()
 
     if args.verbose >= 3:
@@ -727,7 +730,7 @@ if __name__ == "__main__":
         settings.verbose = args.verbose
 
     if args.kicad_pcb is None:
-        kicad_pcb_path, kicad_project_path, board_filename = select_project_gui(args.display)
+        kicad_pcb_path, kicad_project_path, board_filename = launch_filepicker()
     else:
         kicad_pcb_path = os.path.realpath(args.kicad_pcb)
         kicad_project_path = os.path.dirname(kicad_pcb_path)
@@ -770,7 +773,17 @@ if __name__ == "__main__":
         else "(available: {})".format(", ".join(map(str, project_scms)))
     )
 
-    settings.output_dir = os.path.realpath(args.output_dir)
+    if args.output_dir == ".kidiff":
+        kicad_pcb_dir = os.path.dirname(kicad_pcb_path)
+        settings.output_dir = os.path.join(kicad_pcb_dir, args.output_dir)
+    else:
+        settings.output_dir = os.path.realpath(args.output_dir)
+
+    if args.remove:
+        try:
+            shutil.rmtree(settings.output_dir)
+        except OSError as e:
+            pass
 
     print("")
     print("      SCM Selected:", scm_name, avaialble_scms)
@@ -794,8 +807,7 @@ if __name__ == "__main__":
         exit(1)
 
     if args.commit1_hash is None or args.commit2_hash is None:
-
-        commit1, commit2 = runGUI(repo_path, kicad_project_dir, board_filename, scm_name, scm_artifacts)
+        commit1, commit2 = launch_commits_dialog(icon_path, repo_path, kicad_project_dir, board_filename, scm_name, scm_artifacts)
 
         if not commit1 or not commit2:
             print("\nERROR: You must select both commits.")
@@ -813,11 +825,15 @@ if __name__ == "__main__":
 
     commit1, commit2, commit_datetimes = scm.get_boards(kicad_pcb_path, repo_path, kicad_project_dir, board_filename, commit1, commit2)
 
-    output_dir1, output_dir2 = make_svg(kicad_pcb_path, repo_path, kicad_project_dir, board_filename, commit1, commit2, args.optimize_svg)
+    output_dir1, output_dir2 = make_svg(kicad_pcb_path, repo_path, kicad_project_dir, board_filename, commit1, commit2, args.frame, args.numbers)
 
     generate_assets(repo_path, kicad_project_dir, board_filename, output_dir1, output_dir2)
 
     assemble_html(kicad_pcb_path, repo_path, kicad_project_dir, board_filename, output_dir1, output_dir2, commit_datetimes)
 
     if not args.webserver_disable:
-        start_web_server(args.port, kicad_project_dir)
+        try:
+            start_web_server(args.port, kicad_project_dir)
+        except:
+            print("\nPort {} already in use.".format(args.port))
+            print("Kill previews server or change the port with '-p PORT_NUMBER'")

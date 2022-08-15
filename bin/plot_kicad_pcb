@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Wrapper for the plotPCB.py script
+# Wrapper for the plot_kicad_pcb.py script
 # It should work on Linux, Mac and possibly on Windows
 
 readlink_osx()
@@ -41,9 +41,9 @@ case ${OSTYPE} in
 		fi
 
 		if [[ -f ${kicad_app_path}/Contents/Frameworks/Python.framework/Versions/Current/bin/python ]]; then
-			${kicad_app_path}/Contents/Frameworks/Python.framework/Versions/Current/bin/python "${SCRIPTPATH}/plotPCB.py" "$@"
+			${kicad_app_path}/Contents/Frameworks/Python.framework/Versions/Current/bin/python "${SCRIPTPATH}/../kidiff/plot_kicad_pcb.py" "$@"
 		else
-			${kicad_app_path}/Contents/Frameworks/Python.framework/Versions/Current/bin/python3 "${SCRIPTPATH}/plotPCB.py" "$@"
+			${kicad_app_path}/Contents/Frameworks/Python.framework/Versions/Current/bin/python3 "${SCRIPTPATH}/../kidiff/plot_kicad_pcb.py" "$@"
 		fi
 		;;
 
@@ -51,7 +51,7 @@ case ${OSTYPE} in
 	*)
 		SCRIPT=$(readlink -f "$0")
 		SCRIPTPATH=$(dirname "${SCRIPT}")
-		/usr/bin/env python3 "${SCRIPTPATH}/plotPCB.py" "$@"
+		/usr/bin/env python3 "${SCRIPTPATH}/../kidiff/plot_kicad_pcb.py" "$@"
 		;;
 
 esac

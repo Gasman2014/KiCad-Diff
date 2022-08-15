@@ -1,0 +1,78 @@
+#!/bin/bash
+
+# Wrapper for the plot_kicad_pcb.py script
+# It should work on Linux, macOS and on Windows
+
+# macOS users: If Kicad is installed on a non default place, 
+# then set the following variables with the path and the version
+# KICAD_CUSTOM_PATH, KICAD_CUSTOM_VERSION
+
+readlink_osx()
+{
+	TARGET_FILE=$1
+
+	cd "$(dirname "${TARGET_FILE}")" || exit
+	TARGET_FILE=$(basename "${TARGET_FILE}")
+
+	# Iterate down a (possible) chain of symlinks
+	while [ -L "${TARGET_FILE}" ]
+	do
+		TARGET_FILE=$(readlink "${TARGET_FILE}")
+		cd "$(dirname "${TARGET_FILE}")" || exit
+		TARGET_FILE=$(basename "${TARGET_FILE}")
+	done
+
+	# Compute the canonicalized name by finding the physical path
+	# for the directory we're in and appending the target file.
+	PHYS_DIR=$(pwd -P)
+
+	RESULT="$PHYS_DIR/${TARGET_FILE}"
+
+	echo "${RESULT}"
+}
+
+
+case ${OSTYPE} in
+
+	# macOS
+	darwin*)
+		SCRIPT=$(readlink_osx "$0")
+		SCRIPTPATH=$(dirname "${SCRIPT}")
+
+		if [[ -z "${KICAD_CUSTOM_PATH}" ]]; then
+			# Kicad 6 (this version has priority)
+			KICAD_VERSION=6
+			KICAD_PATH=/Applications/KiCad/KiCad.app/
+			if [[ ! -d ${KICAD_PATH} ]]; then
+				# Kicad 5
+				KICAD_VERSION=5
+				KICAD_PATH=/Applications/Kicad/kicad.app/
+				if [[ ! -d "${KICAD_PATH}" ]]; then
+					echo "Kicad (path) is missing"
+					exit 1
+				fi
+			fi
+		else
+			KICAD_VERSION="${KICAD_CUSTOM_VERSION}"
+			KICAD_PATH="${KICAD_CUSTOM_PATH}"
+		fi
+
+		case ${KICAD_VERSION} in
+			5*) ${KICAD_PATH}/Contents/Frameworks/Python.framework/Versions/Current/bin/python  "${SCRIPTPATH}/../kidiff/kidiff.py" "$@" ;;
+			6*) ${KICAD_PATH}/Contents/Frameworks/Python.framework/Versions/Current/bin/python3 "${SCRIPTPATH}/../kidiff/kidiff.py" "$@" ;;
+			*) 
+				echo "KICAD_CUSTOM_VERSION not set"
+				exit 1
+				;;
+				# /usr/bin/env python3 "${SCRIPTPATH}/../kidiff/kidiff.py" "$@"
+		esac
+		;;
+
+	# Linux and Windows
+	*)
+		SCRIPT=$(readlink -f "$0")
+		SCRIPTPATH=$(dirname "${SCRIPT}")
+		/usr/bin/env python3 "${SCRIPTPATH}/../kidiff/kidiff.py" "$@"
+		;;
+
+esac

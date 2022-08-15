@@ -128,7 +128,7 @@ window.onkeydown = function(e)
         pan_zoom_hash2.center();
     }
 
-    if (keysDown.ArrowUp)
+    if (keysDown.ArrowUp || event.key === ']')
     {
         keysDown = {};
 
@@ -143,7 +143,7 @@ window.onkeydown = function(e)
         tabs[new_index].checked = true;
     }
 
-    if (keysDown.ArrowDown)
+    if (keysDown.ArrowDown || event.key === '[')
     {
         keysDown = {};
 
@@ -162,6 +162,10 @@ window.onkeydown = function(e)
 
 window.onload = function()
 {
+    document.getElementById('svg-compo-diff').style.display = "none";
+    document.getElementById('hash1_image').style.display = "none";
+    document.getElementById('hash2_image').style.display = "none";
+
     pan_zoom_diff = svgPanZoom(
         '#svg-compo-diff', {
             zoomEnabled: true,
@@ -310,5 +314,12 @@ window.onload = function()
         pan_zoom_hash1.pan(point);
         save_svg_pan_zoom_settings(pan_zoom_hash2, "pan_zoom_hash2");
     });
+
+
+    //===========================
+
+    document.getElementById('svg-compo-diff').style.display = "inline";
+    document.getElementById('hash1_image').style.display = "inline";
+    document.getElementById('hash2_image').style.display = "inline";
 
 };
