@@ -82,7 +82,8 @@ class scm(generic_scm):
         if not commit1 == board_filename:
             stdout, stderr = settings.run_cmd(repo_path, svnDateTime1)
             dateTime = stdout
-            cmt = (dateTime.splitlines()[1]).split("|")_, SVNdate1, SVNtime1, SVNutc, *_ = cmt[2].split(" ")
+            cmt = (dateTime.splitlines()[1]).split("|")
+            _, SVNdate1, SVNtime1, SVNutc, *_ = cmt[2].split(" ")
         else:
             artifact1 = board_filename
             modTimesinceEpoc = os.path.getmtime(kicad_pcb_path)
