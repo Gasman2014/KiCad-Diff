@@ -89,7 +89,8 @@ class scm(generic_scm):
             modTimesinceEpoc = os.path.getmtime(kicad_pcb_path)
             SVNdate1 = time.strftime("%Y-%m-%d", time.localtime(modTimesinceEpoc))
             SVNtime1 = time.strftime("%H:%M:%S", time.localtime(modTimesinceEpoc))
-            time1 = SVNdate1 + " " + SVNtime1
+
+        time1 = SVNdate1 + " " + SVNtime1
 
         if not commit2 == board_filename:
             stdout, stderr = settings.run_cmd(repo_path, svnDateTime2)
@@ -102,7 +103,8 @@ class scm(generic_scm):
             modTimesinceEpoc = os.path.getmtime(kicad_pcb_path)
             SVNdate2 = time.strftime("%Y-%m-%d", time.localtime(modTimesinceEpoc))
             SVNtime2 = time.strftime("%H:%M:%S", time.localtime(modTimesinceEpoc))
-            time2 = SVNdate2 + " " + SVNtime2
+
+        time2 = SVNdate2 + " " + SVNtime2
 
         return artifact1, artifact2, time1 + " " + time2
 
