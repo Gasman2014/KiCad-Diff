@@ -103,16 +103,8 @@ class scm(generic_scm):
     def get_artefacts(repo_path, kicad_project_dir, board_file):
         """Returns list of artifacts from a directory"""
 
-        cmd = [
-            "git",
-            "log",
-            "--date=local",
-            "--pretty=format:%h | %ai | %an | %s",
-            os.path.join(kicad_project_dir, board_file),
-        ]
-
+        cmd = ["git", "log", "--date=local", "--pretty=format:%h | %ai | %an | %s", os.path.join(kicad_project_dir, board_file)]
         stdout, _ = settings.run_cmd(repo_path, cmd)
-
         artifacts = [board_file] + stdout.splitlines()
 
         return artifacts
