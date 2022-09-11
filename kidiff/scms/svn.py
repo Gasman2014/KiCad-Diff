@@ -125,7 +125,6 @@ class scm(generic_scm):
         """Returns the root folder of the repository"""
 
         cmd = ["svn", "info", "--show-item", "wc-root"]
-
         stdout, _ = settings.run_cmd(kicad_project_path, cmd)
         repo_path = stdout.strip()
 
