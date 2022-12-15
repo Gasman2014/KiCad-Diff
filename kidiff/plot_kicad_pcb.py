@@ -101,7 +101,7 @@ def processBoard(board_path, plot_dir, quiet=1, verbose=0, plot_frame=0, id_only
 
     # Kicad >= 6.0.3
     if ((version_major >= 6) and (version_minor >= 0) and (version_patch >= 3)):
-        popt.SetSvgPrecision(aPrecision=2, aUseInch=False)
+        popt.SetSvgPrecision(aPrecision=5, aUseInch=False)
 
     # Kicad >= 5.99
     if (version_major >= 6) or ((version_major == 5) and (version_minor == 99)):
