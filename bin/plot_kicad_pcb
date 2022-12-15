@@ -22,7 +22,7 @@ readlink_osx()
 	# for the directory we're in and appending the target file.
 	PHYS_DIR=$(pwd -P)
 
-	RESULT="$PHYS_DIR/${TARGET_FILE}"
+	RESULT="${PHYS_DIR}/${TARGET_FILE}"
 
 	echo "${RESULT}"
 }
@@ -32,7 +32,7 @@ case ${OSTYPE} in
 
 	# MaxOS
 	darwin*)
-		SCRIPT=$(readlink_osx "$0")
+		SCRIPT=$(readlink_osx "${0}")
 		SCRIPTPATH=$(dirname "${SCRIPT}")
 
 		kicad_app_path=/Applications/Kicad/kicad.app/
@@ -49,7 +49,7 @@ case ${OSTYPE} in
 
 	# Linux
 	*)
-		SCRIPT=$(readlink -f "$0")
+		SCRIPT=$(readlink -f "${0}")
 		SCRIPTPATH=$(dirname "${SCRIPT}")
 		/usr/bin/env python3 "${SCRIPTPATH}/../kidiff/plot_kicad_pcb.py" "$@"
 		;;
