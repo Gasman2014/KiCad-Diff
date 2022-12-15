@@ -121,10 +121,10 @@ def make_svg(kicad_pcb_path, repo_path, kicad_project_dir, board_filename, commi
     commit2_hash = "local"
 
     if not commit1 == board_filename:
-        commit1_hash = commit1
+        commit1_hash = commit1.split(" ")[0]
 
     if not commit2 == board_filename:
-        commit2_hash = commit2
+        commit2_hash = commit2.split(" ")[0]
 
     # Output folder
     commit1_output_path = os.path.join(settings.output_dir, commit1_hash)

@@ -37,8 +37,8 @@ class CommitsDialog(wx.Dialog):
         sizer_6 = wx.StaticBoxSizer(wx.StaticBox(self, wx.ID_ANY, "Commit 1 (a)"), wx.HORIZONTAL)
         sizer_5.Add(sizer_6, 1, wx.ALL | wx.EXPAND, 4)
 
-        width = 980
-        height = 300
+        width = 700
+        height = 280
 
         self.commits_list_1 = wx.ListCtrl(self, wx.ID_ANY, style=wx.BORDER_DEFAULT | wx.LC_ALIGN_LEFT | wx.LC_HRULES | wx.LC_REPORT | wx.LC_SINGLE_SEL | wx.LC_SORT_DESCENDING)
         self.commits_list_1.SetMinSize((width, height))
