@@ -43,7 +43,7 @@ def launch_filepicker():
     app = wx.App()
 
     frame = wx.Frame(None, -1, "")
-    frame.SetSize(0,0,200,50)
+    frame.SetSize(0, 0, 200, 50)
 
     if platform.system() == 'Darwin':
         import pexpect
@@ -121,10 +121,10 @@ def make_svg(kicad_pcb_path, repo_path, kicad_project_dir, board_filename, commi
     commit2_hash = "local"
 
     if not commit1 == board_filename:
-        commit1_hash = commit1[:7]
+        commit1_hash = commit1
 
     if not commit2 == board_filename:
-        commit2_hash = commit2[:7]
+        commit2_hash = commit2
 
     # Output folder
     commit1_output_path = os.path.join(settings.output_dir, commit1_hash)
