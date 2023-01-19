@@ -5,8 +5,8 @@ import sys
 import settings
 from scms.generic import scm as generic_scm
 from xml.parsers.expat import ParserCreate
-from dateutil.parser import isoparse
-
+import xml.etree.ElementTree as et
+from datetime import datetime
 
 class scm(generic_scm):
 
@@ -163,7 +163,11 @@ class SvnLogHandler:
     def characters(self, content):
         if self.save and len(content):
             if self.save == "date":
-                self.current_line += isoparse(content).strftime("%Y-%m-%d %H:%M")
+                root = et.fromstring(content)
+                for entry in root.findall('./logentry'):
+                    date_str = entry.find('date').text
+                    date_obj = datetime.strptime(date_str, '%Y-%m-%dT%H:%M:%S.%fZ')
+                    self.current_line += date_obj.strftime("%Y-%m-%d %H:%M")
             else:
                 self.current_line += content
             self.save = False
