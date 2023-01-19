@@ -14,12 +14,12 @@ class scm(generic_scm):
         directories (named after the artifact). Returns the date and time of both commits"""
 
         if not commit1 == board_filename:
-            artifact1 = commit1[:7]
+            artifact1 = commit1.split(" ")[0]
         else:
             artifact1 = "local"
 
         if not commit2 == board_filename:
-            artifact2 = commit2[:7]
+            artifact2 = commit2.split(" ")[0]
         else:
             artifact2 = "local"
 
@@ -103,7 +103,7 @@ class scm(generic_scm):
     def get_artefacts(repo_path, kicad_project_dir, board_file):
         """Returns list of artifacts from a directory"""
 
-        cmd = ["git", "log", "--date=local", "--pretty=format:%h | %ai | %an | %s", os.path.join(kicad_project_dir, board_file)]
+        cmd = ["git", "log", "--date=format-local:%Y-%m-%d %H:%M:%S", "--pretty=format:%h | %ad | %an | %s", os.path.join(kicad_project_dir, board_file)]
         stdout, _ = settings.run_cmd(repo_path, cmd)
         artifacts = [board_file] + stdout.splitlines()
 
