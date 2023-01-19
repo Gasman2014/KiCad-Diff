@@ -1,11 +1,10 @@
 # KiCad-Diff
 
-This is a python program for comparing KiCad PCB revisions.
+This is a Python program that compares revisions of KiCad PCBs.
 
+The layers of a KiCad board are exported to SVG, and the output is presented as a gallery of images on a web page. Each layer pair can be compared, and the combined view clearly highlights where the layers differ from one another.
 
-The layers of a Kicad board are exported to svg and output is presented as a gallery of images on a webpage. Each layer pair can be compared and the combined view highlights clearly where the layers differ from each other.
-
-The diff output can be scrolled and zoomed in and out for closer inspection. The pair of 'before and after' views will also pan and zoom together. I have looked at linking all three windows together but this makes for a very confusing and unsatisfactory effect.
+The diff output can be scrolled and zoomed in and out for closer inspection. The pair of "before and after" views will also pan and zoom together.
 
 ## Instructions
 
@@ -13,44 +12,26 @@ The diff output can be scrolled and zoomed in and out for closer inspection. The
 
 - Ensure that you have Python3 installed. Why? https://www.pythonclock.org
 - Python Libraries from Kicad 5.* or 6.*
-- For python dependencies check the `requirements.txt`
-
-To install KiCad-Diff dependencies:
-
-```
-cd KiCad-Diff
-pip3 install -r requirements.txt
-```
+- For extra python dependencies check the `requirements.txt`
 
 #### wxWidgets
 
-This version uses wxWidgets for the GUI
-
-To install it on macOS
-```
-brew install wxmac
-brew install wxpython
+_On macOS_ using Apple sillicon, you should export these flags first
+```bash
+export CFLAGS=-I/$(brew --prefix)/include
+export CXXFLAGS=-I/$(brew --prefix)/include
 ```
 
-To install it on Ubuntu
-```
+_On Ubuntu_, wxWidgets can be installed with:
+```bash
 sudo apt install python3-wxgtk4.0
 ```
 
-#### Kicad 6 Workaround
+#### Installing dependencies
 
-The new version of Kicad is generating svg files that do not work well on browsers (Google-Chrome, Firefox and Safari)
-The `kicad_svg_tweaks` script is a quick fix while we don't receive an improved version from Kicad team.
-This requires the `rsvg-convert` tool.
-
-To install it on macOS
-```
-brew install librsvg
-```
-
-To install it on Ubuntu
-```
-sudo apt install librsvg2-bin
+```bash
+cd KiCad-Diff
+pip3 install -r requirements.txt
 ```
 
 ## Usage
@@ -59,7 +40,7 @@ Make sure you have SCMs (Git, Fossil and/or SVN) available through the PATH vari
 Add the script path to your PATH too so the `kidiff` and `plot_kicad_pcb` will be available.
 This can be done easily with:
 
-```
+```bash
 cd KiCad-Diff
 source env.sh
 ```
@@ -68,7 +49,7 @@ The terminal should give you some useful information on progress. Please include
 
 ### Command line help
 
-```
+```bash
 usage: kidiff [-h] [-a COMMIT1_HASH] [-b COMMIT2_HASH] [-g] [-s SCM] [-d DISPLAY] [-p PORT] [-w] [-v] [-o OUTPUT_DIR] [-l] [-f] [PCB_PATH]
 
 Kicad PCB visual diffs.
@@ -97,9 +78,9 @@ optional arguments:
 
 ```
 
-### Usage example
+### Usage examples
 
-```
+```bash
 # With a Git repo
 kidiff led_test.kicad_pcb
 
@@ -108,14 +89,13 @@ kidiff led_test.kicad_pcb --scm fossil
 
 # With a SVN repo, passing commit 1 and 2 on the command line
 kidiff led_test.kicad_pcb -a r1 -b r3
-
 ```
 
 ## Debugging
 
 There should be some output in the launch terminal. Please copy this and include it in any issues posted. If the program is not working, please check that you can run the `plot_kicad_pcb` routine directly by invoking it from the command line and passing the name of the `*.kicad_pcb` file.
 
-```
+```bash
 plot_kicad_pcb board.kicad_pcb
 ```
 
@@ -123,22 +103,21 @@ plot_kicad_pcb board.kicad_pcb
 # Screenshots
 
 <p align="center">
-  <img src="/docs/gui.png" width="600" alt="Commits Selection GUI">
+  <img src="https://github.com/Gasman2014/KiCad-Diff/raw/master/docs/gui.png" width="600" alt="Commits Selection GUI">
   <br>
   Commits Selection
   <br>
 </p>
 
-
 <p align="center">
-  <img src="/docs/gallery.png" width="850" alt="Gallery view">
+  <img src="https://github.com/Gasman2014/KiCad-Diff/raw/master/docs/gallery.png" width="850" alt="Gallery view">
   <br>
   Gallery View
   <br>
 </p>
 
 <p align="center">
-  <img src="/docs/triptych.png" width="850" alt="Triptych view">
+  <img src="https://github.com/Gasman2014/KiCad-Diff/raw/master/docs/triptych.png" width="850" alt="Triptych view">
   <br>
   Triptych view
   <br>
@@ -146,7 +125,7 @@ plot_kicad_pcb board.kicad_pcb
 
 
 <p align="center">
-  <img src="/docs/text.png" width="850" alt="Attributes Diff">
+  <img src="https://github.com/Gasman2014/KiCad-Diff/raw/master/docs/text.png" width="850" alt="Attributes Diff">
   <br>
   Attributes Diff
   <br>
