@@ -120,11 +120,14 @@ class scm(generic_scm):
 
         for entry in root.findall('./logentry'):
             rev = entry.attrib['revision']
-            author_str = entry.find('author').text
+            try:
+                author_str = entry.find('author').text
+            except:
+                author_str = "[author]"
             date_str = entry.find('date').text
             date_obj = datetime.strptime(date_str, '%Y-%m-%dT%H:%M:%S.%fZ')
             date = date_obj.strftime("%Y-%m-%d %H:%M")
-            msg_str = entry.find('msg').text
+            msg_str = entry.find('msg').text if entry.find('msg').text else "[Message]"
             artifact = "{} | {} | {} | {}".format(rev, date, author_str, msg_str)
             commits.append(artifact)
 
