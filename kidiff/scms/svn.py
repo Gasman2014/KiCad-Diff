@@ -5,8 +5,8 @@ import sys
 import settings
 from scms.generic import scm as generic_scm
 from xml.parsers.expat import ParserCreate
-from dateutil.parser import isoparse
-
+import xml.etree.ElementTree as et
+from datetime import datetime
 
 class scm(generic_scm):
 
@@ -114,9 +114,24 @@ class scm(generic_scm):
 
         cmd = ["svn", "log", "--xml", "-r", "HEAD:0", os.path.join(kicad_project_dir, board_filename)]
         stdout, _ = settings.run_cmd(repo_path, cmd)
-        parser = SvnLogHandler()
-        parser.parseString(stdout)
-        artifacts = [board_filename] + parser.lines
+
+        root = et.fromstring(stdout)
+        commits = []
+
+        for entry in root.findall('./logentry'):
+            rev = entry.attrib['revision']
+            try:
+                author_str = entry.find('author').text
+            except:
+                author_str = "[author]"
+            date_str = entry.find('date').text
+            date_obj = datetime.strptime(date_str, '%Y-%m-%dT%H:%M:%S.%fZ')
+            date = date_obj.strftime("%Y-%m-%d %H:%M")
+            msg_str = entry.find('msg').text if entry.find('msg').text else "[Message]"
+            artifact = "{} | {} | {} | {}".format(rev, date, author_str, msg_str)
+            commits.append(artifact)
+
+        artifacts = [board_filename] + commits
 
         return artifacts
 
@@ -131,39 +146,3 @@ class scm(generic_scm):
         kicad_project_dir = os.path.relpath(kicad_project_path, repo_path)
 
         return repo_path, kicad_project_dir
-
-
-class SvnLogHandler:
-    def __init__(self):
-        self.parser = ParserCreate()
-        self.parser.StartElementHandler = self.startElement
-        self.parser.EndElementHandler = self.endElement
-        self.parser.CharacterDataHandler = self.characters
-        self.lines = []
-        self.current_line = ""
-        self.save = False
-
-    def parseString(self, data):
-        self.parser.Parse(data)
-
-    def startElement(self, name, attrs):
-        if name == "logentry":
-            self.current_line = "r" + attrs.get("revision")
-
-        else:
-            self.save = name == "date" or name == "msg"
-        if self.save:
-            self.save = name
-            self.current_line += " | "
-
-    def endElement(self, name):
-        if name == "logentry":
-            self.lines.append(self.current_line)
-
-    def characters(self, content):
-        if self.save and len(content):
-            if self.save == "date":
-                self.current_line += isoparse(content).strftime("%Y-%m-%d %H:%M")
-            else:
-                self.current_line += content
-            self.save = False
