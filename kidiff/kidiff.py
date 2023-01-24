@@ -111,7 +111,6 @@ def get_project_scms(repo_path):
 
     return scms
 
-
 def make_svg(kicad_pcb_path, repo_path, kicad_project_dir, board_filename, commit1, commit2, plot_page_frame, filename_with_ids_only=0):
     """Hands off required .kicad_pcb files to "plotpcb"
     and generate .svg files. Routine is quick so all
@@ -154,7 +153,6 @@ def make_svg(kicad_pcb_path, repo_path, kicad_project_dir, board_filename, commi
     plot1_stderr = stderr
 
     if plot1_stderr != "":
-        print(plot1_stdout)
         print(plot1_stderr)
 
     stdout, stderr = settings.run_cmd(commit2_output_path, plot2_cmd)
@@ -162,11 +160,57 @@ def make_svg(kicad_pcb_path, repo_path, kicad_project_dir, board_filename, commi
     plot2_stderr = stderr
 
     if plot2_stderr != "":
-        print(plot2_stdout)
         print(plot2_stderr)
 
     if not plot1_stdout or not plot2_stdout:
-        print("ERROR: Something happened with plotpcb")
+        print("ERROR: Something happened with {}".format(settings.plot_prog))
+        exit(1)
+
+    return commit1_hash, commit2_hash
+
+def make_svg_pages(kicad_sch_path, repo_path, kicad_project_dir, page_filename, commit1, commit2, plot_page_frame, filename_with_ids_only=0):
+    """Hands off required .kicad_pcb files to "plotpcb"
+    and generate .svg files. Routine is quick so all
+    layers are plotted to svg."""
+
+    commit1_hash = "local"
+    commit2_hash = "local"
+
+    if not commit1 == board_filename:
+        commit1_hash = commit1.split(" ")[0]
+
+    if not commit2 == board_filename:
+        commit2_hash = commit2.split(" ")[0]
+
+    # Output folder
+    commit1_output_path = os.path.join(settings.output_dir, commit1_hash)
+    commit2_output_path = os.path.join(settings.output_dir, commit2_hash)
+
+    if not os.path.exists(commit1_output_path):
+        os.makedirs(commit1_output_path)
+
+    if not os.path.exists(commit2_output_path):
+        os.makedirs(commit2_output_path)
+
+    plot1_cmd = "/usr/bin/kicad-cli-nightly sch export svg --black-and-white --no-background-color {}".format(page_filename).split(" ")
+    plot2_cmd = "/usr/bin/kicad-cli-nightly sch export svg --black-and-white --no-background-color {}".format(page_filename).split(" ")
+
+    stdout, stderr = settings.run_cmd(commit1_output_path, plot1_cmd)
+    plot1_stdout = stdout
+    plot1_stderr = stderr
+
+    if plot1_stderr != "":
+        print(plot1_stderr)
+
+    stdout, stderr = settings.run_cmd(commit2_output_path, plot2_cmd)
+    plot2_stdout = stdout
+    plot2_stderr = stderr
+
+    if plot2_stderr != "":
+        print(plot2_stderr)
+
+    if not plot1_stdout or not plot2_stdout:
+        print("ERROR: Something happened with kicad-cli-nightly")
         exit(1)
 
     return commit1_hash, commit2_hash
@@ -211,6 +255,9 @@ def generate_assets(repo_path, kicad_project_dir, board_filename, output_dir1, o
     project_name, _ = os.path.splitext(board_filename)
     svg_files1 = sorted(fnmatch.filter(os.listdir(source_dir1), project_name + '-[0-9][0-9]-*.svg'))
     svg_files2 = sorted(fnmatch.filter(os.listdir(source_dir2), project_name + '-[0-9][0-9]-*.svg'))
+
+    page_svg = sorted(fnmatch.filter(os.listdir(source_dir1), project_name + '.svg'))
+
     layers = dict()
 
     for i, f in enumerate(svg_files1):
@@ -239,16 +286,8 @@ def generate_assets(repo_path, kicad_project_dir, board_filename, output_dir1, o
         except:
             layers[layer_id] = (None, file_name)
 
-    # for i in sorted(layers.keys()):
-        # if layers[i][0] == None:
-            # missing_svg = os.path.join(source_dir1, layers[i][1] + ".svg")
-            # print("Creating blank", missing_svg)
-            # shutil.copyfile(blank_svg, missing_svg)
 
-        # if layers[i][1] == None:
-            # missing_svg = os.path.join(source_dir2, layers[i][0] + ".svg")
-            # shutil.copyfile(blank_svg, missing_svg)
-            # print("Creating blank", missing_svg)
+    layers[-1] = (page_svg, page_svg)
 
     return
 
@@ -365,6 +404,10 @@ def html_class_from_layer_id(layer_id):
     else:
         class_name = layer_name[layer_id]
 
+    # Schematic pages have id < 0, and the same color
+    if (layer_id <= -1):
+        class_name = "F_Fab"
+
     return class_name
 
 
@@ -449,14 +492,28 @@ def assemble_html(kicad_pcb_path, repo_path, kicad_project_dir, board_filename, 
 
     project_name, _ = os.path.splitext(board_filename)
     svg_files = sorted(fnmatch.filter(os.listdir(source_dir), project_name + '-[0-9][0-9]-*.svg'))
+
+    svg_page = sorted(fnmatch.filter(os.listdir(source_dir), project_name + '.svg'))
+    svg_files = svg_page + svg_files
+
     triptych_htmls = [svg_file.replace('.svg', '.html') for svg_file in svg_files]
 
     for i, f in enumerate(svg_files):
 
         file_name, _ = os.path.splitext(os.fsdecode(f))
-        layer_id = int(file_name.replace(project_name + "-", "")[0:2])
-        layer_name = file_name.replace(project_name + "-", "")[3:]
-        layer_name_orig = layer_name.replace("_", ".")  # not sure this is good and works all the time
+
+        try:
+            layer_id = int(file_name.replace(project_name + "-", "")[0:2])
+        except:
+            layer_id = -1
+
+        if layer_id >= 0:
+            layer_name = file_name.replace(project_name + "-", "")[3:]
+            layer_name_orig = layer_name.replace("_", ".")  # not sure this is good and works all the time
+        else:
+            layer_id = -1
+            layer_name = file_name
+            layer_name_orig = "Schematic"
 
         triptych_html = file_name + ".html"
         triptych_html_path = os.path.join(triptych_dir, triptych_html)
@@ -468,7 +525,6 @@ def assemble_html(kicad_pcb_path, repo_path, kicad_project_dir, board_filename, 
             filename_svg=f,
             triptych_html=triptych_html,
             layer_class=html_class_from_layer_id(layer_id),
-            index=i+1,
         )
 
         index_html.write(index_gallery_item)
@@ -823,9 +879,14 @@ if __name__ == "__main__":
     print("Commit 1 (a):", commit1)
     print("Commit 2 (b):", commit2)
 
+    page_filename = board_filename.replace(".kicad_pcb", ".kicad_sch")
+    kicad_sch_path = kicad_pcb_path.replace(".kicad_pcb", ".kicad_sch")
+
+    scm.get_pages(kicad_sch_path, repo_path, kicad_project_dir, page_filename, commit1, commit2)
     commit1, commit2, commit_datetimes = scm.get_boards(kicad_pcb_path, repo_path, kicad_project_dir, board_filename, commit1, commit2)
 
     output_dir1, output_dir2 = make_svg(kicad_pcb_path, repo_path, kicad_project_dir, board_filename, commit1, commit2, args.frame, args.numbers)
+    _, _ = make_svg_pages(kicad_sch_path, repo_path, kicad_project_dir, page_filename, commit1, commit2, args.frame, args.numbers)
 
     generate_assets(repo_path, kicad_project_dir, board_filename, output_dir1, output_dir2)
 
