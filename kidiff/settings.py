@@ -13,7 +13,8 @@ global svnProg
 global diffProg
 global grepProg
 
-global plot_prog
+global sch_plot_prog
+global pcb_plot_prog
 
 global output_dir
 global web_dir
@@ -26,7 +27,8 @@ svnProg = "svn"
 diffProg = "diff"
 grepProg = "grep"
 
-plot_prog = "plot_kicad_pcb"
+pcb_plot_prog = "plot_kicad_pcb"
+sch_plot_prog = "/usr/bin/kicad-cli-nightly"
 
 web_dir = "web"
 

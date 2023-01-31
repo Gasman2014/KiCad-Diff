@@ -44,6 +44,7 @@ class scm(generic_scm):
 
             if not changed:
                 print("\nThere is no difference in .kicad_pcb file in selected commits")
+                return
 
         outputDir1 = os.path.join(
             settings.output_dir, artifact1
@@ -143,6 +144,7 @@ class scm(generic_scm):
 
             if not changed:
                 print("\nThere is no difference in .kicad_sch file in selected commits")
+                return
 
         outputDir1 = os.path.join(
             settings.output_dir, artifact1
@@ -198,7 +200,7 @@ class scm(generic_scm):
 
         cmd = ["git", "log", "--date=format-local:%Y-%m-%d %H:%M:%S", "--pretty=format:%h | %ad | %an | %s", os.path.join(kicad_project_dir, board_file)]
         stdout, _ = settings.run_cmd(repo_path, cmd)
-        artifacts = [board_file] + stdout.splitlines()
+        artifacts = ["local"] + stdout.splitlines()
 
         return artifacts
 

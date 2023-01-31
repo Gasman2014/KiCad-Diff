@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-#
+# -*- coding: utf-8 -*-
+
 # A python script to select two revisions of a Kicad pcbnew layout
 # held in a suitable version control repository and produce a graphical diff
 # of generated svg files in a web browser.
@@ -12,6 +13,8 @@ import signal
 import sys
 import fnmatch
 import platform
+
+import urllib
 
 import wx
 from kidiff_gui import commits_dialog
@@ -111,10 +114,13 @@ def get_project_scms(repo_path):
 
     return scms
 
-def make_svg(kicad_pcb_path, repo_path, kicad_project_dir, board_filename, commit1, commit2, plot_page_frame, filename_with_ids_only=0):
+def pcb_to_svg(kicad_pcb_path, repo_path, kicad_project_dir, board_filename, commit1, commit2, plot_page_frame, filename_with_ids_only=0):
     """Hands off required .kicad_pcb files to "plotpcb"
     and generate .svg files. Routine is quick so all
     layers are plotted to svg."""
+
+    if settings.verbose > 0:
+        print("Exporting PCBs...")
 
     commit1_hash = "local"
     commit2_hash = "local"
@@ -135,8 +141,12 @@ def make_svg(kicad_pcb_path, repo_path, kicad_project_dir, board_filename, commi
     if not os.path.exists(commit2_output_path):
         os.makedirs(commit2_output_path)
 
-    plot1_cmd = [settings.plot_prog, board_filename]
-    plot2_cmd = [settings.plot_prog, board_filename]
+    plot1_cmd = "{plot_pcb} -o pcb {kicad_pcb}".format(plot_pcb=settings.pcb_plot_prog, kicad_pcb=board_filename).split(" ")
+    plot2_cmd = "{plot_pcb} -o pcb {kicad_pcb}".format(plot_pcb=settings.pcb_plot_prog, kicad_pcb=board_filename).split(" ")
+
+    if settings.verbose > 0:
+        print("cd", commit1_output_path + ";", " ".join(map(str, plot1_cmd)))
+        print("cd", commit2_output_path + ";", " ".join(map(str, plot2_cmd)))
 
     if plot_page_frame:
         print("Plotting the page with frame")
@@ -168,10 +178,18 @@ def make_svg(kicad_pcb_path, repo_path, kicad_project_dir, board_filename, commi
 
     return commit1_hash, commit2_hash
 
-def make_svg_pages(kicad_sch_path, repo_path, kicad_project_dir, page_filename, commit1, commit2, plot_page_frame, filename_with_ids_only=0):
+def sch_to_svg(kicad_sch_path, repo_path, kicad_project_dir, page_filename, commit1, commit2, plot_page_frame, filename_with_ids_only=0):
     """Hands off required .kicad_pcb files to "plotpcb"
     and generate .svg files. Routine is quick so all
     layers are plotted to svg."""
+
+    if not os.path.exists(settings.sch_plot_prog):
+        print("Skipping schematics diff")
+        print("{sch_plot_prog} is missing (Kicad >= v7)".format(sch_plot_prog=settings.sch_plot_prog))
+        return
+
+    if settings.verbose > 0:
+        print("Exporting SCHs...")
 
     commit1_hash = "local"
     commit2_hash = "local"
@@ -192,8 +210,15 @@ def make_svg_pages(kicad_sch_path, repo_path, kicad_project_dir, page_filename, 
     if not os.path.exists(commit2_output_path):
         os.makedirs(commit2_output_path)
 
-    plot1_cmd = "/usr/bin/kicad-cli-nightly sch export svg --black-and-white --no-background-color {}".format(page_filename).split(" ")
-    plot2_cmd = "/usr/bin/kicad-cli-nightly sch export svg --black-and-white --no-background-color {}".format(page_filename).split(" ")
+    plot1_cmd = "{plot_sch} sch export svg --black-and-white --no-background-color -o sch {kicad_sch}".format(
+        plot_sch=settings.sch_plot_prog, kicad_sch=page_filename).split(" ")
+
+    plot2_cmd = "{plot_sch} sch export svg --black-and-white --no-background-color -o sch {kicad_sch}".format(
+        plot_sch=settings.sch_plot_prog, kicad_sch=page_filename).split(" ")
+
+    if settings.verbose > 0:
+        print("cd", commit1_output_path, ";", ' '.join(map(str, plot1_cmd)))
+        print("cd", commit2_output_path, ";", ' '.join(map(str, plot2_cmd)))
 
     stdout, stderr = settings.run_cmd(commit1_output_path, plot1_cmd)
     plot1_stdout = stdout
@@ -210,7 +235,7 @@ def make_svg_pages(kicad_sch_path, repo_path, kicad_project_dir, page_filename, 
         print(plot2_stderr)
 
     if not plot1_stdout or not plot2_stdout:
-        print("ERROR: Something happened with kicad-cli-nightly")
+        print("ERROR: Something happened with {}".format(settings.sch_plot_prog))
         exit(1)
 
     return commit1_hash, commit2_hash
@@ -491,16 +516,30 @@ def assemble_html(kicad_pcb_path, repo_path, kicad_project_dir, board_filename, 
         fout.write(stdout)
 
     project_name, _ = os.path.splitext(board_filename)
-    svg_files = sorted(fnmatch.filter(os.listdir(source_dir), project_name + '-[0-9][0-9]-*.svg'))
 
-    svg_page = sorted(fnmatch.filter(os.listdir(source_dir), project_name + '.svg'))
-    svg_files = svg_page + svg_files
+    # sch
+    svg_path_schs = []
+    if os.path.exists(os.path.join(source_dir, "sch")):
+        svg_schs = sorted(fnmatch.filter(os.listdir(os.path.join(source_dir, "sch")), project_name + '.svg'))
+        svg_schs_extra = sorted(fnmatch.filter(os.listdir(os.path.join(source_dir, "sch")), project_name + '-*.svg'))
+        svg_path_schs = [os.path.join("sch", svg_file) for svg_file in svg_schs + svg_schs_extra]
 
-    triptych_htmls = [svg_file.replace('.svg', '.html') for svg_file in svg_files]
+    # pcbs
+    svg_path_pcbs = []
+    if os.path.exists(os.path.join(source_dir, "pcb")):
+        svg_pcbs = sorted(fnmatch.filter(os.listdir(os.path.join(source_dir, "pcb")), project_name + '-[0-9][0-9]-*.svg'))
+        svg_path_pcbs = [os.path.join("pcb", svg_file) for svg_file in svg_pcbs]
 
-    for i, f in enumerate(svg_files):
+    svg_files = svg_path_schs + svg_path_pcbs
+    svg_path_files = svg_path_schs + svg_path_pcbs
 
-        file_name, _ = os.path.splitext(os.fsdecode(f))
+    triptych_htmls = [svg_file.replace('.svg', '.html').replace("pcb/", "").replace("sch/", "") for svg_file in svg_files]
+
+    page_id = -1
+
+    for i, f in enumerate(svg_path_files):
+
+        file_name, _ = os.path.splitext(os.fsdecode(os.path.basename(f)))
 
         try:
             layer_id = int(file_name.replace(project_name + "-", "")[0:2])
@@ -511,8 +550,9 @@ def assemble_html(kicad_pcb_path, repo_path, kicad_project_dir, board_filename, 
             layer_name = file_name.replace(project_name + "-", "")[3:]
             layer_name_orig = layer_name.replace("_", ".")  # not sure this is good and works all the time
         else:
-            layer_id = -1
-            layer_name = file_name
+            page_id = page_id -1
+            layer_id = page_id
+            layer_name = file_name.replace('board-', '')
             layer_name_orig = "Schematic"
 
         triptych_html = file_name + ".html"
@@ -522,7 +562,7 @@ def assemble_html(kicad_pcb_path, repo_path, kicad_project_dir, board_filename, 
             hash1=output_dir1,
             hash2=output_dir2,
             layer_name=layer_name,
-            filename_svg=f,
+            filename_svg=f.replace(" ", "%20"),
             triptych_html=triptych_html,
             layer_class=html_class_from_layer_id(layer_id),
         )
@@ -665,6 +705,7 @@ def process_diff(diff_text, mod):
 
                 if output.count("<td>") == indx2:
                     output += "<td></td>\n"
+
 
                 if output == "<td>":
                     output = ""
@@ -885,8 +926,8 @@ if __name__ == "__main__":
     scm.get_pages(kicad_sch_path, repo_path, kicad_project_dir, page_filename, commit1, commit2)
     commit1, commit2, commit_datetimes = scm.get_boards(kicad_pcb_path, repo_path, kicad_project_dir, board_filename, commit1, commit2)
 
-    output_dir1, output_dir2 = make_svg(kicad_pcb_path, repo_path, kicad_project_dir, board_filename, commit1, commit2, args.frame, args.numbers)
-    _, _ = make_svg_pages(kicad_sch_path, repo_path, kicad_project_dir, page_filename, commit1, commit2, args.frame, args.numbers)
+    output_dir1, output_dir2 = pcb_to_svg(kicad_pcb_path, repo_path, kicad_project_dir, board_filename, commit1, commit2, args.frame, args.numbers)
+    sch_to_svg(kicad_sch_path, repo_path, kicad_project_dir, page_filename, commit1, commit2, args.frame, args.numbers)
 
     generate_assets(repo_path, kicad_project_dir, board_filename, output_dir1, output_dir2)
 
