@@ -3,6 +3,8 @@ import sys
 from subprocess import PIPE, Popen
 from typing import List, Tuple
 
+import shutil
+
 args = ""
 
 global verbose
@@ -27,8 +29,8 @@ svnProg = "svn"
 diffProg = "diff"
 grepProg = "grep"
 
+sch_plot_prog = shutil.which('kicad-cli')
 pcb_plot_prog = "plot_kicad_pcb"
-sch_plot_prog = "/usr/bin/kicad-cli-nightly"
 
 web_dir = "web"
 
