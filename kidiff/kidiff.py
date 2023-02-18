@@ -183,9 +183,9 @@ def sch_to_svg(kicad_sch_path, repo_path, kicad_project_dir, page_filename, comm
     and generate .svg files. Routine is quick so all
     layers are plotted to svg."""
 
-    if not os.path.exists(settings.sch_plot_prog):
+    if not settings.sch_plot_prog:
         print("Skipping schematics diff")
-        print("{sch_plot_prog} is missing (Kicad >= v7)".format(sch_plot_prog=settings.sch_plot_prog))
+        print("kicad-cli (Kicad >= v7) is missing".format(sch_plot_prog=settings.sch_plot_prog))
         return
 
     if settings.verbose > 0:
