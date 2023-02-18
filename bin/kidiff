@@ -3,7 +3,7 @@
 # Wrapper for the plot_kicad_pcb.py script
 # It should work on Linux, macOS and on Windows
 
-# macOS users: If Kicad is installed on a non default place, 
+# macOS users: If Kicad is installed on a non default place,
 # then set the following variables with the path and the version
 # KICAD_CUSTOM_PATH, KICAD_CUSTOM_VERSION
 
@@ -60,7 +60,7 @@ case ${OSTYPE} in
 		case ${KICAD_VERSION} in
 			5*) ${KICAD_PATH}/Contents/Frameworks/Python.framework/Versions/Current/bin/python  "${SCRIPTPATH}/../kidiff/kidiff.py" "$@" ;;
 			6*) ${KICAD_PATH}/Contents/Frameworks/Python.framework/Versions/Current/bin/python3 "${SCRIPTPATH}/../kidiff/kidiff.py" "$@" ;;
-			*) 
+			*)
 				echo "KICAD_CUSTOM_VERSION not set"
 				exit 1
 				;;
@@ -72,6 +72,8 @@ case ${OSTYPE} in
 	*)
 		SCRIPT=$(readlink -f "$0")
 		SCRIPTPATH=$(dirname "${SCRIPT}")
+
+		export LD_LIBRARY_PATH="/usr/lib/kicad/lib/x86_64-linux-gnu/:${LD_LIBRARY_PATH}"
 		/usr/bin/env python3 "${SCRIPTPATH}/../kidiff/kidiff.py" "$@"
 		;;
 
