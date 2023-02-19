@@ -61,8 +61,9 @@ def processBoard(board_path, plot_dir, quiet=1, verbose=0, plot_frame=0, id_only
 
     board_version = board.GetFileFormatVersionAtLoad()
 
-    # Board made with Kicad >= 5.99
-    if board_version >= 20210000:
+    if board_version >= 20221018:
+        board_made_with = "(created with Kicad 7)"
+    elif board_version < 20221018 and board_version >= 20210000:
         board_made_with = "(created with Kicad 6)"
     else:
         board_made_with = "(created with Kicad 5)"
