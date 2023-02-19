@@ -16,12 +16,12 @@ import shlex
 import time
 
 if platform.system() == "Darwin":
-    sys.path.insert(0, "/Applications/Kicad/kicad.app/Contents/Frameworks/python/site-packages/")
-    sys.path.insert(0, "/Applications/KiCad/kicad.app/Contents/Frameworks/python/site-packages/")
+    sys.path.insert(0, "/Applications/Kicad/kicad.app/Contents/Frameworks/python/site-packages/") # Kicad 5
+    sys.path.insert(0, "/Applications/KiCad/kicad.app/Contents/Frameworks/python/site-packages/") # Kicad 6
     sys.path.insert(0, "/Applications/KiCad/KiCad.app/Contents/Frameworks/Python.framework/")
 
 if platform.system() == "Linux":
-    sys.path.insert(0, "/usr/lib/kicad/lib/python3/dist-packages/")
+    sys.path.insert(0, "/usr/lib/kicad/lib/python3/dist-packages/") # Kicad 7
 
 import pcbnew as pn
 
