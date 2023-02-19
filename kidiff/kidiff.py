@@ -188,6 +188,9 @@ def sch_to_svg(kicad_sch_path, repo_path, kicad_project_dir, page_filename, comm
         print("kicad-cli (Kicad >= v7) is missing".format(sch_plot_prog=settings.sch_plot_prog))
         return
 
+    if not os.path.exists(kicad_sch_path):
+        return
+
     if settings.verbose > 0:
         print("Exporting SCHs...")
 
