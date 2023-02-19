@@ -61,7 +61,7 @@ function save_svg_pan_zoom_settings(pan_zoom_oject, cname_base)
     return {panx, pany, width, height, zoom}
 }
 
-function retrieve_svg_pan_zoom_settings(pan_zoom_oject, cname_base) 
+function retrieve_svg_pan_zoom_settings(pan_zoom_oject, cname_base)
 {
     panx   = getCookie(cname_base + "_panx");
     pany   = getCookie(cname_base + "_pany");
@@ -323,3 +323,13 @@ window.onload = function()
     document.getElementById('hash2_image').style.display = "inline";
 
 };
+
+// Hide fields with missing images
+function imgError(image_id)
+{
+    // image.onerror = null;
+    console.log("ID", image_id)
+    document.getElementById(image_id).onerror = null;
+    document.getElementById(image_id).style.display = "none";
+    return true;
+}
