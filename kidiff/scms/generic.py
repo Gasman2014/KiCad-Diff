@@ -10,6 +10,10 @@ class scm:
         pass
 
     @staticmethod
+    def get_pages(kicad_sch_path, repo_path, kicad_project_dir, page_filename, commit1, commit2):
+        pass
+
+    @staticmethod
     def get_artefacts(repo_path, board_filename):
         pass
 

@@ -16,9 +16,12 @@ import shlex
 import time
 
 if platform.system() == "Darwin":
-    sys.path.insert(0, "/Applications/Kicad/kicad.app/Contents/Frameworks/python/site-packages/")
-    sys.path.insert(0, "/Applications/KiCad/kicad.app/Contents/Frameworks/python/site-packages/")
-    sys.path.insert(0, "/Applications/KiCad/KiCad.app/Contents/Frameworks/Python.framework/")
+    sys.path.insert(0, "/Applications/Kicad/kicad.app/Contents/Frameworks/python/site-packages/") # Kicad 5
+    sys.path.insert(0, "/Applications/KiCad/kicad.app/Contents/Frameworks/python/site-packages/") # Kicad 6
+    sys.path.insert(0, "/Applications/KiCad/KiCad.app/Contents/Frameworks/Python.framework/")     # Kicad 6 and 7
+
+if platform.system() == "Linux":
+    sys.path.insert(0, "/usr/lib/kicad/lib/python3/dist-packages/") # Kicad 7
 
 import pcbnew as pn
 
@@ -58,8 +61,9 @@ def processBoard(board_path, plot_dir, quiet=1, verbose=0, plot_frame=0, id_only
 
     board_version = board.GetFileFormatVersionAtLoad()
 
-    # Board made with Kicad >= 5.99
-    if board_version >= 20210000:
+    if board_version >= 20221018:
+        board_made_with = "(created with Kicad 7)"
+    elif board_version < 20221018 and board_version >= 20210000:
         board_made_with = "(created with Kicad 6)"
     else:
         board_made_with = "(created with Kicad 5)"
@@ -91,13 +95,13 @@ def processBoard(board_path, plot_dir, quiet=1, verbose=0, plot_frame=0, id_only
     popt.SetUseAuxOrigin(False)
     popt.SetMirror(False)
     popt.SetUseGerberAttributes(True)
-    popt.SetExcludeEdgeLayer(False)
+    # popt.SetExcludeEdgeLayer(False)
     popt.SetSubtractMaskFromSilk(False)
     popt.SetPlotReference(True)
     popt.SetPlotValue(True)
     popt.SetPlotInvisibleText(False)
     popt.SetPlotFrameRef(plot_frame)
-    popt.SetDrillMarksType(pn.PCB_PLOT_PARAMS.NO_DRILL_SHAPE)
+    # popt.SetDrillMarksType(pn.PCB_PLOT_PARAMS.NO_DRILL_SHAPE)
 
     # Kicad >= 6.0.3
     if ((version_major >= 6) and (version_minor >= 0) and (version_patch >= 3)):
@@ -146,25 +150,16 @@ def processBoard(board_path, plot_dir, quiet=1, verbose=0, plot_frame=0, id_only
 
         layer_filename = os.path.join(board_name + "-" + filename_sufix + ".svg")
 
-        pctl.SetLayer(layer_id)
-
         svg_path = pctl.GetPlotFileName()
         pctl.OpenPlotfile(filename_sufix, pn.PLOT_FORMAT_SVG, layer_name)
-        pctl.PlotLayer()
-        pctl.ClosePlot()
 
-        # Fix svg file on Kicad 6
-        # if (version_major > 5) or ((version_major == 5) and (version_minor == 99)):
-        #     if os.path.exists(svg_path):
-        #         cmd = shlex.split('kicad_svg_tweaks "{}"'.format(svg_path))
-        #         process = subprocess.Popen(cmd)
-        #         stdout, stderr = process.communicate()
-        #         if process.returncode > 0:
-        #             print(" ".join(cmd))
-        #             if stdout:
-        #                 print(stdout.decode('utf-8'))
-        #             if stderr:
-        #                 print(stderr.decode('utf-8'))
+        pctl.SetLayer(pn.Edge_Cuts)
+        pctl.PlotLayer()
+
+        pctl.SetLayer(layer_id)
+        pctl.PlotLayer()
+
+        pctl.ClosePlot()
 
         # WORKAROUND: Hide duplicated print since it is duplicated
         if (not quiet) and (i < len(layer_ids)-1):

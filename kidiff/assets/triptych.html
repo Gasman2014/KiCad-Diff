@@ -34,7 +34,7 @@
                         0   0   0   1   0" />
                         </filter>
                         </defs>
-                        <image x="0" y="0" height="100%" width="100%" filter="url(#f1)" xlink:href="../../{hash1}/{filename_svg}" />
+                        <image x="0" y="0" height="100%" width="100%" filter="url(#f1)" xlink:href="../../{hash1}/{filename_svg}" onerror="this.onerror=null; imgError('compo1');"/>
                     </svg>
                     <svg id="compo2">
                         <defs>
@@ -46,7 +46,7 @@
                         0   0   0  .5   0" />
                         </filter>
                         </defs>
-                        <image x="0" y="0" height="100%" width="100%" filter="url(#f2)" xlink:href="../../{hash2}/{filename_svg}" />
+                        <image x="0" y="0" height="100%" width="100%" filter="url(#f2)" xlink:href="../../{hash2}/{filename_svg}" onerror="this.onerror=null; imgError('compo2');"/>
                     </svg>
                 </g>
             </svg>
@@ -86,7 +86,7 @@
                     style="display: inline; width: 100%; min-width: 100%; max-width: 100%; height: 100%; min-height: 100%; max-height: 100%;"
                     version="1.1" class="{layer_class}">
                     <svg id="hash1_image">
-                        <image x="0" y="0" height="100%" width="100%" xlink:href="../../{hash1}/{filename_svg}"/>
+                        <image x="0" y="0" height="100%" width="100%" xlink:href="../../{hash1}/{filename_svg}" onerror="this.onerror=null; imgError('svg-img1-id');"/>
                     </svg>
                 </svg>
                 <div class="hash1-controls" style="background: rgba(255, 0, 0, 0.0); z-index: 10; position: absolute; top:10px; right: 50%; padding-right: 10px">
@@ -109,7 +109,7 @@
                     height: 100%; min-height: 100%; max-height: 100%;"
                     version="1.1"  class="{layer_class}">
                     <svg id="hash2_image">
-                        <image x="0" y="0" height="100%" width="100%" xlink:href="../../{hash2}/{filename_svg}"/>
+                        <image x="0" y="0" height="100%" width="100%" xlink:href="../../{hash2}/{filename_svg}" onerror="this.onerror=null; imgError('svg-img2-id');"/>
                     </svg>
                 </svg>
             </div>
