@@ -44,7 +44,7 @@ class scm(generic_scm):
 
             if not changed:
                 print("\nThere is no difference in .kicad_pcb file in selected commits")
-                return
+                return "", "", ""
 
         outputDir1 = os.path.join(
             settings.output_dir, artifact1

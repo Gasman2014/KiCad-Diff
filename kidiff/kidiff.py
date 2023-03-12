@@ -928,6 +928,8 @@ if __name__ == "__main__":
 
     scm.get_pages(kicad_sch_path, repo_path, kicad_project_dir, page_filename, commit1, commit2)
     commit1, commit2, commit_datetimes = scm.get_boards(kicad_pcb_path, repo_path, kicad_project_dir, board_filename, commit1, commit2)
+    if len(commit1) < 1:
+        quit()
 
     output_dir1, output_dir2 = pcb_to_svg(kicad_pcb_path, repo_path, kicad_project_dir, board_filename, commit1, commit2, args.frame, args.numbers)
     sch_to_svg(kicad_sch_path, repo_path, kicad_project_dir, page_filename, commit1, commit2, args.frame, args.numbers)
