@@ -1,2 +1,2 @@
 pexpect==4.8.0
-wxPython==4.0.7
+wxPython>=4.0.7
