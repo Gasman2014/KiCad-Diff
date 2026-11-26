@@ -113,9 +113,11 @@ class scm(generic_scm):
         """Returns the filenames of all .kicad_sch files in the `kicad_project_dir` directory."""
         
         if revision is None:
-            cmd = ["ls", "-1", kicad_project_dir]
+            # ls doesn't show paths, find includes current path, fixes aren't cross platform.
+            # My oh my, looks like svn is the right tool even without a revision!
+            cmd = ["svn", "ls", "-R", kicad_project_dir]
         else:
-            cmd = ["svn", "ls", "-r", revision, kicad_project_dir]
+            cmd = ["svn", "ls", "-R", "-r", revision, kicad_project_dir]
         
         stdout, stderr = settings.run_cmd(repo_path, cmd)
         
