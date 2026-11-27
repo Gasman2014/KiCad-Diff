@@ -109,8 +109,95 @@ class scm(generic_scm):
         return artifact1, artifact2, time1 + " " + time2
 
     @staticmethod
+    def _get_sch_files(repo_path, kicad_project_dir, revision=None):
+        """Returns the filenames of all .kicad_sch files in the `kicad_project_dir` directory."""
+        
+        if revision is None:
+            # ls doesn't show paths, find includes current path, fixes aren't cross platform.
+            # My oh my, looks like svn is the right tool even without a revision!
+            cmd = ["svn", "ls", "-R", kicad_project_dir]
+        else:
+            cmd = ["svn", "ls", "-R", "-r", revision, kicad_project_dir]
+        
+        stdout, stderr = settings.run_cmd(repo_path, cmd)
+        
+        return [path for path in stdout.splitlines() if path.endswith(".kicad_sch")]
+    
+    @staticmethod
+    def _write_pages(repo_path, kicad_project_dir, prj_path, output_dir, revision, is_local, page_filename):
+        """Writes all .kicad_sch files for one revision into output_dir."""
+        
+        if is_local:
+            local_root = os.path.join(repo_path, kicad_project_dir)
+            sch_files = scm._get_sch_files(repo_path, kicad_project_dir)
+        else:
+            sch_files = scm._get_sch_files(repo_path, kicad_project_dir, revision)
+        
+        # Always include the top-level sheet, even if it is not versioned locally.
+        if page_filename not in sch_files:
+            sch_files.append(page_filename)
+        
+        for filename in sch_files:
+            output_path = os.path.join(output_dir, filename)
+            output_subdir = os.path.dirname(output_path)
+            if output_subdir and not os.path.exists(output_subdir):
+                os.makedirs(output_subdir)
+            
+            if is_local:
+                input_path = os.path.join(local_root, filename)
+                if not os.path.exists(input_path):
+                    continue
+                shutil.copyfile(input_path, output_path)
+            else:
+                cmd = ["svn", "cat", "-r", revision, os.path.join(prj_path, filename)]
+                stdout, stderr = settings.run_cmd(repo_path, cmd)
+                with open(output_path, "w") as fout:
+                    fout.write(stdout)
+    
+    @staticmethod
+    def get_pages(kicad_sch_path, repo_path, kicad_project_dir, page_filename, commit1, commit2):
+        """Given two svn commits (in the format returned by the oddly named `get_artefacts`),
+        write out two sets of kicad_sch files to their respective directories (named after the
+        artifact). Returns the date and time of both commits"""
+        
+        if commit1 == "local":
+            commit1 = page_filename
+        
+        if commit2 == "local":
+            commit2 = page_filename
+        
+        isLocal1 = commit1 == page_filename
+        isLocal2 = commit2 == page_filename
+        
+        rev1 = "local" if isLocal1 else commit1.split(" ")[0]
+        rev2 = "local" if isLocal2 else commit2.split(" ")[0]
+        
+        # Fix the path when there is no subproject
+        prj_path = kicad_project_dir + "/"
+        if kicad_project_dir == ".":
+            prj_path = ""
+
+        if (not isLocal1) and (not isLocal2):
+            cmd = ["svn", "diff", "--summarize", "-r", rev1 + ":" + rev2, kicad_project_dir]
+            stdout, stderr = settings.run_cmd(repo_path, cmd)
+            changed = any(path.endswith(".kicad_sch") for path in stdout.splitlines())
+            
+            if not changed: # just show a message, but then carry on so the files still get written
+                print("\nThere is no difference in .kicad_sch file in selected commits")
+        
+        outputDir1 = os.path.join(settings.output_dir, rev1)
+        outputDir2 = os.path.join(settings.output_dir, rev2)
+        if not os.path.exists(outputDir1):
+            os.makedirs(outputDir1)
+        if not os.path.exists(outputDir2):
+            os.makedirs(outputDir2)
+        
+        scm._write_pages(repo_path, kicad_project_dir, prj_path, outputDir1, rev1, isLocal1, page_filename)
+        scm._write_pages(repo_path, kicad_project_dir, prj_path, outputDir2, rev2, isLocal2, page_filename)
+    
+    @staticmethod
     def get_artefacts(repo_path, kicad_project_dir, board_filename):
-        """Returns list of revisions from a directory"""
+        """Returns list of commits from a directory"""
 
         cmd = ["svn", "log", "--xml", "-r", "HEAD:0", os.path.join(kicad_project_dir, board_filename)]
         stdout, _ = settings.run_cmd(repo_path, cmd)
